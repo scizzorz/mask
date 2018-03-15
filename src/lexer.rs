@@ -1,3 +1,3 @@
-pub fn hello() {
-  println!("HELLO I AM LEXING!");
+pub fn lex(path: &str) {
+  println!("HELLO I AM LEXING {}", path);
 }
