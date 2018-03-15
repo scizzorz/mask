@@ -1,2 +1,3 @@
-# rain-rs
-A programming language, revisited.
+# Rain
+
+A programming language, revisited in Rust.
