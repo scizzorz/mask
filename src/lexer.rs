@@ -6,6 +6,8 @@ pub enum Token {
   EOF,
   Enter,
   Exit,
+  Space,
+  Comment(String),
 
   // Literals
   Null,
@@ -85,42 +87,57 @@ fn lex_number(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
   }
 }
 
+fn lex_pair(next: char, solo: Token, pair: Token, it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
+  it.next();
+  match it.peek() {
+    Some(&c) => {
+      if c == next {
+        it.next();
+        pair
+      }
+      else {
+        solo
+      }
+    }
 
-pub fn lex(input: &str) {
+    // is this right? if it.peek() fails, return the solo token?
+    None => solo
+  }
+}
+
+
+pub fn lex(input: &str) -> Vec<Token> {
   let mut tokens: Vec<Token> = Vec::new();
   let mut it = input.chars().peekable();
 
   while let Some(&c) = it.peek() {
-    match c {
-      '0'...'9' => {
-        tokens.push(lex_number(&mut it));
-      }
-      '-' => {
-        it.next();
-        match it.peek() {
-          Some(&'>') => {
-            tokens.push(Arr);
-            it.next();
-          }
-          _ => {
-            tokens.push(Sub);
-          }
-        }
-      }
-      '+' => {tokens.push(Add); it.next();}
-      '/' => {tokens.push(Div); it.next();}
-      '*' => {tokens.push(Mul); it.next();}
-      '(' => {tokens.push(Pal); it.next();}
-      ')' => {tokens.push(Par); it.next();}
-      '[' => {tokens.push(Sql); it.next();}
-      ']' => {tokens.push(Sqr); it.next();}
-      '{' => {tokens.push(Cul); it.next();}
-      '}' => {tokens.push(Cur); it.next();}
-      '<' => {tokens.push(Lt); it.next();}
-      '>' => {tokens.push(Gt); it.next();}
-      _ => {it.next();}
+    let x = match c {
+      '0'...'9' => lex_number(&mut it),
+      '-' => lex_pair('>', Sub, Arr, &mut it),
+      '<' => lex_pair('=', Lt, Le, &mut it),
+      '>' => lex_pair('=', Gt, Ge, &mut it),
+      '=' => lex_pair('=', Ass, Eql, &mut it),
+      '!' => lex_pair('=', Not, Ne, &mut it),
+      ':' => lex_pair(':', Col, Meta, &mut it),
+      '+' => {it.next(); Add}
+      '/' => {it.next(); Div}
+      '*' => {it.next(); Mul}
+      '(' => {it.next(); Pal}
+      ')' => {it.next(); Par}
+      '[' => {it.next(); Sql}
+      ']' => {it.next(); Sqr}
+      '{' => {it.next(); Cul}
+      '}' => {it.next(); Cur}
+      _ => {it.next(); Space}
+    };
+
+    match x {
+     Space => (),
+     Comment(_) => (),
+      _ => tokens.push(x),
     }
+
   }
 
-  println!("{:?}", tokens);
+  tokens
 }

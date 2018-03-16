@@ -17,5 +17,6 @@ fn main() {
 
   let path = argv.value_of("path").unwrap_or(".");
 
-  rain::lexer::lex(path);
+  let tokens = rain::lexer::lex(path);
+  println!("{:?}", tokens);
 }
