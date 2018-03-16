@@ -1,3 +1,5 @@
+use std;
+
 #[derive(Debug,Clone,PartialEq)]
 pub enum Token {
   // Structure
@@ -63,12 +65,34 @@ pub enum Token {
 use self::Token::*;
 
 
+fn lex_number(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
+  let mut digits = String::new();
+  while let Some(&c) = it.peek() {
+    match c {
+      '0'...'9' | '.' => {
+        it.next();
+        digits.push(c);
+      }
+      _ => {break}
+    }
+  }
+
+  match digits.contains(".") {
+    true => Float(digits.parse::<f64>().unwrap()),
+    false => Int(digits.parse::<i64>().unwrap())
+  }
+}
+
+
 pub fn lex(input: &str) {
   let mut tokens: Vec<Token> = Vec::new();
   let mut it = input.chars().peekable();
 
   while let Some(&c) = it.peek() {
     match c {
+      '0'...'9' => {
+        tokens.push(lex_number(&mut it));
+      }
       '-' => {
         it.next();
         match it.peek() {
