@@ -87,22 +87,20 @@ fn lex_number(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
   }
 }
 
+
 fn lex_pair(next: char, solo: Token, pair: Token, it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
   it.next();
-  match it.peek() {
-    Some(&c) => {
-      if c == next {
-        it.next();
-        pair
-      }
-      else {
-        solo
-      }
-    }
 
-    // is this right? if it.peek() fails, return the solo token?
-    None => solo
+  if let Some(&c) = it.peek() {
+    if c == next {
+      it.next();
+      return pair;
+    }
   }
+
+  // is this right? if peek() returns a None, we just return `solo`?
+  // seems right. None should be the EOF, meaning `solo` is the last token
+  solo
 }
 
 
