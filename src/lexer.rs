@@ -27,10 +27,12 @@ pub enum Token {
 
   // Symbols
   Arr, // ->
+  Ass, // =
   Col, // :
   Com, // ,
   Dot, // .
-  Ass, // =
+  Meta,// ::
+  Semi,// ;
 
   // Braces
   Cul, // {
@@ -42,24 +44,24 @@ pub enum Token {
 
   // Operators
   Add, // +
-  Div, // /
-  Mul, // *
-  Sub, // -
-  Dol, // $
-  Pct, // %
-  Car, // ^
   And, // &
-  Or,  // |
-  Not, // !
+  Car, // ^
+  Div, // /
+  Dol, // $
+  Mul, // *
   Neg, // ~
+  Not, // !
+  Or,  // |
+  Pct, // %
+  Sub, // -
 
   // Comparisons
-  Gt,  // >
-  Ge,  // >=
-  Lt,  // <
-  Le,  // <=
-  Ne,  // !=
   Eql, // ==
+  Ge,  // >=
+  Gt,  // >
+  Le,  // <=
+  Lt,  // <
+  Ne,  // !=
 }
 
 use self::Token::*;
