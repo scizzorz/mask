@@ -142,26 +142,51 @@ pub fn lex(input: &str) -> Vec<Token> {
 
   while let Some(&c) = it.peek() {
     let x = match c {
+      'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
       '0'...'9' => lex_number(&mut it),
+
+      // Compound
       '-' => lex_pair('>', Sub, Arr, &mut it),
       '<' => lex_pair('=', Lt, Le, &mut it),
       '>' => lex_pair('=', Gt, Ge, &mut it),
       '=' => lex_pair('=', Ass, Eql, &mut it),
       '!' => lex_pair('=', Not, Ne, &mut it),
       ':' => lex_pair(':', Col, Meta, &mut it),
-      '+' => {it.next(); Add}
-      '/' => {it.next(); Div}
-      '*' => {it.next(); Mul}
+
+      // Symbols
+      // -> Arr
+      // = Ass
+      // : Col
+      ',' => {it.next(); Com}
+      '.' => {it.next(); Dot}
+      // :: Meta
+      ';' => {it.next(); Semi}
+
+      // Braces
       '(' => {it.next(); Pal}
       ')' => {it.next(); Par}
       '[' => {it.next(); Sql}
       ']' => {it.next(); Sqr}
       '{' => {it.next(); Cul}
       '}' => {it.next(); Cur}
-      'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
+
+      // Operators
+      '+' => {it.next(); Add}
+      '&' => {it.next(); And}
+      '^' => {it.next(); Car}
+      '/' => {it.next(); Div}
+      '$' => {it.next(); Dol}
+      '*' => {it.next(); Mul}
+      '~' => {it.next(); Neg}
+      // ! Not
+      '|' => {it.next(); Or}
+      '%' => {it.next(); Pct}
+      // - Sub
+
       _ => {it.next(); Space}
     };
 
+    // don't emit tokens for spaces or comments
     match x {
      Space => (),
      Comment(_) => (),
