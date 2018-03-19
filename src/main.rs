@@ -18,5 +18,15 @@ fn main() {
   let path = argv.value_of("path").unwrap_or(".");
 
   let tokens = rain::lexer::lex(path);
-  println!("{:?}", tokens);
+  for token in tokens {
+    match token {
+      rain::lexer::Token::Newline | rain::lexer::Token::EOF => {
+        println!("{:?}", token);
+      }
+
+      _ => {
+        print!("{:?} ", token);
+      }
+    }
+  }
 }
