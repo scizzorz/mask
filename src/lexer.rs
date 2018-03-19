@@ -24,6 +24,7 @@ pub enum Token {
   For,
   Func,
   If,
+  In,
   Return,
   While,
 
@@ -88,6 +89,37 @@ fn lex_number(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
 }
 
 
+fn lex_name(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
+  let mut name = String::new();
+  name.push(it.next().unwrap());
+
+  while let Some(&c) = it.peek() {
+    match c {
+      'a'...'z' | 'A'...'Z' | '0'...'9' | '_' => {
+        it.next();
+        name.push(c);
+      }
+      _ => {break}
+    }
+  }
+
+  match name.as_str() {
+    "true" => Bool(true),
+    "false" => Bool(false),
+    "break" => Break,
+    "continue" => Continue,
+    "else" => Else,
+    "for" => For,
+    "func" => Func,
+    "if" => If,
+    "in" => In,
+    "return" => Return,
+    "while" => While,
+    _ => Name(name)
+  }
+}
+
+
 fn lex_pair(next: char, solo: Token, pair: Token, it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
   it.next();
 
@@ -126,6 +158,7 @@ pub fn lex(input: &str) -> Vec<Token> {
       ']' => {it.next(); Sqr}
       '{' => {it.next(); Cul}
       '}' => {it.next(); Cur}
+      'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
       _ => {it.next(); Space}
     };
 
