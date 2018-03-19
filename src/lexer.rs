@@ -1,4 +1,6 @@
 use std;
+use codemap::File;
+use codemap::Spanned;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
@@ -75,7 +77,7 @@ type LexIter<'a> = std::iter::Peekable<std::iter::Enumerate<std::str::Chars<'a>>
 
 fn lex_number(it: &mut LexIter) -> Token {
   let mut digits = String::new();
-  while let Some(&(i, c)) = it.peek() {
+  while let Some(&(_i, c)) = it.peek() {
     match c {
       '0'...'9' | '.' => {
         it.next();
@@ -96,7 +98,7 @@ fn lex_name(it: &mut LexIter) -> Token {
   let mut name = String::new();
   name.push(it.next().unwrap().1);
 
-  while let Some(&(i, c)) = it.peek() {
+  while let Some(&(_i, c)) = it.peek() {
     match c {
       'a'...'z' | 'A'...'Z' | '0'...'9' | '_' => {
         it.next();
@@ -127,7 +129,7 @@ fn lex_comment(it: &mut LexIter) -> Token {
   let mut comment = String::new();
   it.next();
 
-  while let Some(&(i, c)) = it.peek() {
+  while let Some(&(_i, c)) = it.peek() {
     match c {
       '\n' => {break}
       _ => {
@@ -146,7 +148,7 @@ fn lex_indent(it: &mut LexIter) -> u64 {
   let mut indent: u64 = 0;
   it.next();
 
-  while let Some(&(i, c)) = it.peek() {
+  while let Some(&(_i, c)) = it.peek() {
     match c {
       ' ' => {
         it.next();
@@ -163,7 +165,7 @@ fn lex_indent(it: &mut LexIter) -> u64 {
 fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Token {
   it.next();
 
-  if let Some(&(i, c)) = it.peek() {
+  if let Some(&(_i, c)) = it.peek() {
     if c == next {
       it.next();
       return pair;
@@ -176,12 +178,11 @@ fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Token {
 }
 
 
-pub fn lex(input: &str) -> Vec<Token> {
-  let mut tokens: Vec<Token> = Vec::new();
-  let mut it: LexIter = input.chars().enumerate().peekable();
+pub fn lex(input: &File) -> Vec<Spanned<Token>> {
+  let mut tokens: Vec<Spanned<Token>> = Vec::new();
+  let mut it: LexIter = input.source().chars().enumerate().peekable();
 
   while let Some(&(i, c)) = it.peek() {
-    let start_i = i;
     let x = match c {
       '#' => lex_comment(&mut it),
       'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
@@ -232,25 +233,27 @@ pub fn lex(input: &str) -> Vec<Token> {
       _ => {it.next(); Space}
     };
 
+    // figure out what the span was for this token
+    // either there's something we can peek, or the span is until EOF
+    let mut end_i = if let Some(&(j, _)) = it.peek() {
+      j
+    }
+    else {
+      input.source().len()
+    };
+
     // don't emit tokens for spaces or comments
     match x {
       Space => (),
       Comment(_) => (),
-      _ => tokens.push(x),
+      _ => tokens.push(Spanned {node: x, span: input.span.subspan(i as u64, end_i as u64)}),
     }
 
-    let mut end_i = 0;
-    if let Some(&(j, _)) = it.peek() {
-      end_i = j;
-      println!("tokenized from {:?} to {:?}", start_i, end_i);
-    }
-    else {
-      println!("tokenized from {:?} to end", start_i);
-    }
   }
 
-  tokens.push(Newline);
-  tokens.push(EOF);
+  //tokens.push(Newline);
+  let end = input.source().len() as u64;
+  tokens.push(Spanned {node: EOF, span: input.span.subspan(end, end)});
 
   tokens
 }

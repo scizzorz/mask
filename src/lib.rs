@@ -6,4 +6,5 @@ mod tests {
     }
 }
 
+extern crate codemap;
 pub mod lexer;
