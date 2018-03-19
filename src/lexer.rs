@@ -120,6 +120,25 @@ fn lex_name(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
 }
 
 
+fn lex_comment(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
+  let mut comment = String::new();
+  it.next();
+
+  while let Some(&c) = it.peek() {
+    match c {
+      '\n' => {break}
+      _ => {
+        it.next();
+        comment.push(c);
+      }
+    }
+  }
+
+  println!("Comment: {:?}", comment);
+  Comment(comment)
+}
+
+
 fn lex_pair(next: char, solo: Token, pair: Token, it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
   it.next();
 
@@ -142,6 +161,7 @@ pub fn lex(input: &str) -> Vec<Token> {
 
   while let Some(&c) = it.peek() {
     let x = match c {
+      '#' => lex_comment(&mut it),
       'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
       '0'...'9' => lex_number(&mut it),
 
