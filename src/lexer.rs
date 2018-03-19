@@ -7,6 +7,7 @@ pub enum Token {
   Enter,
   Exit,
   Space,
+  Newline,
   Comment(String),
 
   // Literals
@@ -139,6 +140,24 @@ fn lex_comment(it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
 }
 
 
+fn lex_indent(it: &mut std::iter::Peekable<std::str::Chars>) -> u64 {
+  let mut indent: u64 = 0;
+  it.next();
+
+  while let Some(&c) = it.peek() {
+    match c {
+      ' ' => {
+        it.next();
+        indent += 1;
+      }
+      _ => {break}
+    }
+  }
+
+  indent
+}
+
+
 fn lex_pair(next: char, solo: Token, pair: Token, it: &mut std::iter::Peekable<std::str::Chars>) -> Token {
   it.next();
 
@@ -164,6 +183,10 @@ pub fn lex(input: &str) -> Vec<Token> {
       '#' => lex_comment(&mut it),
       'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
       '0'...'9' => lex_number(&mut it),
+      '\n' => {
+        lex_indent(&mut it);
+        Newline
+      }
 
       // Compound
       '-' => lex_pair('>', Sub, Arr, &mut it),
@@ -208,12 +231,14 @@ pub fn lex(input: &str) -> Vec<Token> {
 
     // don't emit tokens for spaces or comments
     match x {
-     Space => (),
-     Comment(_) => (),
+      Space => (),
+      Comment(_) => (),
       _ => tokens.push(x),
     }
-
   }
+
+  tokens.push(Newline);
+  tokens.push(EOF);
 
   tokens
 }
