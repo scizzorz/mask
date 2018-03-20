@@ -1,6 +1,11 @@
-use std;
 use codemap::File;
 use codemap::Spanned;
+use self::Token::*;
+use std::iter::Enumerate;
+use std::iter::Peekable;
+use std::str::Chars;
+
+type LexIter<'a> = Peekable<Enumerate<Chars<'a>>>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Token {
@@ -17,18 +22,24 @@ pub enum Token {
   Bool(bool),
   Float(f64),
   Int(i64),
-  StrLit(String),
+  Str(String),
   Name(String),
 
   // Keywords
   Break,
+  Catch,
   Continue,
   Else,
   For,
   Func,
   If,
+  Import,
   In,
+  Loop,
+  Pass,
   Return,
+  Save,
+  Var,
   While,
 
   // Symbols
@@ -51,6 +62,7 @@ pub enum Token {
   // Operators
   Add, // +
   And, // &
+  At,  // @
   Car, // ^
   Div, // /
   Dol, // $
@@ -69,10 +81,6 @@ pub enum Token {
   Lt,  // <
   Ne,  // !=
 }
-
-use self::Token::*;
-
-type LexIter<'a> = std::iter::Peekable<std::iter::Enumerate<std::str::Chars<'a>>>;
 
 
 fn lex_number(it: &mut LexIter) -> Token {
@@ -111,15 +119,24 @@ fn lex_name(it: &mut LexIter) -> Token {
   match name.as_str() {
     "true" => Bool(true),
     "false" => Bool(false),
+    "null" => Null,
+
     "break" => Break,
+    "catch" => Catch,
     "continue" => Continue,
     "else" => Else,
     "for" => For,
     "func" => Func,
     "if" => If,
+    "import" => Import,
     "in" => In,
+    "loop" => Loop,
+    "pass" => Pass,
     "return" => Return,
+    "save" => Save,
+    "var" => Var,
     "while" => While,
+
     _ => Name(name)
   }
 }
@@ -220,6 +237,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
       // Operators
       '+' => {it.next(); Add}
       '&' => {it.next(); And}
+      '@' => {it.next(); At}
       '^' => {it.next(); Car}
       '/' => {it.next(); Div}
       '$' => {it.next(); Dol}
