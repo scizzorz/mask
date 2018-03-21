@@ -10,15 +10,34 @@ use std::path::Path;
 use std::io::prelude::*;
 
 fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<rain::lexer::Token>>) {
+  let mut indent = 0;
+
   for token in tokens {
     match token.node {
       rain::lexer::Token::Newline | rain::lexer::Token::EOF => {
         println!("{:?}", token.node);
+        for _ in 0..indent {
+          print!(" ");
+        }
+      }
+
+      rain::lexer::Token::Enter => {
+        indent += 2;
+        println!("{:?}", token.node);
+        for _ in 0..indent {
+          print!(" ");
+        }
+      }
+
+      rain::lexer::Token::Exit => {
+        indent -= 2;
+        print!("{:?} ", token.node);
       }
 
       _ => {
         let span = map.look_up_span(token.span);
-        print!("{}:{}:{}: {:?} ", span.file.name(), span.begin.line, span.begin.column, token.node);
+        print!("{:?} ", token.node);
+        //print!("{}:{}:{}: {:?} ", span.file.name(), span.begin.line, span.begin.column, token.node);
         //print!("{:?}<{:?}> ", token.node, );
       }
     }

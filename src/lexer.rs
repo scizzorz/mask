@@ -198,57 +198,87 @@ fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Token {
 pub fn lex(input: &File) -> Vec<Spanned<Token>> {
   let mut tokens: Vec<Spanned<Token>> = Vec::new();
   let mut it: LexIter = input.source().chars().enumerate().peekable();
+  let mut indent_stack: Vec<u64> = Vec::new();
+  let mut current_indent: u64 = 0;
+
+  // start at indentation 0
+  indent_stack.push(current_indent);
 
   while let Some(&(i, c)) = it.peek() {
-    let x = match c {
-      '#' => lex_comment(&mut it),
-      'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
-      '0'...'9' => lex_number(&mut it),
-      '\n' => {
-        lex_indent(&mut it);
-        Newline
+    let x = if current_indent < indent_stack[indent_stack.len() - 1] {
+      indent_stack.pop();
+      Exit
+    }
+    else {
+      match c {
+        '#' => lex_comment(&mut it),
+        'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
+        '0'...'9' => lex_number(&mut it),
+        '\n' => {
+          let indent = lex_indent(&mut it);
+
+          if let Some(&(_, c)) = it.peek() {
+            match c {
+              '\n' => Space,
+              _ => {
+                current_indent = indent;
+                // if this panics, there's a bug - indent_stack should always have a 0
+                if indent > indent_stack[indent_stack.len() - 1] {
+                  indent_stack.push(indent);
+                  Enter
+                }
+                else {
+                  Newline
+                }
+              }
+            }
+          }
+          else {
+            Newline
+          }
+        }
+
+        // Compound
+        '-' => lex_pair('>', Sub, Arr, &mut it),
+        '<' => lex_pair('=', Lt, Le, &mut it),
+        '>' => lex_pair('=', Gt, Ge, &mut it),
+        '=' => lex_pair('=', Ass, Eql, &mut it),
+        '!' => lex_pair('=', Not, Ne, &mut it),
+        ':' => lex_pair(':', Col, Meta, &mut it),
+
+        // Symbols
+        // -> Arr
+        // = Ass
+        // : Col
+        ',' => {it.next(); Com}
+        '.' => {it.next(); Dot}
+        // :: Meta
+        ';' => {it.next(); Semi}
+
+        // Braces
+        '(' => {it.next(); Pal}
+        ')' => {it.next(); Par}
+        '[' => {it.next(); Sql}
+        ']' => {it.next(); Sqr}
+        '{' => {it.next(); Cul}
+        '}' => {it.next(); Cur}
+
+        // Operators
+        '+' => {it.next(); Add}
+        '&' => {it.next(); And}
+        '@' => {it.next(); At}
+        '^' => {it.next(); Car}
+        '/' => {it.next(); Div}
+        '$' => {it.next(); Dol}
+        '*' => {it.next(); Mul}
+        '~' => {it.next(); Neg}
+        // ! Not
+        '|' => {it.next(); Or}
+        '%' => {it.next(); Pct}
+        // - Sub
+
+        _ => {it.next(); Space}
       }
-
-      // Compound
-      '-' => lex_pair('>', Sub, Arr, &mut it),
-      '<' => lex_pair('=', Lt, Le, &mut it),
-      '>' => lex_pair('=', Gt, Ge, &mut it),
-      '=' => lex_pair('=', Ass, Eql, &mut it),
-      '!' => lex_pair('=', Not, Ne, &mut it),
-      ':' => lex_pair(':', Col, Meta, &mut it),
-
-      // Symbols
-      // -> Arr
-      // = Ass
-      // : Col
-      ',' => {it.next(); Com}
-      '.' => {it.next(); Dot}
-      // :: Meta
-      ';' => {it.next(); Semi}
-
-      // Braces
-      '(' => {it.next(); Pal}
-      ')' => {it.next(); Par}
-      '[' => {it.next(); Sql}
-      ']' => {it.next(); Sqr}
-      '{' => {it.next(); Cul}
-      '}' => {it.next(); Cur}
-
-      // Operators
-      '+' => {it.next(); Add}
-      '&' => {it.next(); And}
-      '@' => {it.next(); At}
-      '^' => {it.next(); Car}
-      '/' => {it.next(); Div}
-      '$' => {it.next(); Dol}
-      '*' => {it.next(); Mul}
-      '~' => {it.next(); Neg}
-      // ! Not
-      '|' => {it.next(); Or}
-      '%' => {it.next(); Pct}
-      // - Sub
-
-      _ => {it.next(); Space}
     };
 
     // figure out what the span was for this token
@@ -260,17 +290,44 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
       input.source().len()
     };
 
-    // don't emit tokens for spaces or comments
+    let span = input.span.subspan(i as u64, end_i as u64);
     match x {
+      // don't emit tokens for spaces or comments
       Space => (),
       Comment(_) => (),
-      _ => tokens.push(Spanned {node: x, span: input.span.subspan(i as u64, end_i as u64)}),
+
+      // don't insert duplicate newlines
+      Newline => {
+        match tokens.last().cloned() {
+          None => (),
+          Some(x) => {
+            if x.node != Newline {
+              tokens.push(Spanned {node: Newline, span: span});
+            }
+          },
+        }
+      }
+
+      // exit should always be followed by a Newline
+      Exit => {
+        tokens.push(Spanned {node: Exit, span: span});
+        tokens.push(Spanned {node: Newline, span: span});
+      }
+
+      // emit everything else
+      _ => tokens.push(Spanned {node: x, span: span}),
     }
 
   }
 
-  //tokens.push(Newline);
   let end = input.source().len() as u64;
+
+  while indent_stack.len() > 1 {
+    tokens.push(Spanned {node: Exit, span: input.span.subspan(end, end)});
+    tokens.push(Spanned {node: Newline, span: input.span.subspan(end, end)});
+    indent_stack.pop();
+  }
+
   tokens.push(Spanned {node: EOF, span: input.span.subspan(end, end)});
 
   tokens
