@@ -130,7 +130,7 @@ pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
 
   while !peek_token(&mut it, Token::EOF) {
     nodes.push(parse_stmt(&mut it)?);
-    require_token(&mut it, Token::Newline)?;
+    require_token(&mut it, Token::End)?;
   }
 
   Ok(Node::Block(nodes))

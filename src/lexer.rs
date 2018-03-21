@@ -14,7 +14,7 @@ pub enum Token {
   Enter,
   Exit,
   Space,
-  Newline,
+  End,
   Comment(String),
 
   // Literals
@@ -228,13 +228,13 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
                   Enter
                 }
                 else {
-                  Newline
+                  End
                 }
               }
             }
           }
           else {
-            Newline
+            End
           }
         }
 
@@ -296,22 +296,22 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
       Space => (),
       Comment(_) => (),
 
-      // don't insert duplicate newlines
-      Newline => {
+      // don't insert duplicate newlines, or file-leading newlines
+      End => {
         match tokens.last().cloned() {
           None => (),
           Some(x) => {
-            if x.node != Newline {
-              tokens.push(Spanned {node: Newline, span: span});
+            if x.node != End {
+              tokens.push(Spanned {node: End, span: span});
             }
           },
         }
       }
 
-      // exit should always be followed by a Newline
+      // exit should always be followed by a End
       Exit => {
         tokens.push(Spanned {node: Exit, span: span});
-        tokens.push(Spanned {node: Newline, span: span});
+        tokens.push(Spanned {node: End, span: span});
       }
 
       // emit everything else
@@ -324,7 +324,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
 
   while indent_stack.len() > 1 {
     tokens.push(Spanned {node: Exit, span: input.span.subspan(end, end)});
-    tokens.push(Spanned {node: Newline, span: input.span.subspan(end, end)});
+    tokens.push(Spanned {node: End, span: input.span.subspan(end, end)});
     indent_stack.pop();
   }
 
