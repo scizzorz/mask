@@ -289,8 +289,8 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
     else {
       input.source().len()
     };
-
     let span = input.span.subspan(i as u64, end_i as u64);
+
     match x {
       // don't emit tokens for spaces or comments
       Space => (),
@@ -320,15 +320,19 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
 
   }
 
+  // make a span for all closing tokens
   let end = input.source().len() as u64;
+  let span = input.span.subspan(end, end);
 
+  // exit blocks that are open at EOF
   while indent_stack.len() > 1 {
-    tokens.push(Spanned {node: Exit, span: input.span.subspan(end, end)});
-    tokens.push(Spanned {node: End, span: input.span.subspan(end, end)});
+    tokens.push(Spanned {node: Exit, span: span});
+    tokens.push(Spanned {node: End, span: span});
     indent_stack.pop();
   }
 
-  tokens.push(Spanned {node: EOF, span: input.span.subspan(end, end)});
+  // push the EOF token
+  tokens.push(Spanned {node: EOF, span: span});
 
   tokens
 }
