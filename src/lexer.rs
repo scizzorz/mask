@@ -336,3 +336,104 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
 
   tokens
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+  use codemap::CodeMap;
+
+  #[test]
+  fn lex_numbers() {
+    let mut map = CodeMap::new();
+    let file = map.add_file(String::from("_test"), String::from("0 5 05 5.3 1.234 1. 0. 0.0"));
+    let tokens = lex(&file);
+    assert_eq!(tokens.len(), 9);
+    assert_eq!(tokens[0].node, Int(0));
+    assert_eq!(tokens[1].node, Int(5));
+    assert_eq!(tokens[2].node, Int(5));
+    assert_eq!(tokens[3].node, Float(5.3));
+    assert_eq!(tokens[4].node, Float(1.234));
+    assert_eq!(tokens[5].node, Float(1.0));
+    assert_eq!(tokens[6].node, Float(0.0));
+    assert_eq!(tokens[7].node, Float(0.0));
+    assert_eq!(tokens[8].node, EOF);
+  }
+
+  #[test]
+  fn lex_keywords() {
+    let mut map = CodeMap::new();
+    let file = map.add_file(String::from("_test"), String::from("break catch continue else for func if import in loop pass return save var while name true false null"));
+    let tokens = lex(&file);
+    assert_eq!(tokens.len(), 20);
+    assert_eq!(tokens[0].node, Break);
+    assert_eq!(tokens[1].node, Catch);
+    assert_eq!(tokens[2].node, Continue);
+    assert_eq!(tokens[3].node, Else);
+    assert_eq!(tokens[4].node, For);
+    assert_eq!(tokens[5].node, Func);
+    assert_eq!(tokens[6].node, If);
+    assert_eq!(tokens[7].node, Import);
+    assert_eq!(tokens[8].node, In);
+    assert_eq!(tokens[9].node, Loop);
+    assert_eq!(tokens[10].node, Pass);
+    assert_eq!(tokens[11].node, Return);
+    assert_eq!(tokens[12].node, Save);
+    assert_eq!(tokens[13].node, Var);
+    assert_eq!(tokens[14].node, While);
+    assert_eq!(tokens[15].node, Name(String::from("name")));
+    assert_eq!(tokens[16].node, Bool(true));
+    assert_eq!(tokens[17].node, Bool(false));
+    assert_eq!(tokens[18].node, Null);
+    assert_eq!(tokens[19].node, EOF);
+  }
+
+  #[test]
+  fn lex_symbols() {
+    let mut map = CodeMap::new();
+    let file = map.add_file(String::from("_test"), String::from("-> = : : , . :: ; {} () [] +&@^/$*~!|%- == >= - > = <= < = != ! ="));
+    let tokens = lex(&file);
+    assert_eq!(tokens.len(), 38);
+    assert_eq!(tokens[0].node, Arr);
+    assert_eq!(tokens[1].node, Ass);
+    assert_eq!(tokens[2].node, Col);
+    assert_eq!(tokens[3].node, Col);
+    assert_eq!(tokens[4].node, Com);
+    assert_eq!(tokens[5].node, Dot);
+    assert_eq!(tokens[6].node, Meta);
+    assert_eq!(tokens[7].node, Semi);
+
+    assert_eq!(tokens[8].node, Cul);
+    assert_eq!(tokens[9].node, Cur);
+    assert_eq!(tokens[10].node, Pal);
+    assert_eq!(tokens[11].node, Par);
+    assert_eq!(tokens[12].node, Sql);
+    assert_eq!(tokens[13].node, Sqr);
+
+    assert_eq!(tokens[14].node, Add);
+    assert_eq!(tokens[15].node, And);
+    assert_eq!(tokens[16].node, At);
+    assert_eq!(tokens[17].node, Car);
+    assert_eq!(tokens[18].node, Div);
+    assert_eq!(tokens[19].node, Dol);
+    assert_eq!(tokens[20].node, Mul);
+    assert_eq!(tokens[21].node, Neg);
+    assert_eq!(tokens[22].node, Not);
+    assert_eq!(tokens[23].node, Or);
+    assert_eq!(tokens[24].node, Pct);
+    assert_eq!(tokens[25].node, Sub);
+    assert_eq!(tokens[26].node, Eql);
+    assert_eq!(tokens[27].node, Ge);
+    assert_eq!(tokens[28].node, Sub);
+    assert_eq!(tokens[29].node, Gt);
+    assert_eq!(tokens[30].node, Ass);
+    assert_eq!(tokens[31].node, Le);
+    assert_eq!(tokens[32].node, Lt);
+    assert_eq!(tokens[33].node, Ass);
+    assert_eq!(tokens[34].node, Ne);
+    assert_eq!(tokens[35].node, Not);
+    assert_eq!(tokens[36].node, Ass);
+    assert_eq!(tokens[37].node, EOF);
+  }
+
+  // TODO add lex_structure for testing enter/exit/comment/etc
+}
