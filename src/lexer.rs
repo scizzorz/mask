@@ -435,5 +435,111 @@ mod tests {
     assert_eq!(tokens[37].node, EOF);
   }
 
-  // TODO add lex_structure for testing enter/exit/comment/etc
+  #[test]
+  fn lex_structure() {
+    // this test uses a single trailing hash to avoid trailing whitespace errors in git and editors
+    // the test uses trailing whitespace to test lexing them
+    // (maybe Rain shouldn't allow trailing whitespace? who knows)
+    let code = String::from("
+  #
+ #
+pass
+if true # comment
+  pass
+else
+  pass
+   #
+if true   #
+  if doublenest
+    pass
+  normalexit
+else
+  if doublenest
+    if triplenest
+      pass
+pass
+
+# blank line with comment
+
+# indented second comment
+
+if true # should always evaluate
+  pass
+
+else
+  # blank line with comment
+  #
+    pass
+
+  #
+    ".replace("#\n", "\n"));
+    let mut map = CodeMap::new();
+    let file = map.add_file(String::from("_test"), code);
+    let tokens = lex(&file);
+    assert_eq!(tokens.len(), 64);
+    assert_eq!(tokens[0].node, Pass);
+    assert_eq!(tokens[1].node, End);
+    assert_eq!(tokens[2].node, If);
+    assert_eq!(tokens[3].node, Bool(true));
+    assert_eq!(tokens[4].node, Enter);
+    assert_eq!(tokens[5].node, Pass);
+    assert_eq!(tokens[6].node, End);
+    assert_eq!(tokens[7].node, Exit);
+    assert_eq!(tokens[8].node, End);
+    assert_eq!(tokens[9].node, Else);
+    assert_eq!(tokens[10].node, Enter);
+    assert_eq!(tokens[11].node, Pass);
+    assert_eq!(tokens[12].node, End);
+    assert_eq!(tokens[13].node, Exit);
+    assert_eq!(tokens[14].node, End);
+    assert_eq!(tokens[15].node, If);
+    assert_eq!(tokens[16].node, Bool(true));
+    assert_eq!(tokens[17].node, Enter);
+    assert_eq!(tokens[18].node, If);
+    assert_eq!(tokens[19].node, Name(String::from("doublenest")));
+    assert_eq!(tokens[20].node, Enter);
+    assert_eq!(tokens[21].node, Pass);
+    assert_eq!(tokens[22].node, End);
+    assert_eq!(tokens[23].node, Exit);
+    assert_eq!(tokens[24].node, End);
+    assert_eq!(tokens[25].node, Name(String::from("normalexit")));
+    assert_eq!(tokens[26].node, End);
+    assert_eq!(tokens[27].node, Exit);
+    assert_eq!(tokens[28].node, End);
+    assert_eq!(tokens[29].node, Else);
+    assert_eq!(tokens[30].node, Enter);
+    assert_eq!(tokens[31].node, If);
+    assert_eq!(tokens[32].node, Name(String::from("doublenest")));
+    assert_eq!(tokens[33].node, Enter);
+    assert_eq!(tokens[34].node, If);
+    assert_eq!(tokens[35].node, Name(String::from("triplenest")));
+    assert_eq!(tokens[36].node, Enter);
+    assert_eq!(tokens[37].node, Pass);
+    assert_eq!(tokens[38].node, End);
+    assert_eq!(tokens[39].node, Exit);
+    assert_eq!(tokens[40].node, End);
+    assert_eq!(tokens[41].node, Exit);
+    assert_eq!(tokens[42].node, End);
+    assert_eq!(tokens[43].node, Exit);
+    assert_eq!(tokens[44].node, End);
+    assert_eq!(tokens[45].node, Pass);
+    assert_eq!(tokens[46].node, End);
+    assert_eq!(tokens[47].node, If);
+    assert_eq!(tokens[48].node, Bool(true));
+    assert_eq!(tokens[49].node, Enter);
+    assert_eq!(tokens[50].node, Pass);
+    assert_eq!(tokens[51].node, End);
+    assert_eq!(tokens[52].node, Exit);
+    assert_eq!(tokens[53].node, End);
+    assert_eq!(tokens[54].node, Else);
+    assert_eq!(tokens[55].node, Enter);
+    assert_eq!(tokens[56].node, Enter);
+    assert_eq!(tokens[57].node, Pass);
+    assert_eq!(tokens[58].node, End);
+    assert_eq!(tokens[59].node, Exit);
+    assert_eq!(tokens[60].node, End);
+    assert_eq!(tokens[61].node, Exit);
+    assert_eq!(tokens[62].node, End);
+    assert_eq!(tokens[63].node, EOF);
+  }
 }
