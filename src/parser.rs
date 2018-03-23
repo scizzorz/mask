@@ -17,6 +17,17 @@ pub enum Node {
   Expr,
   Pass,
 
+  BinExpr {
+    lhs: Box<Node>,
+    operator: Token,
+    rhs: Box<Node>,
+  },
+
+  UnExpr {
+    val: Box<Node>,
+    operator: Token,
+  },
+
   // Literals
   Null,
   Bool(bool),
@@ -32,6 +43,8 @@ pub enum Node {
 pub enum ParseErrorKind {
   UnexpectedToken(Token),
   UnexpectedEOF,
+  UnknownBinaryOperator,
+  UnknownUnaryOperator,
 }
 
 
