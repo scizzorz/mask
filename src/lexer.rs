@@ -39,6 +39,7 @@ pub enum Token {
   Pass,
   Return,
   Save,
+  Table,
   Var,
   While,
 
@@ -134,6 +135,7 @@ fn lex_name(it: &mut LexIter) -> Token {
     "pass" => Pass,
     "return" => Return,
     "save" => Save,
+    "table" => Table,
     "var" => Var,
     "while" => While,
 

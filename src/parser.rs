@@ -24,6 +24,7 @@ pub enum Node {
   Int(i64),
   Str(String),
   Name(String),
+  Table,
 }
 
 
