@@ -19,13 +19,13 @@ pub enum Node {
 
   BinExpr {
     lhs: Box<Node>,
-    operator: Token,
+    op: Token,
     rhs: Box<Node>,
   },
 
   UnExpr {
     val: Box<Node>,
-    operator: Token,
+    op: Token,
   },
 
   // Literals
@@ -36,6 +36,14 @@ pub enum Node {
   Str(String),
   Name(String),
   Table,
+}
+
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Op {
+  Right(u32),
+  Left(u32),
+  None,
 }
 
 
@@ -89,7 +97,118 @@ fn require_token(it: &mut ParseIter, kind: Token) -> Result<(), ParseErrorKind> 
 }
 
 
-fn parse_expr(it: &mut ParseIter) -> Parse {
+fn op_precedence(op: &Token) -> Op {
+  match *op {
+    Token::Add | Token::Sub => Op::Left(10),
+    Token::Div | Token::Mul => Op::Left(20),
+    Token::Car => Op::Right(30),
+    _ => Op::None,
+  }
+}
+
+
+fn parse_binexpr(it: &mut ParseIter) -> Parse {
+  let mut expr = parse_unexpr(it)?;
+
+  while let Some(&c) = it.peek() {
+    let prec = op_precedence(&c.node);
+
+    if let Op::None = prec {
+      break;
+    }
+
+    it.next();
+
+    let rhs = parse_unexpr(it)?;
+
+    if let Node::BinExpr{lhs: cur_lhs, op: cur_op, rhs: cur_rhs} = expr.clone() {
+      let cur_prec = op_precedence(&cur_op);
+      match (cur_prec, prec) {
+        // these should never happen
+        (_, Op::None) => {break}
+        (Op::None, _) => {break}
+
+        (Op::Left(n), Op::Left(m)) => {
+          // left-to-right if n >= m
+          if n >= m {
+            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
+          }
+          // right-to-left if n < m
+          else {
+            expr = Node::BinExpr {
+              lhs: cur_lhs,
+              op: cur_op,
+              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
+            };
+          }
+        }
+
+        (Op::Right(n), Op::Right(m)) => {
+          // left-to-right if n > m
+          if n > m {
+            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
+          }
+          // right-to-left if n <= m
+          else {
+            expr = Node::BinExpr {
+              lhs: cur_lhs,
+              op: cur_op,
+              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
+            };
+          }
+        }
+
+        (Op::Right(n), Op::Left(m)) => {
+          // left-to-right if n >= m
+          if n >= m {
+            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
+          }
+          // right-to-left if n < m
+          else {
+            expr = Node::BinExpr {
+              lhs: cur_lhs,
+              op: cur_op,
+              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
+            };
+          }
+        }
+
+        (Op::Left(n), Op::Right(m)) => {
+          // left-to-right if n >= m
+          if n >= m {
+            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
+          }
+          // right-to-left if n < m
+          else {
+            expr = Node::BinExpr {
+              lhs: cur_lhs,
+              op: cur_op,
+              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
+            };
+          }
+        }
+      };
+    }
+    else {
+      expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
+    }
+  };
+
+  Ok(expr)
+}
+
+
+fn parse_unexpr(it: &mut ParseIter) -> Parse {
+  parse_simple(it)
+}
+
+
+fn parse_simple(it: &mut ParseIter) -> Parse {
+  parse_prefix(it)
+}
+
+
+fn parse_prefix(it: &mut ParseIter) -> Parse {
   if let Some(&c) = it.peek() {
     return match c.node {
       Token::Null => {it.next(); Ok(Node::Null)},
@@ -98,6 +217,13 @@ fn parse_expr(it: &mut ParseIter) -> Parse {
       Token::Int(x) => {it.next(); Ok(Node::Int(x))},
       Token::Str(ref x) => {it.next(); Ok(Node::Str(x.clone()))},
       Token::Name(ref x) => {it.next(); Ok(Node::Name(x.clone()))},
+      Token::Table => {it.next(); Ok(Node::Table)},
+      Token::Pal => {
+        it.next();
+        let out = parse_binexpr(it)?;
+        require_token(it, Token::Par)?;
+        Ok(out)
+      }
       _ => Err(UnexpectedToken(c.node.clone())),
     }
   }
@@ -124,13 +250,8 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::Pass)
       }
 
-      Token::If => {
-        it.next();
-        parse_expr(it).map(|expr| Node::If{cond: Box::new(expr)})
-      }
-
       _ => {
-        parse_expr(it).map(|expr| Node::Stmt(Box::new(expr)))
+        parse_binexpr(it).map(|expr| Node::Stmt(Box::new(expr)))
       }
     }
   }
