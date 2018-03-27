@@ -333,6 +333,13 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
     indent_stack.pop();
   }
 
+  // sometimes a trailing newline goes missing before EOF
+  if let Some(x) = tokens.last().cloned() {
+    if x.node != End {
+      tokens.push(Spanned {node: End, span: span});
+    }
+  }
+
   // push the EOF token
   tokens.push(Spanned {node: EOF, span: span});
 
