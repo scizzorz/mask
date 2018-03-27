@@ -121,77 +121,41 @@ fn parse_binexpr(it: &mut ParseIter) -> Parse {
 
     let rhs = parse_unexpr(it)?;
 
-    if let Node::BinExpr{lhs: cur_lhs, op: cur_op, rhs: cur_rhs} = expr.clone() {
+    expr = if let Node::BinExpr{lhs: cur_lhs, op: cur_op, rhs: cur_rhs} = expr.clone() {
       let cur_prec = op_precedence(&cur_op);
       match (cur_prec, prec) {
         // these should never happen
         (_, Op::None) => {break}
         (Op::None, _) => {break}
 
-        (Op::Left(n), Op::Left(m)) => {
-          // left-to-right if n >= m
-          if n >= m {
-            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
-          }
-          // right-to-left if n < m
-          else {
-            expr = Node::BinExpr {
-              lhs: cur_lhs,
-              op: cur_op,
-              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
-            };
-          }
+        // left-to-right
+        // there has to be a better way to handle this, no?
+        (Op::Left(n), Op::Left(m)) if n >= m => {
+          Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+        }
+        (Op::Right(n), Op::Right(m)) if n > m => {
+          Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+        }
+        (Op::Right(n), Op::Left(m)) if n >= m => {
+          Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+        }
+        (Op::Left(n), Op::Right(m)) if n >= m => {
+          Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
         }
 
-        (Op::Right(n), Op::Right(m)) => {
-          // left-to-right if n > m
-          if n > m {
-            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
-          }
-          // right-to-left if n <= m
-          else {
-            expr = Node::BinExpr {
-              lhs: cur_lhs,
-              op: cur_op,
-              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
-            };
+        // right-to-left
+        _ => {
+          Node::BinExpr {
+            lhs: cur_lhs,
+            op: cur_op,
+            rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
           }
         }
-
-        (Op::Right(n), Op::Left(m)) => {
-          // left-to-right if n >= m
-          if n >= m {
-            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
-          }
-          // right-to-left if n < m
-          else {
-            expr = Node::BinExpr {
-              lhs: cur_lhs,
-              op: cur_op,
-              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
-            };
-          }
-        }
-
-        (Op::Left(n), Op::Right(m)) => {
-          // left-to-right if n >= m
-          if n >= m {
-            expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
-          }
-          // right-to-left if n < m
-          else {
-            expr = Node::BinExpr {
-              lhs: cur_lhs,
-              op: cur_op,
-              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
-            };
-          }
-        }
-      };
+      }
     }
     else {
-      expr = Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)};
-    }
+      Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+    };
   };
 
   Ok(expr)
