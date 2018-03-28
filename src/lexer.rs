@@ -356,7 +356,7 @@ mod tests {
     let mut map = CodeMap::new();
     let file = map.add_file(String::from("_test"), String::from("0 5 05 5.3 1.234 1. 0. 0.0"));
     let tokens = lex(&file);
-    assert_eq!(tokens.len(), 9);
+    assert_eq!(tokens.len(), 10);
     assert_eq!(tokens[0].node, Int(0));
     assert_eq!(tokens[1].node, Int(5));
     assert_eq!(tokens[2].node, Int(5));
@@ -365,7 +365,8 @@ mod tests {
     assert_eq!(tokens[5].node, Float(1.0));
     assert_eq!(tokens[6].node, Float(0.0));
     assert_eq!(tokens[7].node, Float(0.0));
-    assert_eq!(tokens[8].node, EOF);
+    assert_eq!(tokens[8].node, End);
+    assert_eq!(tokens[9].node, EOF);
   }
 
   #[test]
@@ -373,7 +374,7 @@ mod tests {
     let mut map = CodeMap::new();
     let file = map.add_file(String::from("_test"), String::from("break catch continue else for func if import in loop pass return save var while name true false null"));
     let tokens = lex(&file);
-    assert_eq!(tokens.len(), 20);
+    assert_eq!(tokens.len(), 21);
     assert_eq!(tokens[0].node, Break);
     assert_eq!(tokens[1].node, Catch);
     assert_eq!(tokens[2].node, Continue);
@@ -393,7 +394,8 @@ mod tests {
     assert_eq!(tokens[16].node, Bool(true));
     assert_eq!(tokens[17].node, Bool(false));
     assert_eq!(tokens[18].node, Null);
-    assert_eq!(tokens[19].node, EOF);
+    assert_eq!(tokens[19].node, End);
+    assert_eq!(tokens[20].node, EOF);
   }
 
   #[test]
@@ -401,7 +403,7 @@ mod tests {
     let mut map = CodeMap::new();
     let file = map.add_file(String::from("_test"), String::from("-> = : : , . :: ; {} () [] +&@^/$*~!|%- == >= - > = <= < = != ! ="));
     let tokens = lex(&file);
-    assert_eq!(tokens.len(), 38);
+    assert_eq!(tokens.len(), 39);
     assert_eq!(tokens[0].node, Arr);
     assert_eq!(tokens[1].node, Ass);
     assert_eq!(tokens[2].node, Col);
@@ -441,7 +443,8 @@ mod tests {
     assert_eq!(tokens[34].node, Ne);
     assert_eq!(tokens[35].node, Not);
     assert_eq!(tokens[36].node, Ass);
-    assert_eq!(tokens[37].node, EOF);
+    assert_eq!(tokens[37].node, End);
+    assert_eq!(tokens[38].node, EOF);
   }
 
   #[test]
