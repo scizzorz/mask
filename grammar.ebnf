@@ -1,0 +1,66 @@
+# this is NOT an exact grammar or specification; it's merely a *general* idea
+# of the structure and still needs to be semantics checked after parsing
+
+program :: (stmt END)+ EOF
+
+block :: ENTER (stmt END)+ EXIT
+
+stmt :: 'var' decl assn
+      | 'if' bin_expr block
+      | 'elif' bin_expr block
+      | 'else' block
+      | 'for' decl 'in' il_expr block
+      | 'while' bin_expr block
+      | 'loop' block
+      | 'pass'
+      | 'break'
+      | 'continue'
+      | 'return' ml_expr?
+      | assn_item (assn | fn_call)
+
+decl :: '[' decl (',' decl)* ']'
+      | NAME
+
+assn = '=' ml_expr
+
+index :: '.' NAME | '[' bin_expr ']'
+
+assn_item :: '[' assn_item (',' assn_item)* ']'
+             | simple
+
+ml_expr :: 'fn' '(' fn_params ')' block
+         | 'catch' block
+         | il_expr
+
+il_expr :: fn_expr
+         | array_expr
+         | dict_expr
+         | bin_expr
+
+fn_expr :: '|' fn_params '|' il_expr
+
+fn_params :: (NAME (',' NAME)*)?
+
+fn_args :: '(' (il_expr (',' il_expr)*)? ')'
+
+fn_call :: (':' NAME)? fn_args
+
+array_expr :: '[' (il_expr (',' il_expr)*)? ','? ']'
+
+dict_item :: ((NAME | '[' bin_expr ']') '=' il_expr)
+
+dict_expr :: '{' (dict_item (',' dict_item)*)? ','? '}'
+
+bin_op :: '+' | '-' | '*' | '/' | '^'
+
+bin_expr :: un_expr (bin_op un_expr)*
+
+un_op :: '-' | '!'
+
+un_expr = un_op? simple
+
+simple :: atom (fn_call | index)*
+
+atom :: '(' il_expr ')' | quark
+
+quark :: NAME | INT | FLOAT | BOOL | STRING | NULL | TABLE
