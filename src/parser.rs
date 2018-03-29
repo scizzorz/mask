@@ -176,11 +176,28 @@ fn parse_unexpr(it: &mut ParseIter) -> Parse {
 
 
 fn parse_simple(it: &mut ParseIter) -> Parse {
-  parse_prefix(it)
+  parse_atom(it)
 }
 
 
-fn parse_prefix(it: &mut ParseIter) -> Parse {
+fn parse_atom(it: &mut ParseIter) -> Parse {
+  if let Some(&c) = it.peek() {
+    return match c.node {
+      Token::Pal => {
+        it.next();
+        let out = parse_binexpr(it)?;
+        require_token(it, Token::Par)?;
+        Ok(out)
+      }
+      _ => parse_quark(it),
+    }
+  }
+
+  Err(UnexpectedEOF)
+}
+
+
+fn parse_quark(it: &mut ParseIter) -> Parse {
   if let Some(&c) = it.peek() {
     return match c.node {
       Token::Null => {it.next(); Ok(Node::Null)},
@@ -190,12 +207,6 @@ fn parse_prefix(it: &mut ParseIter) -> Parse {
       Token::Str(ref x) => {it.next(); Ok(Node::Str(x.clone()))},
       Token::Name(ref x) => {it.next(); Ok(Node::Name(x.clone()))},
       Token::Table => {it.next(); Ok(Node::Table)},
-      Token::Pal => {
-        it.next();
-        let out = parse_binexpr(it)?;
-        require_token(it, Token::Par)?;
-        Ok(out)
-      }
       _ => Err(UnexpectedToken(c.node.clone())),
     }
   }
