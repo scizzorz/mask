@@ -376,5 +376,5 @@ pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
 
 
 #[cfg(test)]
-#[path = "./test_parser.rs"]
+#[path = "./tests/parser.rs"]
 mod tests;
