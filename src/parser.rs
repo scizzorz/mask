@@ -16,6 +16,21 @@ pub enum Node {
   Continue,
   Expr,
   Pass,
+  Index {
+    lhs: Box<Node>,
+    rhs: Box<Node>,
+  },
+
+  Method {
+    owner: Box<Node>,
+    meth: Box<Node>,
+    args: Vec<Node>,
+  },
+
+  Func {
+    func: Box<Node>,
+    args: Vec<Node>,
+  },
 
   BinExpr {
     lhs: Box<Node>,
@@ -58,8 +73,8 @@ pub enum ParseErrorKind {
 
 // Return true if the next token in `it` is `kind`
 fn peek_token(it: &mut ParseIter, kind: Token) -> bool {
-  if let Some(&c) = it.peek() {
-    c.node == kind
+  if let Some(&tok) = it.peek() {
+    tok.node == kind
   }
   else {
     false
@@ -69,11 +84,11 @@ fn peek_token(it: &mut ParseIter, kind: Token) -> bool {
 
 // Return true if the next token in `it` is `kind` *and* consume the token
 fn use_token(it: &mut ParseIter, kind: Token) -> bool {
-  if let Some(&c) = it.peek() {
-    if c.node == kind {
+  if let Some(&tok) = it.peek() {
+    if tok.node == kind {
       it.next();
     }
-    c.node == kind
+    tok.node == kind
   }
   else {
     false
@@ -83,14 +98,14 @@ fn use_token(it: &mut ParseIter, kind: Token) -> bool {
 
 // Panic if the next token in `it` is *not* `kind`
 fn require_token(it: &mut ParseIter, kind: Token) -> Result<(), ParseErrorKind> {
-  if let Some(&c) = it.peek() {
+  if let Some(&tok) = it.peek() {
     it.next();
 
-    if c.node == kind {
+    if tok.node == kind {
       return Ok(());
     }
 
-    return Err(UnexpectedToken(c.node.clone()));
+    return Err(UnexpectedToken(tok.node.clone()));
   }
 
   return Err(UnexpectedEOF);
@@ -107,15 +122,15 @@ fn op_precedence(op: &Token) -> Op {
 }
 
 
-fn parse_binexpr(it: &mut ParseIter) -> Parse {
+fn parse_bin_expr(it: &mut ParseIter) -> Parse {
   let mut expr = parse_unexpr(it)?;
 
   // prevents this from breaking the LHS until we know we made it
   // otherwise, things like (2 + 3) * 4 get restructured into 2 + (3 * 4)
   let mut break_left = false;
 
-  while let Some(&c) = it.peek() {
-    let prec = op_precedence(&c.node);
+  while let Some(&tok) = it.peek() {
+    let prec = op_precedence(&tok.node);
 
     if let Op::None = prec {
       break;
@@ -136,16 +151,16 @@ fn parse_binexpr(it: &mut ParseIter) -> Parse {
           // left-to-right
           // there has to be a better way to handle this, no?
           (Op::Left(n), Op::Left(m)) if n >= m => {
-            Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
           }
           (Op::Right(n), Op::Right(m)) if n > m => {
-            Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
           }
           (Op::Right(n), Op::Left(m)) if n >= m => {
-            Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
           }
           (Op::Left(n), Op::Right(m)) if n >= m => {
-            Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
           }
 
           // right-to-left
@@ -153,13 +168,13 @@ fn parse_binexpr(it: &mut ParseIter) -> Parse {
             Node::BinExpr {
               lhs: cur_lhs,
               op: cur_op,
-              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: c.node.clone(), rhs: Box::new(rhs)}),
+              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: tok.node.clone(), rhs: Box::new(rhs)}),
             }
           }
         }
       }
       _ => {
-        Node::BinExpr {lhs: Box::new(expr), op: c.node.clone(), rhs: Box::new(rhs)}
+        Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
       }
     };
 
@@ -181,11 +196,11 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
 
 
 fn parse_atom(it: &mut ParseIter) -> Parse {
-  if let Some(&c) = it.peek() {
-    return match c.node {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
       Token::Pal => {
         it.next();
-        let out = parse_binexpr(it)?;
+        let out = parse_bin_expr(it)?;
         require_token(it, Token::Par)?;
         Ok(out)
       }
@@ -197,9 +212,33 @@ fn parse_atom(it: &mut ParseIter) -> Parse {
 }
 
 
+fn parse_name_as_str(it: &mut ParseIter) -> Parse {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Name(ref x) => {it.next(); Ok(Node::Str(x.clone()))},
+      ref x => Err(UnexpectedToken(x.clone())),
+    }
+  }
+
+  Err(UnexpectedEOF)
+}
+
+
+fn parse_name(it: &mut ParseIter) -> Parse {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Name(ref x) => {it.next(); Ok(Node::Name(x.clone()))},
+      ref x => Err(UnexpectedToken(x.clone())),
+    }
+  }
+
+  Err(UnexpectedEOF)
+}
+
+
 fn parse_quark(it: &mut ParseIter) -> Parse {
-  if let Some(&c) = it.peek() {
-    return match c.node {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
       Token::Null => {it.next(); Ok(Node::Null)},
       Token::Bool(x) => {it.next(); Ok(Node::Bool(x))},
       Token::Float(x) => {it.next(); Ok(Node::Float(x))},
@@ -207,7 +246,7 @@ fn parse_quark(it: &mut ParseIter) -> Parse {
       Token::Str(ref x) => {it.next(); Ok(Node::Str(x.clone()))},
       Token::Name(ref x) => {it.next(); Ok(Node::Name(x.clone()))},
       Token::Table => {it.next(); Ok(Node::Table)},
-      _ => Err(UnexpectedToken(c.node.clone())),
+      ref x => Err(UnexpectedToken(x.clone())),
     }
   }
 
@@ -216,8 +255,8 @@ fn parse_quark(it: &mut ParseIter) -> Parse {
 
 
 fn parse_stmt(it: &mut ParseIter) -> Parse {
-  if let Some(&c) = it.peek() {
-    return match c.node {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
       Token::Break => {
         it.next();
         Ok(Node::Break)
@@ -234,13 +273,14 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
       }
 
       _ => {
-        parse_binexpr(it).map(|expr| Node::Stmt(Box::new(expr)))
+        parse_bin_expr(it).map(|expr| Node::Stmt(Box::new(expr)))
       }
     }
   }
 
   Err(UnexpectedEOF)
 }
+
 
 pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
   let mut it: ParseIter = tokens.iter().peekable();
