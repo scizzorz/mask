@@ -190,8 +190,88 @@ fn parse_unexpr(it: &mut ParseIter) -> Parse {
 }
 
 
+/* unused, here for reference
+fn parse_index(it: &mut ParseIter) -> Parse {
+  if let Some(&c) = it.peek() {
+    return match c.node {
+      Token::Sql => {
+        it.next();
+        let idx = parse_bin_expr(it)?;
+        require_token(it, Token::Sqr)?;
+        Ok(idx)
+      }
+      Token::Dot => {
+        it.next();
+        parse_name_as_str(it)
+      }
+      _ => {
+        Err(UnexpectedToken(c.node.clone()))
+      }
+    };
+  }
+
+  Err(UnexpectedEOF)
+}
+*/
+
+
+fn parse_fn_args(it: &mut ParseIter) -> Result<Vec<Node>, ParseErrorKind> {
+  require_token(it, Token::Pal)?;
+  // FIXME
+  require_token(it, Token::Par)?;
+  Ok(Vec::new())
+}
+
+
 fn parse_simple(it: &mut ParseIter) -> Parse {
-  parse_atom(it)
+  let mut atom = parse_atom(it)?;
+  while let Some(&tok) = it.peek() {
+    match tok.node {
+      Token::Col => {
+        it.next();
+        let meth = parse_name_as_str(it)?;
+        let args = parse_fn_args(it)?;
+        atom = Node::Method {
+          owner: Box::new(atom),
+          meth: Box::new(meth),
+          args: args,
+        };
+      }
+
+      Token::Pal => {
+        let args = parse_fn_args(it)?;
+        atom = Node::Func {
+          func: Box::new(atom),
+          args: args,
+        };
+      }
+
+      Token::Sql => {
+        it.next();
+        let idx = parse_bin_expr(it)?;
+        require_token(it, Token::Sqr)?;
+        atom = Node::Index {
+          lhs: Box::new(atom),
+          rhs: Box::new(idx),
+        };
+      }
+
+      Token::Dot => {
+        it.next();
+        let idx = parse_name_as_str(it)?;
+        atom = Node::Index {
+          lhs: Box::new(atom),
+          rhs: Box::new(idx),
+        };
+      }
+
+      _ => {
+        break
+      }
+    }
+  }
+
+  Ok(atom)
 }
 
 
