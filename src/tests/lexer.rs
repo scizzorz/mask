@@ -1,11 +1,18 @@
 use super::*;
+use codemap::Spanned;
 use codemap::CodeMap;
+
+fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
+  let mut map = CodeMap::new();
+  let file = map.add_file(String::from("_test"), String::from(source));
+  lex(&file)
+}
 
 #[test]
 fn lex_numbers() {
-  let mut map = CodeMap::new();
-  let file = map.add_file(String::from("_test"), String::from("0 5 05 5.3 1.234 1. 0. 0.0"));
-  let tokens = lex(&file);
+  let source = "0 5 05 5.3 1.234 1. 0. 0.0";
+  let tokens = get_tokens(source);
+
   assert_eq!(tokens.len(), 10);
   assert_eq!(tokens[0].node, Int(0));
   assert_eq!(tokens[1].node, Int(5));
@@ -21,9 +28,8 @@ fn lex_numbers() {
 
 #[test]
 fn lex_keywords() {
-  let mut map = CodeMap::new();
-  let file = map.add_file(String::from("_test"), String::from("break catch continue else for func if import in loop pass return save var while name true false null"));
-  let tokens = lex(&file);
+  let source = "break catch continue else for func if import in loop pass return save var while name true false null";
+  let tokens = get_tokens(source);
   assert_eq!(tokens.len(), 21);
   assert_eq!(tokens[0].node, Break);
   assert_eq!(tokens[1].node, Catch);
@@ -50,9 +56,8 @@ fn lex_keywords() {
 
 #[test]
 fn lex_symbols() {
-  let mut map = CodeMap::new();
-  let file = map.add_file(String::from("_test"), String::from("-> = : : , . :: ; {} () [] +&@^/$*~!|%- == >= - > = <= < = != ! ="));
-  let tokens = lex(&file);
+  let source = "-> = : : , . :: ; {} () [] +&@^/$*~!|%- == >= - > = <= < = != ! =";
+  let tokens = get_tokens(source);
   assert_eq!(tokens.len(), 39);
   assert_eq!(tokens[0].node, Arr);
   assert_eq!(tokens[1].node, Ass);
@@ -102,7 +107,7 @@ fn lex_structure() {
   // this test uses a single trailing hash to avoid trailing whitespace errors in git and editors
   // the test uses trailing whitespace to test lexing them
   // (maybe Rain shouldn't allow trailing whitespace? who knows)
-  let code = String::from("
+  let source = "
   #
  #
 pass
@@ -134,10 +139,8 @@ else
     pass
 
   #
-  ".replace("#\n", "\n"));
-  let mut map = CodeMap::new();
-  let file = map.add_file(String::from("_test"), code);
-  let tokens = lex(&file);
+  ".replace("#\n", "\n");
+  let tokens = get_tokens(source.as_str());
   assert_eq!(tokens.len(), 64);
   assert_eq!(tokens[0].node, Pass);
   assert_eq!(tokens[1].node, End);
