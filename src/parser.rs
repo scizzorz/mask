@@ -373,3 +373,8 @@ pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
 
   Ok(Node::Block(nodes))
 }
+
+
+#[cfg(test)]
+#[path = "./test_parser.rs"]
+mod tests;

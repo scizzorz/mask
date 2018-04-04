@@ -346,6 +346,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
   tokens
 }
 
+
 #[cfg(test)]
-#[path = "./lexer_tests.rs"]
+#[path = "./test_lexer.rs"]
 mod tests;
