@@ -99,9 +99,8 @@ fn use_token(it: &mut ParseIter, kind: Token) -> bool {
 // Panic if the next token in `it` is *not* `kind`
 fn require_token(it: &mut ParseIter, kind: Token) -> Result<(), ParseErrorKind> {
   if let Some(&tok) = it.peek() {
-    it.next();
-
     if tok.node == kind {
+      it.next();
       return Ok(());
     }
 
