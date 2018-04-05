@@ -83,8 +83,6 @@ fn main() {
 
   let tokens = rain::lexer::lex(&file);
   print_tokens(&map, &tokens);
-  /*
   let ast = rain::parser::parse(tokens);
   println!("AST: {:?}", ast);
-  */
 }
