@@ -94,3 +94,53 @@ fn test_simple() {
   it.next();
   assert_eq!(parse_simple(&mut it), Err(UnexpectedEOF));
 }
+
+#[test]
+fn test_fn_args() {
+  let source = "()";
+  let tokens = get_tokens(source);
+  let mut it = tokens.iter().peekable();
+
+  assert_eq!(parse_fn_args(&mut it), Ok(Vec::new()));
+  assert_eq!(parse_fn_args(&mut it), Err(UnexpectedToken(lexer::Token::End)));
+  it.next();
+  assert_eq!(parse_fn_args(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
+  it.next();
+  assert_eq!(parse_fn_args(&mut it), Err(UnexpectedEOF));
+}
+
+#[test]
+fn test_un_expr() {
+  let source = "5 foo() -5 -foo.bar !-5";
+  let tokens = get_tokens(source);
+  let mut it = tokens.iter().peekable();
+
+  assert_eq!(parse_un_expr(&mut it), Ok(Node::Int(5)));
+  assert_eq!(parse_un_expr(&mut it), Ok(Node::Func {
+    func: Box::new(Node::Name(String::from("foo"))),
+    args: Vec::new(),
+  }));
+  assert_eq!(parse_un_expr(&mut it), Ok(Node::UnExpr {
+    op: lexer::Token::Sub,
+    val: Box::new(Node::Int(5)),
+  }));
+  assert_eq!(parse_un_expr(&mut it), Ok(Node::UnExpr {
+    op: lexer::Token::Sub,
+    val: Box::new(Node::Index {
+      lhs: Box::new(Node::Name(String::from("foo"))),
+      rhs: Box::new(Node::Str(String::from("bar"))),
+    }),
+  }));
+  assert_eq!(parse_un_expr(&mut it), Ok(Node::UnExpr {
+    op: lexer::Token::Not,
+    val: Box::new(Node::UnExpr {
+      op: lexer::Token::Sub,
+      val: Box::new(Node::Int(5)),
+    }),
+  }));
+  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedToken(lexer::Token::End)));
+  it.next();
+  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
+  it.next();
+  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
+}
