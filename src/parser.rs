@@ -123,7 +123,7 @@ fn op_precedence(op: &Token) -> Op {
 
 
 fn parse_bin_expr(it: &mut ParseIter) -> Parse {
-  let mut expr = parse_unexpr(it)?;
+  let mut expr = parse_un_expr(it)?;
 
   // prevents this from breaking the LHS until we know we made it
   // otherwise, things like (2 + 3) * 4 get restructured into 2 + (3 * 4)
@@ -138,7 +138,7 @@ fn parse_bin_expr(it: &mut ParseIter) -> Parse {
 
     it.next();
 
-    let rhs = parse_unexpr(it)?;
+    let rhs = parse_un_expr(it)?;
 
     expr = match (break_left, expr.clone()) {
       (true, Node::BinExpr{lhs: cur_lhs, op: cur_op, rhs: cur_rhs}) => {
@@ -185,8 +185,22 @@ fn parse_bin_expr(it: &mut ParseIter) -> Parse {
 }
 
 
-fn parse_unexpr(it: &mut ParseIter) -> Parse {
-  parse_simple(it)
+fn parse_un_expr(it: &mut ParseIter) -> Parse {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Sub | Token::Not | Token::Neg => {
+        it.next();
+        let val = parse_un_expr(it)?;
+        Ok(Node::UnExpr {
+          op: tok.node.clone(),
+          val: Box::new(val),
+        })
+      }
+      _ => parse_simple(it),
+    }
+  }
+
+  Err(UnexpectedEOF)
 }
 
 

@@ -55,9 +55,9 @@ bin_op :: '+' | '-' | '*' | '/' | '^'
 
 bin_expr :: un_expr (bin_op un_expr)*
 
-un_op :: '-' | '!'
+un_op :: '-' | '!' | '~'
 
-un_expr = un_op? simple
+un_expr = un_op* simple
 
 simple :: atom (fn_call | index)*
 
