@@ -23,7 +23,7 @@ pub enum Node {
 
   Method {
     owner: Box<Node>,
-    meth: Box<Node>,
+    method: Box<Node>,
     args: Vec<Node>,
   },
 
@@ -229,11 +229,11 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
     match tok.node {
       Token::Col => {
         it.next();
-        let meth = parse_name_as_str(it)?;
+        let method = parse_name_as_str(it)?;
         let args = parse_fn_args(it)?;
         atom = Node::Method {
           owner: Box::new(atom),
-          meth: Box::new(meth),
+          method: Box::new(method),
           args: args,
         };
       }
