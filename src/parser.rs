@@ -10,7 +10,9 @@ type Parse = Result<Node, ParseErrorKind>;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
   Block(Vec<Node>),
-  If{cond: Box<Node>},
+  If {
+    cond: Box<Node>,
+  },
   Stmt(Box<Node>),
   Break,
   Continue,
@@ -53,14 +55,12 @@ pub enum Node {
   Table,
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum Op {
   Right(u32),
   Left(u32),
   None,
 }
-
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ParseErrorKind {
@@ -69,7 +69,6 @@ pub enum ParseErrorKind {
   UnknownBinaryOperator,
   UnknownUnaryOperator,
 }
-
 
 // Return true if the next token in `it` is `kind`
 fn peek_token(it: &mut ParseIter, kind: Token) -> bool {
@@ -80,7 +79,6 @@ fn peek_token(it: &mut ParseIter, kind: Token) -> bool {
     false
   }
 }
-
 
 // Return true if the next token in `it` is `kind` *and* consume the token
 fn use_token(it: &mut ParseIter, kind: Token) -> bool {
@@ -94,7 +92,6 @@ fn use_token(it: &mut ParseIter, kind: Token) -> bool {
     false
   }
 }
-
 
 // Panic if the next token in `it` is *not* `kind`
 fn require_token(it: &mut ParseIter, kind: Token) -> Result<(), ParseErrorKind> {
@@ -110,7 +107,6 @@ fn require_token(it: &mut ParseIter, kind: Token) -> Result<(), ParseErrorKind> 
   return Err(UnexpectedEOF);
 }
 
-
 fn op_precedence(op: &Token) -> Op {
   match *op {
     Token::Add | Token::Sub => Op::Left(10),
@@ -119,7 +115,6 @@ fn op_precedence(op: &Token) -> Op {
     _ => Op::None,
   }
 }
-
 
 fn parse_bin_expr(it: &mut ParseIter) -> Parse {
   let mut expr = parse_un_expr(it)?;
@@ -140,49 +135,67 @@ fn parse_bin_expr(it: &mut ParseIter) -> Parse {
     let rhs = parse_un_expr(it)?;
 
     expr = match (break_left, expr.clone()) {
-      (true, Node::BinExpr{lhs: cur_lhs, op: cur_op, rhs: cur_rhs}) => {
+      (
+        true,
+        Node::BinExpr {
+          lhs: cur_lhs,
+          op: cur_op,
+          rhs: cur_rhs,
+        },
+      ) => {
         let cur_prec = op_precedence(&cur_op);
         match (cur_prec, prec) {
           // these should never happen
-          (_, Op::None) => {break}
-          (Op::None, _) => {break}
+          (_, Op::None) => break,
+          (Op::None, _) => break,
 
           // left-to-right
           // there has to be a better way to handle this, no?
-          (Op::Left(n), Op::Left(m)) if n >= m => {
-            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
-          }
-          (Op::Right(n), Op::Right(m)) if n > m => {
-            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
-          }
-          (Op::Right(n), Op::Left(m)) if n >= m => {
-            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
-          }
-          (Op::Left(n), Op::Right(m)) if n >= m => {
-            Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
-          }
+          (Op::Left(n), Op::Left(m)) if n >= m => Node::BinExpr {
+            lhs: Box::new(expr),
+            op: tok.node.clone(),
+            rhs: Box::new(rhs),
+          },
+          (Op::Right(n), Op::Right(m)) if n > m => Node::BinExpr {
+            lhs: Box::new(expr),
+            op: tok.node.clone(),
+            rhs: Box::new(rhs),
+          },
+          (Op::Right(n), Op::Left(m)) if n >= m => Node::BinExpr {
+            lhs: Box::new(expr),
+            op: tok.node.clone(),
+            rhs: Box::new(rhs),
+          },
+          (Op::Left(n), Op::Right(m)) if n >= m => Node::BinExpr {
+            lhs: Box::new(expr),
+            op: tok.node.clone(),
+            rhs: Box::new(rhs),
+          },
 
           // right-to-left
-          _ => {
-            Node::BinExpr {
-              lhs: cur_lhs,
-              op: cur_op,
-              rhs: Box::new(Node::BinExpr {lhs: cur_rhs, op: tok.node.clone(), rhs: Box::new(rhs)}),
-            }
-          }
+          _ => Node::BinExpr {
+            lhs: cur_lhs,
+            op: cur_op,
+            rhs: Box::new(Node::BinExpr {
+              lhs: cur_rhs,
+              op: tok.node.clone(),
+              rhs: Box::new(rhs),
+            }),
+          },
         }
       }
-      _ => {
-        Node::BinExpr {lhs: Box::new(expr), op: tok.node.clone(), rhs: Box::new(rhs)}
-      }
+      _ => Node::BinExpr {
+        lhs: Box::new(expr),
+        op: tok.node.clone(),
+        rhs: Box::new(rhs),
+      },
     };
 
     break_left = true;
-  };
+  }
 
   Ok(expr)
 }
-
 
 fn parse_un_expr(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
@@ -196,12 +209,11 @@ fn parse_un_expr(it: &mut ParseIter) -> Parse {
         })
       }
       _ => parse_simple(it),
-    }
+    };
   }
 
   Err(UnexpectedEOF)
 }
-
 
 /* unused, here for reference
 fn parse_index(it: &mut ParseIter) -> Parse {
@@ -227,14 +239,12 @@ fn parse_index(it: &mut ParseIter) -> Parse {
 }
 */
 
-
 fn parse_fn_args(it: &mut ParseIter) -> Result<Vec<Node>, ParseErrorKind> {
   require_token(it, Token::Pal)?;
   // FIXME
   require_token(it, Token::Par)?;
   Ok(Vec::new())
 }
-
 
 fn parse_simple(it: &mut ParseIter) -> Parse {
   let mut atom = parse_atom(it)?;
@@ -278,15 +288,12 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
         };
       }
 
-      _ => {
-        break
-      }
+      _ => break,
     }
   }
 
   Ok(atom)
 }
-
 
 fn parse_atom(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
@@ -298,54 +305,77 @@ fn parse_atom(it: &mut ParseIter) -> Parse {
         Ok(out)
       }
       _ => parse_quark(it),
-    }
+    };
   }
 
   Err(UnexpectedEOF)
 }
-
 
 fn parse_name_as_str(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
-      Token::Name(ref x) => {it.next(); Ok(Node::Str(x.clone()))},
+      Token::Name(ref x) => {
+        it.next();
+        Ok(Node::Str(x.clone()))
+      }
       ref x => Err(UnexpectedToken(x.clone())),
-    }
+    };
   }
 
   Err(UnexpectedEOF)
 }
-
 
 fn parse_name(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
-      Token::Name(ref x) => {it.next(); Ok(Node::Name(x.clone()))},
+      Token::Name(ref x) => {
+        it.next();
+        Ok(Node::Name(x.clone()))
+      }
       ref x => Err(UnexpectedToken(x.clone())),
-    }
+    };
   }
 
   Err(UnexpectedEOF)
 }
-
 
 fn parse_quark(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
-      Token::Null => {it.next(); Ok(Node::Null)},
-      Token::Bool(x) => {it.next(); Ok(Node::Bool(x))},
-      Token::Float(x) => {it.next(); Ok(Node::Float(x))},
-      Token::Int(x) => {it.next(); Ok(Node::Int(x))},
-      Token::Str(ref x) => {it.next(); Ok(Node::Str(x.clone()))},
-      Token::Name(ref x) => {it.next(); Ok(Node::Name(x.clone()))},
-      Token::Table => {it.next(); Ok(Node::Table)},
+      Token::Null => {
+        it.next();
+        Ok(Node::Null)
+      }
+      Token::Bool(x) => {
+        it.next();
+        Ok(Node::Bool(x))
+      }
+      Token::Float(x) => {
+        it.next();
+        Ok(Node::Float(x))
+      }
+      Token::Int(x) => {
+        it.next();
+        Ok(Node::Int(x))
+      }
+      Token::Str(ref x) => {
+        it.next();
+        Ok(Node::Str(x.clone()))
+      }
+      Token::Name(ref x) => {
+        it.next();
+        Ok(Node::Name(x.clone()))
+      }
+      Token::Table => {
+        it.next();
+        Ok(Node::Table)
+      }
       ref x => Err(UnexpectedToken(x.clone())),
-    }
+    };
   }
 
   Err(UnexpectedEOF)
 }
-
 
 fn parse_stmt(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
@@ -365,15 +395,12 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::Pass)
       }
 
-      _ => {
-        parse_bin_expr(it).map(|expr| Node::Stmt(Box::new(expr)))
-      }
-    }
+      _ => parse_bin_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
+    };
   }
 
   Err(UnexpectedEOF)
 }
-
 
 pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
   let mut it: ParseIter = tokens.iter().peekable();
@@ -386,7 +413,6 @@ pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
 
   Ok(Node::Block(nodes))
 }
-
 
 #[cfg(test)]
 #[path = "./tests/parser.rs"]

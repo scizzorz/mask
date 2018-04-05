@@ -139,7 +139,8 @@ else
     pass
 
   #
-  ".replace("#\n", "\n");
+  "
+    .replace("#\n", "\n");
   let tokens = get_tokens(source.as_str());
   assert_eq!(tokens.len(), 64);
   assert_eq!(tokens[0].node, Pass);

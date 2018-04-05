@@ -1,6 +1,6 @@
-extern crate rain;
 extern crate clap;
 extern crate codemap;
+extern crate rain;
 
 use clap::App;
 use clap::Arg;
@@ -49,16 +49,20 @@ fn main() {
     .version("0.0.1")
     .author("John Weachock <jweachock@gmail.com>")
     .about("A programming language.")
-    .arg(Arg::with_name("code")
-         .short("c")
-         .long("code")
-         .value_name("CODE")
-         .help("Rain code to execute. Overrides any specified module")
-         .takes_value(true))
-    .arg(Arg::with_name("path")
-         .takes_value(true)
-         .index(1)
-         .help("Rain module to execute"))
+    .arg(
+      Arg::with_name("code")
+        .short("c")
+        .long("code")
+        .value_name("CODE")
+        .help("Rain code to execute. Overrides any specified module")
+        .takes_value(true),
+    )
+    .arg(
+      Arg::with_name("path")
+        .takes_value(true)
+        .index(1)
+        .help("Rain module to execute"),
+    )
     .get_matches();
 
   let mut map = CodeMap::new();

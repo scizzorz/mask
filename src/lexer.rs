@@ -44,13 +44,13 @@ pub enum Token {
   While,
 
   // Symbols
-  Arr, // ->
-  Ass, // =
-  Col, // :
-  Com, // ,
-  Dot, // .
-  Meta,// ::
-  Semi,// ;
+  Arr,  // ->
+  Ass,  // =
+  Col,  // :
+  Com,  // ,
+  Dot,  // .
+  Meta, // ::
+  Semi, // ;
 
   // Braces
   Cul, // {
@@ -83,7 +83,6 @@ pub enum Token {
   Ne,  // !=
 }
 
-
 fn lex_number(it: &mut LexIter) -> Token {
   let mut digits = String::new();
   while let Some(&(_i, c)) = it.peek() {
@@ -92,16 +91,15 @@ fn lex_number(it: &mut LexIter) -> Token {
         it.next();
         digits.push(c);
       }
-      _ => {break}
+      _ => break,
     }
   }
 
   match digits.contains(".") {
     true => Float(digits.parse::<f64>().unwrap()),
-    false => Int(digits.parse::<i64>().unwrap())
+    false => Int(digits.parse::<i64>().unwrap()),
   }
 }
-
 
 fn lex_name(it: &mut LexIter) -> Token {
   let mut name = String::new();
@@ -113,7 +111,7 @@ fn lex_name(it: &mut LexIter) -> Token {
         it.next();
         name.push(c);
       }
-      _ => {break}
+      _ => break,
     }
   }
 
@@ -139,10 +137,9 @@ fn lex_name(it: &mut LexIter) -> Token {
     "var" => Var,
     "while" => While,
 
-    _ => Name(name)
+    _ => Name(name),
   }
 }
-
 
 fn lex_comment(it: &mut LexIter) -> Token {
   let mut comment = String::new();
@@ -150,7 +147,7 @@ fn lex_comment(it: &mut LexIter) -> Token {
 
   while let Some(&(_i, c)) = it.peek() {
     match c {
-      '\n' => {break}
+      '\n' => break,
       _ => {
         it.next();
         comment.push(c);
@@ -162,7 +159,6 @@ fn lex_comment(it: &mut LexIter) -> Token {
   Comment(comment)
 }
 
-
 fn lex_indent(it: &mut LexIter) -> u64 {
   let mut indent: u64 = 0;
   it.next();
@@ -173,13 +169,12 @@ fn lex_indent(it: &mut LexIter) -> u64 {
         it.next();
         indent += 1;
       }
-      _ => {break}
+      _ => break,
     }
   }
 
   indent
 }
-
 
 fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Token {
   it.next();
@@ -195,7 +190,6 @@ fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Token {
   // seems right. None should be the EOF, meaning `solo` is the last token
   solo
 }
-
 
 pub fn lex(input: &File) -> Vec<Spanned<Token>> {
   let mut tokens: Vec<Spanned<Token>> = Vec::new();
@@ -252,34 +246,93 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
         // -> Arr
         // = Ass
         // : Col
-        ',' => {it.next(); Com}
-        '.' => {it.next(); Dot}
+        ',' => {
+          it.next();
+          Com
+        }
+        '.' => {
+          it.next();
+          Dot
+        }
         // :: Meta
-        ';' => {it.next(); Semi}
+        ';' => {
+          it.next();
+          Semi
+        }
 
         // Braces
-        '(' => {it.next(); Pal}
-        ')' => {it.next(); Par}
-        '[' => {it.next(); Sql}
-        ']' => {it.next(); Sqr}
-        '{' => {it.next(); Cul}
-        '}' => {it.next(); Cur}
+        '(' => {
+          it.next();
+          Pal
+        }
+        ')' => {
+          it.next();
+          Par
+        }
+        '[' => {
+          it.next();
+          Sql
+        }
+        ']' => {
+          it.next();
+          Sqr
+        }
+        '{' => {
+          it.next();
+          Cul
+        }
+        '}' => {
+          it.next();
+          Cur
+        }
 
         // Operators
-        '+' => {it.next(); Add}
-        '&' => {it.next(); And}
-        '@' => {it.next(); At}
-        '^' => {it.next(); Car}
-        '/' => {it.next(); Div}
-        '$' => {it.next(); Dol}
-        '*' => {it.next(); Mul}
-        '~' => {it.next(); Neg}
+        '+' => {
+          it.next();
+          Add
+        }
+        '&' => {
+          it.next();
+          And
+        }
+        '@' => {
+          it.next();
+          At
+        }
+        '^' => {
+          it.next();
+          Car
+        }
+        '/' => {
+          it.next();
+          Div
+        }
+        '$' => {
+          it.next();
+          Dol
+        }
+        '*' => {
+          it.next();
+          Mul
+        }
+        '~' => {
+          it.next();
+          Neg
+        }
         // ! Not
-        '|' => {it.next(); Or}
-        '%' => {it.next(); Pct}
+        '|' => {
+          it.next();
+          Or
+        }
+        '%' => {
+          it.next();
+          Pct
+        }
         // - Sub
-
-        _ => {it.next(); Space}
+        _ => {
+          it.next();
+          Space
+        }
       }
     };
 
@@ -299,27 +352,36 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
       Comment(_) => (),
 
       // don't insert duplicate newlines, or file-leading newlines
-      End => {
-        match tokens.last().cloned() {
-          None => (),
-          Some(x) => {
-            if x.node != End {
-              tokens.push(Spanned {node: End, span: span});
-            }
-          },
+      End => match tokens.last().cloned() {
+        None => (),
+        Some(x) => {
+          if x.node != End {
+            tokens.push(Spanned {
+              node: End,
+              span: span,
+            });
+          }
         }
-      }
+      },
 
       // exit should always be followed by a End
       Exit => {
-        tokens.push(Spanned {node: Exit, span: span});
-        tokens.push(Spanned {node: End, span: span});
+        tokens.push(Spanned {
+          node: Exit,
+          span: span,
+        });
+        tokens.push(Spanned {
+          node: End,
+          span: span,
+        });
       }
 
       // emit everything else
-      _ => tokens.push(Spanned {node: x, span: span}),
+      _ => tokens.push(Spanned {
+        node: x,
+        span: span,
+      }),
     }
-
   }
 
   // make a span for all closing tokens
@@ -328,24 +390,35 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
 
   // exit blocks that are open at EOF
   while indent_stack.len() > 1 {
-    tokens.push(Spanned {node: Exit, span: span});
-    tokens.push(Spanned {node: End, span: span});
+    tokens.push(Spanned {
+      node: Exit,
+      span: span,
+    });
+    tokens.push(Spanned {
+      node: End,
+      span: span,
+    });
     indent_stack.pop();
   }
 
   // sometimes a trailing newline goes missing before EOF
   if let Some(x) = tokens.last().cloned() {
     if x.node != End {
-      tokens.push(Spanned {node: End, span: span});
+      tokens.push(Spanned {
+        node: End,
+        span: span,
+      });
     }
   }
 
   // push the EOF token
-  tokens.push(Spanned {node: EOF, span: span});
+  tokens.push(Spanned {
+    node: EOF,
+    span: span,
+  });
 
   tokens
 }
-
 
 #[cfg(test)]
 #[path = "./tests/lexer.rs"]

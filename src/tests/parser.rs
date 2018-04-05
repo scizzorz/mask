@@ -24,9 +24,15 @@ fn test_quark() {
   assert_eq!(parse_quark(&mut it), Ok(Node::Int(3)));
   assert_eq!(parse_quark(&mut it), Ok(Node::Name(String::from("name"))));
   assert_eq!(parse_quark(&mut it), Ok(Node::Table));
-  assert_eq!(parse_quark(&mut it), Err(UnexpectedToken(lexer::Token::End)));
+  assert_eq!(
+    parse_quark(&mut it),
+    Err(UnexpectedToken(lexer::Token::End))
+  );
   it.next();
-  assert_eq!(parse_quark(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
+  assert_eq!(
+    parse_quark(&mut it),
+    Err(UnexpectedToken(lexer::Token::EOF))
+  );
   it.next();
   assert_eq!(parse_quark(&mut it), Err(UnexpectedEOF));
 }
@@ -53,44 +59,68 @@ fn test_simple() {
   let mut it = tokens.iter().peekable();
 
   assert_eq!(parse_simple(&mut it), Ok(Node::Name(String::from("foo"))));
-  assert_eq!(parse_simple(&mut it), Ok(Node::Index {
-    lhs: Box::new(Node::Name(String::from("foo"))),
-    rhs: Box::new(Node::Str(String::from("bar"))),
-  }));
-  assert_eq!(parse_simple(&mut it), Ok(Node::Index {
-    lhs: Box::new(Node::Name(String::from("foo"))),
-    rhs: Box::new(Node::Name(String::from("bar"))),
-  }));
-  assert_eq!(parse_simple(&mut it), Ok(Node::Func {
-    func: Box::new(Node::Name(String::from("foo"))),
-    args: Vec::new(),
-  }));
-  assert_eq!(parse_simple(&mut it), Ok(Node::Method {
-    owner: Box::new(Node::Name(String::from("foo"))),
-    method: Box::new(Node::Str(String::from("bar"))),
-    args: Vec::new(),
-  }));
-  assert_eq!(parse_simple(&mut it), Ok(Node::Func {
-    func: Box::new(Node::Index {
+  assert_eq!(
+    parse_simple(&mut it),
+    Ok(Node::Index {
       lhs: Box::new(Node::Name(String::from("foo"))),
       rhs: Box::new(Node::Str(String::from("bar"))),
-    }),
-    args: Vec::new(),
-  }));
-  assert_eq!(parse_simple(&mut it), Ok(Node::Method {
-    owner: Box::new(Node::Index {
-      lhs: Box::new(Node::Index {
+    })
+  );
+  assert_eq!(
+    parse_simple(&mut it),
+    Ok(Node::Index {
+      lhs: Box::new(Node::Name(String::from("foo"))),
+      rhs: Box::new(Node::Name(String::from("bar"))),
+    })
+  );
+  assert_eq!(
+    parse_simple(&mut it),
+    Ok(Node::Func {
+      func: Box::new(Node::Name(String::from("foo"))),
+      args: Vec::new(),
+    })
+  );
+  assert_eq!(
+    parse_simple(&mut it),
+    Ok(Node::Method {
+      owner: Box::new(Node::Name(String::from("foo"))),
+      method: Box::new(Node::Str(String::from("bar"))),
+      args: Vec::new(),
+    })
+  );
+  assert_eq!(
+    parse_simple(&mut it),
+    Ok(Node::Func {
+      func: Box::new(Node::Index {
         lhs: Box::new(Node::Name(String::from("foo"))),
         rhs: Box::new(Node::Str(String::from("bar"))),
       }),
-      rhs: Box::new(Node::Name(String::from("baz"))),
-    }),
-    method: Box::new(Node::Str(String::from("qux"))),
-    args: Vec::new(),
-  }));
-  assert_eq!(parse_simple(&mut it), Err(UnexpectedToken(lexer::Token::End)));
+      args: Vec::new(),
+    })
+  );
+  assert_eq!(
+    parse_simple(&mut it),
+    Ok(Node::Method {
+      owner: Box::new(Node::Index {
+        lhs: Box::new(Node::Index {
+          lhs: Box::new(Node::Name(String::from("foo"))),
+          rhs: Box::new(Node::Str(String::from("bar"))),
+        }),
+        rhs: Box::new(Node::Name(String::from("baz"))),
+      }),
+      method: Box::new(Node::Str(String::from("qux"))),
+      args: Vec::new(),
+    })
+  );
+  assert_eq!(
+    parse_simple(&mut it),
+    Err(UnexpectedToken(lexer::Token::End))
+  );
   it.next();
-  assert_eq!(parse_simple(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
+  assert_eq!(
+    parse_simple(&mut it),
+    Err(UnexpectedToken(lexer::Token::EOF))
+  );
   it.next();
   assert_eq!(parse_simple(&mut it), Err(UnexpectedEOF));
 }
@@ -102,9 +132,15 @@ fn test_fn_args() {
   let mut it = tokens.iter().peekable();
 
   assert_eq!(parse_fn_args(&mut it), Ok(Vec::new()));
-  assert_eq!(parse_fn_args(&mut it), Err(UnexpectedToken(lexer::Token::End)));
+  assert_eq!(
+    parse_fn_args(&mut it),
+    Err(UnexpectedToken(lexer::Token::End))
+  );
   it.next();
-  assert_eq!(parse_fn_args(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
+  assert_eq!(
+    parse_fn_args(&mut it),
+    Err(UnexpectedToken(lexer::Token::EOF))
+  );
   it.next();
   assert_eq!(parse_fn_args(&mut it), Err(UnexpectedEOF));
 }
@@ -116,31 +152,49 @@ fn test_un_expr() {
   let mut it = tokens.iter().peekable();
 
   assert_eq!(parse_un_expr(&mut it), Ok(Node::Int(5)));
-  assert_eq!(parse_un_expr(&mut it), Ok(Node::Func {
-    func: Box::new(Node::Name(String::from("foo"))),
-    args: Vec::new(),
-  }));
-  assert_eq!(parse_un_expr(&mut it), Ok(Node::UnExpr {
-    op: lexer::Token::Sub,
-    val: Box::new(Node::Int(5)),
-  }));
-  assert_eq!(parse_un_expr(&mut it), Ok(Node::UnExpr {
-    op: lexer::Token::Sub,
-    val: Box::new(Node::Index {
-      lhs: Box::new(Node::Name(String::from("foo"))),
-      rhs: Box::new(Node::Str(String::from("bar"))),
-    }),
-  }));
-  assert_eq!(parse_un_expr(&mut it), Ok(Node::UnExpr {
-    op: lexer::Token::Not,
-    val: Box::new(Node::UnExpr {
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Ok(Node::Func {
+      func: Box::new(Node::Name(String::from("foo"))),
+      args: Vec::new(),
+    })
+  );
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Ok(Node::UnExpr {
       op: lexer::Token::Sub,
       val: Box::new(Node::Int(5)),
-    }),
-  }));
-  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedToken(lexer::Token::End)));
+    })
+  );
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Ok(Node::UnExpr {
+      op: lexer::Token::Sub,
+      val: Box::new(Node::Index {
+        lhs: Box::new(Node::Name(String::from("foo"))),
+        rhs: Box::new(Node::Str(String::from("bar"))),
+      }),
+    })
+  );
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Ok(Node::UnExpr {
+      op: lexer::Token::Not,
+      val: Box::new(Node::UnExpr {
+        op: lexer::Token::Sub,
+        val: Box::new(Node::Int(5)),
+      }),
+    })
+  );
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::End))
+  );
   it.next();
-  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::EOF))
+  );
   it.next();
   assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
 }
