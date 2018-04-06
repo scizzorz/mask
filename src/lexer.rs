@@ -204,8 +204,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
     let x = if current_indent < indent_stack[indent_stack.len() - 1] {
       indent_stack.pop();
       Exit
-    }
-    else {
+    } else {
       match c {
         '#' => lex_comment(&mut it),
         'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
@@ -222,14 +221,12 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
                 if indent > indent_stack[indent_stack.len() - 1] {
                   indent_stack.push(indent);
                   Enter
-                }
-                else {
+                } else {
                   End
                 }
               }
             }
-          }
-          else {
+          } else {
             End
           }
         }
@@ -340,8 +337,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
     // either there's something we can peek, or the span is until EOF
     let mut end_i = if let Some(&(j, _)) = it.peek() {
       j
-    }
-    else {
+    } else {
       input.source().len()
     };
     let span = input.span.subspan(i as u64, end_i as u64);

@@ -74,8 +74,7 @@ pub enum ParseErrorKind {
 fn peek_token(it: &mut ParseIter, kind: Token) -> bool {
   if let Some(&tok) = it.peek() {
     tok.node == kind
-  }
-  else {
+  } else {
     false
   }
 }
@@ -87,8 +86,7 @@ fn use_token(it: &mut ParseIter, kind: Token) -> bool {
       it.next();
     }
     tok.node == kind
-  }
-  else {
+  } else {
     false
   }
 }
