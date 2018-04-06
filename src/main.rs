@@ -1,6 +1,6 @@
 extern crate clap;
 extern crate codemap;
-extern crate rain;
+extern crate mask;
 
 use clap::App;
 use clap::Arg;
@@ -9,19 +9,19 @@ use std::fs::File;
 use std::path::Path;
 use std::io::prelude::*;
 
-fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<rain::lexer::Token>>) {
+fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<mask::lexer::Token>>) {
   let mut indent = 0;
 
   for token in tokens {
     match token.node {
-      rain::lexer::Token::End | rain::lexer::Token::EOF => {
+      mask::lexer::Token::End | mask::lexer::Token::EOF => {
         println!("{:?}", token.node);
         for _ in 0..indent {
           print!(" ");
         }
       }
 
-      rain::lexer::Token::Enter => {
+      mask::lexer::Token::Enter => {
         indent += 2;
         println!("{:?}", token.node);
         for _ in 0..indent {
@@ -29,7 +29,7 @@ fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<rain::lexer::Token>
         }
       }
 
-      rain::lexer::Token::Exit => {
+      mask::lexer::Token::Exit => {
         indent -= 2;
         print!("{:?} ", token.node);
       }
@@ -45,7 +45,7 @@ fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<rain::lexer::Token>
 }
 
 fn main() {
-  let argv = App::new("rain")
+  let argv = App::new("mask")
     .version("0.0.1")
     .author("John Weachock <jweachock@gmail.com>")
     .about("A programming language.")
@@ -54,14 +54,14 @@ fn main() {
         .short("c")
         .long("code")
         .value_name("CODE")
-        .help("Rain code to execute. Overrides any specified module")
+        .help("Mask code to execute. Overrides any specified module")
         .takes_value(true),
     )
     .arg(
       Arg::with_name("path")
         .takes_value(true)
         .index(1)
-        .help("Rain module to execute"),
+        .help("Mask module to execute"),
     )
     .get_matches();
 
@@ -85,8 +85,8 @@ fn main() {
     }
   };
 
-  let tokens = rain::lexer::lex(&file);
+  let tokens = mask::lexer::lex(&file);
   print_tokens(&map, &tokens);
-  let ast = rain::parser::parse(tokens);
+  let ast = mask::parser::parse(tokens);
   println!("AST: {:?}", ast);
 }

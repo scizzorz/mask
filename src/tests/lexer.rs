@@ -106,7 +106,7 @@ fn lex_symbols() {
 fn lex_structure() {
   // this test uses a single trailing hash to avoid trailing whitespace errors in git and editors
   // the test uses trailing whitespace to test lexing them
-  // (maybe Rain shouldn't allow trailing whitespace? who knows)
+  // (maybe Mask shouldn't allow trailing whitespace? who knows)
   let source = "
   #
  #
