@@ -125,7 +125,7 @@ fn lex_name(it: &mut LexIter) -> Token {
     "continue" => Continue,
     "else" => Else,
     "for" => For,
-    "func" => Func,
+    "fn" => Func,
     "if" => If,
     "import" => Import,
     "in" => In,
