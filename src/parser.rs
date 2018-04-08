@@ -10,6 +10,7 @@ type Parse = Result<Node, ParseErrorKind>;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
   Block(Vec<Node>),
+  Catch(Vec<Node>),
   If {
     cond: Box<Node>,
   },
@@ -29,12 +30,17 @@ pub enum Node {
     args: Vec<Node>,
   },
 
+  Func {
+    params: Vec<String>,
+    body: Vec<Node>,
+  },
+
   Lambda {
     params: Vec<String>,
     expr: Box<Node>,
   },
 
-  Func {
+  Call {
     func: Box<Node>,
     args: Vec<Node>,
   },
@@ -117,6 +123,32 @@ fn op_precedence(op: &Token) -> Op {
     Token::Car => Op::Right(30),
     _ => Op::None,
   }
+}
+
+fn parse_ml_expr(it: &mut ParseIter) -> Parse {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Func => {
+        it.next();
+        require_token(it, Token::Pal)?;
+        let params = parse_fn_params(it)?;
+        require_token(it, Token::Par)?;
+        let body  = parse_block(it)?;
+        Ok(Node::Func {
+            params: params,
+            body: body,
+        })
+      }
+      Token::Catch => {
+        it.next();
+        let block = parse_block(it)?;
+        Ok(Node::Catch(block))
+      }
+      _ => parse_il_expr(it),
+    };
+  }
+
+  Err(UnexpectedEOF)
 }
 
 fn parse_il_expr(it: &mut ParseIter) -> Parse {
@@ -304,7 +336,7 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
 
       Token::Pal => {
         let args = parse_fn_args(it)?;
-        atom = Node::Func {
+        atom = Node::Call {
           func: Box::new(atom),
           args: args,
         };
@@ -436,11 +468,27 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::Pass)
       }
 
-      _ => parse_il_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
+      _ => parse_ml_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
     };
   }
 
   Err(UnexpectedEOF)
+}
+
+fn parse_block(it: &mut ParseIter) -> Result<Vec<Node>, ParseErrorKind> {
+  let mut nodes: Vec<Node> = vec![];
+
+  require_token(it, Token::Enter)?;
+
+  while !peek_token(it, Token::Exit) {
+    let stmt = parse_stmt(it)?;
+    nodes.push(stmt);
+    require_token(it, Token::End)?;
+  }
+
+  require_token(it, Token::Exit)?;
+
+  Ok(nodes)
 }
 
 pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
@@ -448,7 +496,8 @@ pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
   let mut nodes: Vec<Node> = vec![];
 
   while !peek_token(&mut it, Token::EOF) {
-    nodes.push(parse_stmt(&mut it)?);
+    let stmt = parse_stmt(&mut it)?;
+    nodes.push(stmt);
     require_token(&mut it, Token::End)?;
   }
 
