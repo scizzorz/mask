@@ -125,7 +125,6 @@ fn parse_il_expr(it: &mut ParseIter) -> Parse {
       Token::Or => {
         it.next();
         let params = parse_fn_params(it)?;
-        println!("parsed params: {:?}", params);
         require_token(it, Token::Or)?;
         let expr = parse_il_expr(it)?;
         Ok(Node::Lambda {

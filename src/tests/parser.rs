@@ -200,6 +200,53 @@ fn test_un_expr() {
 }
 
 #[test]
+fn test_bin_expr() {
+  let source = "1 + 2 1 + 2 1 + 2 * 3";
+  let tokens = get_tokens(source);
+  let mut it = tokens.iter().peekable();
+
+  assert_eq!(
+    parse_bin_expr(&mut it),
+    Ok(Node::BinExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::Add,
+      rhs: Box::new(Node::Int(2)),
+    })
+  );
+  assert_eq!(
+    parse_bin_expr(&mut it),
+    Ok(Node::BinExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::Add,
+      rhs: Box::new(Node::Int(2)),
+    })
+  );
+  assert_eq!(
+    parse_bin_expr(&mut it),
+    Ok(Node::BinExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::Add,
+      rhs: Box::new(Node::BinExpr {
+        lhs: Box::new(Node::Int(2)),
+        op: lexer::Token::Mul,
+        rhs: Box::new(Node::Int(3)),
+      }),
+    })
+  );
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::End))
+  );
+  it.next();
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::EOF))
+  );
+  it.next();
+  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
+}
+
+#[test]
 fn test_fn_expr() {
   let source = "|| 5 |x| 5 |x,| 5 |x, y| 5";
   let tokens = get_tokens(source);
