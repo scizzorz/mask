@@ -6,8 +6,10 @@ use clap::App;
 use clap::Arg;
 use codemap::CodeMap;
 use std::fs::File;
-use std::path::Path;
+use std::io::Write;
 use std::io::prelude::*;
+use std::io;
+use std::path::Path;
 
 fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<mask::lexer::Token>>) {
   let mut indent = 0;
@@ -67,26 +69,57 @@ fn main() {
 
   let mut map = CodeMap::new();
 
-  let file = match argv.value_of("code") {
-    Some(x) => map.add_file(String::from("_stdin"), x.to_string()),
-    None => {
-      let path_name = argv.value_of("path").unwrap_or("test.ms");
-      let path = Path::new(&path_name);
-      let mut file = match File::open(path) {
-        Err(why) => panic!("Couldn't open {}: {}", path.display(), why),
-        Ok(file) => file,
-      };
+  if let Some(source) = argv.value_of("code") {
+    let file = map.add_file(String::from("_stdin"), source.to_string());
 
-      let mut contents = String::new();
-      match file.read_to_string(&mut contents) {
-        Err(why) => panic!("Couldn't read {}: {}", path.display(), why),
-        Ok(_) => map.add_file(path_name.to_string(), contents.to_string()),
+    // FIXME this code is duplicated a lot, but that's because there's no
+    // "module" component in the compiler yet
+    let tokens = mask::lexer::lex(&file);
+    let ast = mask::parser::parse(tokens);
+    println!("AST: {:?}", ast);
+  } else if let Some(filename) = argv.value_of("path") {
+    let path = Path::new(&filename);
+    let mut file = match File::open(path) {
+      Ok(file) => file,
+      Err(why) => panic!("Couldn't open {}: {}", path.display(), why),
+    };
+
+    let mut contents = String::new();
+    let cm_file = match file.read_to_string(&mut contents) {
+      Ok(_) => map.add_file(filename.to_string(), contents.to_string()),
+      Err(why) => panic!("Couldn't read {}: {}", path.display(), why),
+    };
+
+    // see FIXME above
+    let tokens = mask::lexer::lex(&cm_file);
+    let ast = mask::parser::parse(tokens);
+    println!("AST: {:?}", ast);
+  } else {
+    println!("Starting REPL");
+    loop {
+      let mut buffer = String::new();
+      print!("> ");
+      io::stdout().flush();
+
+      match io::stdin().read_line(&mut buffer) {
+        Ok(nbytes) => {
+          if nbytes == 0 || buffer == "quit\n" {
+            println!("");
+            break;
+          }
+
+          let file = map.add_file(String::from("_stdin"), buffer);
+
+          // see FIXME above
+          let tokens = mask::lexer::lex(&file);
+          let ast = mask::parser::parse(tokens);
+          println!("AST: {:?}", ast);
+        }
+
+        Err(why) => {
+          panic!("Unable to read line: {}", why);
+        }
       }
     }
-  };
-
-  let tokens = mask::lexer::lex(&file);
-  print_tokens(&map, &tokens);
-  let ast = mask::parser::parse(tokens);
-  println!("AST: {:?}", ast);
+  }
 }
