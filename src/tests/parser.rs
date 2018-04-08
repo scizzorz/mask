@@ -15,10 +15,7 @@ fn test_parse<T: Debug + PartialEq>(source: &str, func: &Fn(&mut ParseIter) -> T
   let tokens = get_tokens(source);
   let mut it = tokens.iter().peekable();
 
-  assert_eq!(
-    func(&mut it),
-    expect
-  );
+  assert_eq!(func(&mut it), expect);
 
   assert_eq!(
     parse_un_expr(&mut it),
@@ -50,33 +47,21 @@ fn test_quark() {
 
 #[test]
 fn test_atom() {
-  test_parse(
-    "null",
-    &parse_atom,
-    Ok(Node::Null)
-    );
+  test_parse("null", &parse_atom, Ok(Node::Null));
 
-  test_parse(
-    "(null)",
-    &parse_atom,
-    Ok(Node::Null)
-    );
+  test_parse("(null)", &parse_atom, Ok(Node::Null));
 }
 
 #[test]
 fn test_simple() {
-  test_parse(
-    "foo",
-    &parse_simple,
-    Ok(Node::Name(String::from("foo")))
-    );
+  test_parse("foo", &parse_simple, Ok(Node::Name(String::from("foo"))));
   test_parse(
     "foo.bar",
     &parse_simple,
     Ok(Node::Index {
       lhs: Box::new(Node::Name(String::from("foo"))),
       rhs: Box::new(Node::Str(String::from("bar"))),
-    })
+    }),
   );
   test_parse(
     "foo[bar]",
@@ -84,7 +69,7 @@ fn test_simple() {
     Ok(Node::Index {
       lhs: Box::new(Node::Name(String::from("foo"))),
       rhs: Box::new(Node::Name(String::from("bar"))),
-    })
+    }),
   );
   test_parse(
     "foo()",
@@ -92,7 +77,7 @@ fn test_simple() {
     Ok(Node::Func {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
-    })
+    }),
   );
   test_parse(
     "foo:bar()",
@@ -101,7 +86,7 @@ fn test_simple() {
       owner: Box::new(Node::Name(String::from("foo"))),
       method: Box::new(Node::Str(String::from("bar"))),
       args: Vec::new(),
-    })
+    }),
   );
   test_parse(
     "foo.bar()",
@@ -112,7 +97,7 @@ fn test_simple() {
         rhs: Box::new(Node::Str(String::from("bar"))),
       }),
       args: Vec::new(),
-    })
+    }),
   );
   test_parse(
     "foo.bar[baz]:qux()",
@@ -127,26 +112,18 @@ fn test_simple() {
       }),
       method: Box::new(Node::Str(String::from("qux"))),
       args: Vec::new(),
-    })
+    }),
   );
 }
 
 #[test]
 fn test_fn_args() {
-  test_parse(
-    "()",
-    &parse_fn_args,
-    Ok(Vec::new())
-  );
+  test_parse("()", &parse_fn_args, Ok(Vec::new()));
 }
 
 #[test]
 fn test_un_expr() {
-  test_parse(
-    "5",
-    &parse_un_expr,
-    Ok(Node::Int(5))
-  );
+  test_parse("5", &parse_un_expr, Ok(Node::Int(5)));
 
   test_parse(
     "foo()",
@@ -154,7 +131,7 @@ fn test_un_expr() {
     Ok(Node::Func {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
-    })
+    }),
   );
 
   test_parse(
@@ -163,7 +140,7 @@ fn test_un_expr() {
     Ok(Node::UnExpr {
       op: lexer::Token::Sub,
       val: Box::new(Node::Int(5)),
-    })
+    }),
   );
 
   test_parse(
@@ -175,7 +152,7 @@ fn test_un_expr() {
         lhs: Box::new(Node::Name(String::from("foo"))),
         rhs: Box::new(Node::Str(String::from("bar"))),
       }),
-    })
+    }),
   );
 
   test_parse(
@@ -187,7 +164,7 @@ fn test_un_expr() {
         op: lexer::Token::Sub,
         val: Box::new(Node::Int(5)),
       }),
-    })
+    }),
   );
 }
 
@@ -200,7 +177,7 @@ fn test_bin_expr() {
       lhs: Box::new(Node::Int(1)),
       op: lexer::Token::Add,
       rhs: Box::new(Node::Int(2)),
-    })
+    }),
   );
 
   test_parse(
@@ -210,7 +187,7 @@ fn test_bin_expr() {
       lhs: Box::new(Node::Int(1)),
       op: lexer::Token::Add,
       rhs: Box::new(Node::Int(2)),
-    })
+    }),
   );
 
   test_parse(
@@ -224,7 +201,7 @@ fn test_bin_expr() {
         op: lexer::Token::Mul,
         rhs: Box::new(Node::Int(3)),
       }),
-    })
+    }),
   );
 }
 
@@ -236,7 +213,7 @@ fn test_fn_expr() {
     Ok(Node::Lambda {
       params: Vec::new(),
       expr: Box::new(Node::Int(5)),
-    })
+    }),
   );
 
   test_parse(
@@ -245,7 +222,7 @@ fn test_fn_expr() {
     Ok(Node::Lambda {
       params: vec![String::from("x")],
       expr: Box::new(Node::Int(5)),
-    })
+    }),
   );
 
   test_parse(
@@ -254,7 +231,7 @@ fn test_fn_expr() {
     Ok(Node::Lambda {
       params: vec![String::from("x")],
       expr: Box::new(Node::Int(5)),
-    })
+    }),
   );
 
   test_parse(
@@ -263,6 +240,6 @@ fn test_fn_expr() {
     Ok(Node::Lambda {
       params: vec![String::from("x"), String::from("y")],
       expr: Box::new(Node::Int(5)),
-    })
+    }),
   );
 }
