@@ -74,7 +74,7 @@ fn test_simple() {
   test_parse(
     "foo()",
     &parse_simple,
-    Ok(Node::Func {
+    Ok(Node::Call {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
     }),
@@ -91,7 +91,7 @@ fn test_simple() {
   test_parse(
     "foo.bar()",
     &parse_simple,
-    Ok(Node::Func {
+    Ok(Node::Call {
       func: Box::new(Node::Index {
         lhs: Box::new(Node::Name(String::from("foo"))),
         rhs: Box::new(Node::Str(String::from("bar"))),
@@ -128,7 +128,7 @@ fn test_un_expr() {
   test_parse(
     "foo()",
     &parse_un_expr,
-    Ok(Node::Func {
+    Ok(Node::Call {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
     }),

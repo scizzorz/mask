@@ -28,7 +28,7 @@ fn lex_numbers() {
 
 #[test]
 fn lex_keywords() {
-  let source = "break catch continue else for func if import in loop pass return save var while name true false null";
+  let source = "break catch continue else for fn if import in loop pass return save var while name true false null";
   let tokens = get_tokens(source);
   assert_eq!(tokens.len(), 21);
   assert_eq!(tokens[0].node, Break);
