@@ -29,6 +29,11 @@ pub enum Node {
     args: Vec<Node>,
   },
 
+  Lambda {
+    params: Vec<String>,
+    expr: Box<Node>,
+  },
+
   Func {
     func: Box<Node>,
     args: Vec<Node>,
@@ -112,6 +117,27 @@ fn op_precedence(op: &Token) -> Op {
     Token::Car => Op::Right(30),
     _ => Op::None,
   }
+}
+
+fn parse_il_expr(it: &mut ParseIter) -> Parse {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Or => {
+        it.next();
+        let params = parse_fn_params(it)?;
+        println!("parsed params: {:?}", params);
+        require_token(it, Token::Or)?;
+        let expr = parse_il_expr(it)?;
+        Ok(Node::Lambda {
+          params: params,
+          expr: Box::new(expr),
+        })
+      }
+      _ => parse_bin_expr(it),
+    };
+  }
+
+  Err(UnexpectedEOF)
 }
 
 fn parse_bin_expr(it: &mut ParseIter) -> Parse {
@@ -236,6 +262,24 @@ fn parse_index(it: &mut ParseIter) -> Parse {
   Err(UnexpectedEOF)
 }
 */
+
+fn parse_fn_params(it: &mut ParseIter) -> Result<Vec<String>, ParseErrorKind> {
+  let mut params: Vec<String> = Vec::new();
+  while let Some(&tok) = it.peek() {
+    match tok.node {
+      Token::Name(ref x) => {
+        it.next();
+        params.push(x.to_string());
+        if !use_token(it, Token::Com) {
+          break;
+        }
+      }
+      _ => break,
+    }
+  }
+
+  Ok(params)
+}
 
 fn parse_fn_args(it: &mut ParseIter) -> Result<Vec<Node>, ParseErrorKind> {
   require_token(it, Token::Pal)?;

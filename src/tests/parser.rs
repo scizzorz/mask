@@ -198,3 +198,50 @@ fn test_un_expr() {
   it.next();
   assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
 }
+
+#[test]
+fn test_fn_expr() {
+  let source = "|| 5 |x| 5 |x,| 5 |x, y| 5";
+  let tokens = get_tokens(source);
+  let mut it = tokens.iter().peekable();
+
+  assert_eq!(
+    parse_il_expr(&mut it),
+    Ok(Node::Lambda {
+      params: Vec::new(),
+      expr: Box::new(Node::Int(5)),
+    })
+  );
+  assert_eq!(
+    parse_il_expr(&mut it),
+    Ok(Node::Lambda {
+      params: vec![String::from("x")],
+      expr: Box::new(Node::Int(5)),
+    })
+  );
+  assert_eq!(
+    parse_il_expr(&mut it),
+    Ok(Node::Lambda {
+      params: vec![String::from("x")],
+      expr: Box::new(Node::Int(5)),
+    })
+  );
+  assert_eq!(
+    parse_il_expr(&mut it),
+    Ok(Node::Lambda {
+      params: vec![String::from("x"), String::from("y")],
+      expr: Box::new(Node::Int(5)),
+    })
+  );
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::End))
+  );
+  it.next();
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::EOF))
+  );
+  it.next();
+  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
+}
