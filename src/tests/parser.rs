@@ -35,85 +35,75 @@ fn test_parse(source: &str, func: &Fn(&mut ParseIter) -> Parse, expect: Parse) {
 
 #[test]
 fn test_quark() {
-  let source = "null true false 1.3 0.3 2 3 name table";
-  let tokens = get_tokens(source);
-  let mut it = tokens.iter().peekable();
-
-  assert_eq!(parse_quark(&mut it), Ok(Node::Null));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Bool(true)));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Bool(false)));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Float(1.3)));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Float(0.3)));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Int(2)));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Int(3)));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Name(String::from("name"))));
-  assert_eq!(parse_quark(&mut it), Ok(Node::Table));
-  assert_eq!(
-    parse_quark(&mut it),
-    Err(UnexpectedToken(lexer::Token::End))
-  );
-  it.next();
-  assert_eq!(
-    parse_quark(&mut it),
-    Err(UnexpectedToken(lexer::Token::EOF))
-  );
-  it.next();
-  assert_eq!(parse_quark(&mut it), Err(UnexpectedEOF));
+  test_parse("null", &parse_quark, Ok(Node::Null));
+  test_parse("true", &parse_quark, Ok(Node::Bool(true)));
+  test_parse("false", &parse_quark, Ok(Node::Bool(false)));
+  test_parse("1.3", &parse_quark, Ok(Node::Float(1.3)));
+  test_parse("0.3", &parse_quark, Ok(Node::Float(0.3)));
+  test_parse("2", &parse_quark, Ok(Node::Int(2)));
+  test_parse("3", &parse_quark, Ok(Node::Int(3)));
+  test_parse("name", &parse_quark, Ok(Node::Name(String::from("name"))));
+  test_parse("table", &parse_quark, Ok(Node::Table));
 }
 
 #[test]
 fn test_atom() {
-  let source = "null (null)";
-  let tokens = get_tokens(source);
-  let mut it = tokens.iter().peekable();
+  test_parse(
+    "null",
+    &parse_atom,
+    Ok(Node::Null)
+    );
 
-  assert_eq!(parse_atom(&mut it), Ok(Node::Null));
-  assert_eq!(parse_atom(&mut it), Ok(Node::Null));
-  assert_eq!(parse_atom(&mut it), Err(UnexpectedToken(lexer::Token::End)));
-  it.next();
-  assert_eq!(parse_atom(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
-  it.next();
-  assert_eq!(parse_atom(&mut it), Err(UnexpectedEOF));
+  test_parse(
+    "(null)",
+    &parse_atom,
+    Ok(Node::Null)
+    );
 }
 
 #[test]
 fn test_simple() {
-  let source = "foo foo.bar foo[bar] foo() foo:bar() foo.bar() foo.bar[baz]:qux()";
-  let tokens = get_tokens(source);
-  let mut it = tokens.iter().peekable();
-
-  assert_eq!(parse_simple(&mut it), Ok(Node::Name(String::from("foo"))));
-  assert_eq!(
-    parse_simple(&mut it),
+  test_parse(
+    "foo",
+    &parse_simple,
+    Ok(Node::Name(String::from("foo")))
+    );
+  test_parse(
+    "foo.bar",
+    &parse_simple,
     Ok(Node::Index {
       lhs: Box::new(Node::Name(String::from("foo"))),
       rhs: Box::new(Node::Str(String::from("bar"))),
     })
   );
-  assert_eq!(
-    parse_simple(&mut it),
+  test_parse(
+    "foo[bar]",
+    &parse_simple,
     Ok(Node::Index {
       lhs: Box::new(Node::Name(String::from("foo"))),
       rhs: Box::new(Node::Name(String::from("bar"))),
     })
   );
-  assert_eq!(
-    parse_simple(&mut it),
+  test_parse(
+    "foo()",
+    &parse_simple,
     Ok(Node::Func {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
     })
   );
-  assert_eq!(
-    parse_simple(&mut it),
+  test_parse(
+    "foo:bar()",
+    &parse_simple,
     Ok(Node::Method {
       owner: Box::new(Node::Name(String::from("foo"))),
       method: Box::new(Node::Str(String::from("bar"))),
       args: Vec::new(),
     })
   );
-  assert_eq!(
-    parse_simple(&mut it),
+  test_parse(
+    "foo.bar()",
+    &parse_simple,
     Ok(Node::Func {
       func: Box::new(Node::Index {
         lhs: Box::new(Node::Name(String::from("foo"))),
@@ -122,8 +112,9 @@ fn test_simple() {
       args: Vec::new(),
     })
   );
-  assert_eq!(
-    parse_simple(&mut it),
+  test_parse(
+    "foo.bar[baz]:qux()",
+    &parse_simple,
     Ok(Node::Method {
       owner: Box::new(Node::Index {
         lhs: Box::new(Node::Index {
@@ -136,17 +127,6 @@ fn test_simple() {
       args: Vec::new(),
     })
   );
-  assert_eq!(
-    parse_simple(&mut it),
-    Err(UnexpectedToken(lexer::Token::End))
-  );
-  it.next();
-  assert_eq!(
-    parse_simple(&mut it),
-    Err(UnexpectedToken(lexer::Token::EOF))
-  );
-  it.next();
-  assert_eq!(parse_simple(&mut it), Err(UnexpectedEOF));
 }
 
 #[test]
@@ -171,27 +151,33 @@ fn test_fn_args() {
 
 #[test]
 fn test_un_expr() {
-  let source = "5 foo() -5 -foo.bar !-5";
-  let tokens = get_tokens(source);
-  let mut it = tokens.iter().peekable();
+  test_parse(
+    "5",
+    &parse_un_expr,
+    Ok(Node::Int(5))
+  );
 
-  assert_eq!(parse_un_expr(&mut it), Ok(Node::Int(5)));
-  assert_eq!(
-    parse_un_expr(&mut it),
+  test_parse(
+    "foo()",
+    &parse_un_expr,
     Ok(Node::Func {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
     })
   );
-  assert_eq!(
-    parse_un_expr(&mut it),
+
+  test_parse(
+    "-5",
+    &parse_un_expr,
     Ok(Node::UnExpr {
       op: lexer::Token::Sub,
       val: Box::new(Node::Int(5)),
     })
   );
-  assert_eq!(
-    parse_un_expr(&mut it),
+
+  test_parse(
+    "-foo.bar",
+    &parse_un_expr,
     Ok(Node::UnExpr {
       op: lexer::Token::Sub,
       val: Box::new(Node::Index {
@@ -200,8 +186,10 @@ fn test_un_expr() {
       }),
     })
   );
-  assert_eq!(
-    parse_un_expr(&mut it),
+
+  test_parse(
+    "!-5",
+    &parse_un_expr,
     Ok(Node::UnExpr {
       op: lexer::Token::Not,
       val: Box::new(Node::UnExpr {
@@ -210,17 +198,6 @@ fn test_un_expr() {
       }),
     })
   );
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::End))
-  );
-  it.next();
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::EOF))
-  );
-  it.next();
-  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
 }
 
 #[test]
@@ -262,47 +239,39 @@ fn test_bin_expr() {
 
 #[test]
 fn test_fn_expr() {
-  let source = "|| 5 |x| 5 |x,| 5 |x, y| 5";
-  let tokens = get_tokens(source);
-  let mut it = tokens.iter().peekable();
-
-  assert_eq!(
-    parse_il_expr(&mut it),
+  test_parse(
+    "|| 5",
+    &parse_il_expr,
     Ok(Node::Lambda {
       params: Vec::new(),
       expr: Box::new(Node::Int(5)),
     })
   );
-  assert_eq!(
-    parse_il_expr(&mut it),
+
+  test_parse(
+    "|x| 5",
+    &parse_il_expr,
     Ok(Node::Lambda {
       params: vec![String::from("x")],
       expr: Box::new(Node::Int(5)),
     })
   );
-  assert_eq!(
-    parse_il_expr(&mut it),
+
+  test_parse(
+    "|x,| 5",
+    &parse_il_expr,
     Ok(Node::Lambda {
       params: vec![String::from("x")],
       expr: Box::new(Node::Int(5)),
     })
   );
-  assert_eq!(
-    parse_il_expr(&mut it),
+
+  test_parse(
+    "|x,y| 5",
+    &parse_il_expr,
     Ok(Node::Lambda {
       params: vec![String::from("x"), String::from("y")],
       expr: Box::new(Node::Int(5)),
     })
   );
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::End))
-  );
-  it.next();
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::EOF))
-  );
-  it.next();
-  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
 }
