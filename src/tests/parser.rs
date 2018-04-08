@@ -9,6 +9,30 @@ fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   lexer::lex(&file)
 }
 
+fn test_parse(source: &str, func: &Fn(&mut ParseIter) -> Parse, expect: Parse) {
+  let tokens = get_tokens(source);
+  let mut it = tokens.iter().peekable();
+
+  assert_eq!(
+    func(&mut it),
+    expect
+  );
+
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::End))
+  );
+  it.next();
+
+  assert_eq!(
+    parse_un_expr(&mut it),
+    Err(UnexpectedToken(lexer::Token::EOF))
+  );
+  it.next();
+
+  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
+}
+
 #[test]
 fn test_quark() {
   let source = "null true false 1.3 0.3 2 3 name table";
@@ -201,28 +225,29 @@ fn test_un_expr() {
 
 #[test]
 fn test_bin_expr() {
-  let source = "1 + 2 1 + 2 1 + 2 * 3";
-  let tokens = get_tokens(source);
-  let mut it = tokens.iter().peekable();
+  test_parse(
+    "1 + 2",
+    &parse_bin_expr,
+    Ok(Node::BinExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::Add,
+      rhs: Box::new(Node::Int(2)),
+    })
+  );
 
-  assert_eq!(
-    parse_bin_expr(&mut it),
+  test_parse(
+    "(1 + 2)",
+    &parse_bin_expr,
     Ok(Node::BinExpr {
       lhs: Box::new(Node::Int(1)),
       op: lexer::Token::Add,
       rhs: Box::new(Node::Int(2)),
     })
   );
-  assert_eq!(
-    parse_bin_expr(&mut it),
-    Ok(Node::BinExpr {
-      lhs: Box::new(Node::Int(1)),
-      op: lexer::Token::Add,
-      rhs: Box::new(Node::Int(2)),
-    })
-  );
-  assert_eq!(
-    parse_bin_expr(&mut it),
+
+  test_parse(
+    "1 + 2 * 3",
+    &parse_bin_expr,
     Ok(Node::BinExpr {
       lhs: Box::new(Node::Int(1)),
       op: lexer::Token::Add,
@@ -233,17 +258,6 @@ fn test_bin_expr() {
       }),
     })
   );
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::End))
-  );
-  it.next();
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::EOF))
-  );
-  it.next();
-  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
 }
 
 #[test]
