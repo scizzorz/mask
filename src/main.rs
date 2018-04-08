@@ -95,7 +95,10 @@ fn main() {
     let ast = mask::parser::parse(tokens);
     println!("AST: {:?}", ast);
   } else {
-    println!("Starting REPL");
+    // FIXME needs to handle multiline statements
+    // initial idea is to request an extra line when the AST matches
+    // UnexpectedToken(End) | UnexpectedEOF
+    // and then concatenate it to the previous line(s)
     loop {
       let mut buffer = String::new();
       print!("> ");
