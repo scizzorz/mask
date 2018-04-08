@@ -2,6 +2,8 @@ use super::*;
 use super::super::lexer;
 use codemap::CodeMap;
 use codemap::Spanned;
+use std::fmt::Debug;
+use std::cmp::PartialEq;
 
 fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   let mut map = CodeMap::new();
@@ -9,7 +11,7 @@ fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   lexer::lex(&file)
 }
 
-fn test_parse(source: &str, func: &Fn(&mut ParseIter) -> Parse, expect: Parse) {
+fn test_parse<T: Debug + PartialEq>(source: &str, func: &Fn(&mut ParseIter) -> T, expect: T) {
   let tokens = get_tokens(source);
   let mut it = tokens.iter().peekable();
 
@@ -131,22 +133,11 @@ fn test_simple() {
 
 #[test]
 fn test_fn_args() {
-  let source = "()";
-  let tokens = get_tokens(source);
-  let mut it = tokens.iter().peekable();
-
-  assert_eq!(parse_fn_args(&mut it), Ok(Vec::new()));
-  assert_eq!(
-    parse_fn_args(&mut it),
-    Err(UnexpectedToken(lexer::Token::End))
+  test_parse(
+    "()",
+    &parse_fn_args,
+    Ok(Vec::new())
   );
-  it.next();
-  assert_eq!(
-    parse_fn_args(&mut it),
-    Err(UnexpectedToken(lexer::Token::EOF))
-  );
-  it.next();
-  assert_eq!(parse_fn_args(&mut it), Err(UnexpectedEOF));
 }
 
 #[test]
