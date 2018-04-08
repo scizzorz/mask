@@ -436,7 +436,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::Pass)
       }
 
-      _ => parse_bin_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
+      _ => parse_il_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
     };
   }
 
