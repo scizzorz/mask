@@ -70,7 +70,7 @@ fn main() {
   let file = match argv.value_of("code") {
     Some(x) => map.add_file(String::from("_stdin"), x.to_string()),
     None => {
-      let path_name = argv.value_of("path").unwrap_or("test.rn");
+      let path_name = argv.value_of("path").unwrap_or("test.ms");
       let path = Path::new(&path_name);
       let mut file = match File::open(path) {
         Err(why) => panic!("Couldn't open {}: {}", path.display(), why),
