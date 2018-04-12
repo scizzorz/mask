@@ -17,6 +17,7 @@ fn test_parse<T: Debug + PartialEq>(source: &str, func: &Fn(&mut ParseIter) -> T
 
   assert_eq!(func(&mut it), expect);
 
+  // wait, why do these all use parse_un_expr instead of the &Fn we get?
   assert_eq!(
     parse_un_expr(&mut it),
     Err(UnexpectedToken(lexer::Token::End))
@@ -241,5 +242,71 @@ fn test_fn_expr() {
       params: vec![String::from("x"), String::from("y")],
       expr: Box::new(Node::Int(5)),
     }),
+  );
+}
+
+#[test]
+fn test_decl() {
+  test_parse("x", &parse_decl, Ok(Var::Single(String::from("x"))));
+
+  test_parse(
+    "[x]",
+    &parse_decl,
+    Ok(Var::Multi(vec![Var::Single(String::from("x"))])),
+  );
+
+  test_parse(
+    "[x, y]",
+    &parse_decl,
+    Ok(Var::Multi(vec![
+      Var::Single(String::from("x")),
+      Var::Single(String::from("y")),
+    ])),
+  );
+
+  test_parse(
+    "[[x, y], z]",
+    &parse_decl,
+    Ok(Var::Multi(vec![
+      Var::Multi(vec![
+        Var::Single(String::from("x")),
+        Var::Single(String::from("y")),
+      ]),
+      Var::Single(String::from("z")),
+    ])),
+  );
+
+  test_parse(
+    "[x, [y, z]]",
+    &parse_decl,
+    Ok(Var::Multi(vec![
+      Var::Single(String::from("x")),
+      Var::Multi(vec![
+        Var::Single(String::from("y")),
+        Var::Single(String::from("z")),
+      ]),
+    ])),
+  );
+
+  test_parse(
+    "[[x], [y]]",
+    &parse_decl,
+    Ok(Var::Multi(vec![
+      Var::Multi(vec![Var::Single(String::from("x"))]),
+      Var::Multi(vec![Var::Single(String::from("y"))]),
+    ])),
+  );
+
+  test_parse(
+    "[x, [y, z], q]",
+    &parse_decl,
+    Ok(Var::Multi(vec![
+      Var::Single(String::from("x")),
+      Var::Multi(vec![
+        Var::Single(String::from("y")),
+        Var::Single(String::from("z")),
+      ]),
+      Var::Single(String::from("q")),
+    ])),
   );
 }

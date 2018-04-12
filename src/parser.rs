@@ -8,6 +8,12 @@ type ParseIter<'a> = Peekable<Iter<'a, Spanned<Token>>>;
 type Parse = Result<Node, ParseErrorKind>;
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Var {
+  Single(String),
+  Multi(Vec<Var>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Node {
   Block(Vec<Node>),
   Catch(Vec<Node>),
@@ -19,6 +25,7 @@ pub enum Node {
   Continue,
   Expr,
   Pass,
+  Decl(Var),
   Index {
     lhs: Box<Node>,
     rhs: Box<Node>,
@@ -133,10 +140,10 @@ fn parse_ml_expr(it: &mut ParseIter) -> Parse {
         require_token(it, Token::Pal)?;
         let params = parse_fn_params(it)?;
         require_token(it, Token::Par)?;
-        let body  = parse_block(it)?;
+        let body = parse_block(it)?;
         Ok(Node::Func {
-            params: params,
-            body: body,
+          params: params,
+          body: body,
         })
       }
       Token::Catch => {
@@ -442,6 +449,33 @@ fn parse_quark(it: &mut ParseIter) -> Parse {
       Token::Table => {
         it.next();
         Ok(Node::Table)
+      }
+      ref x => Err(UnexpectedToken(x.clone())),
+    };
+  }
+
+  Err(UnexpectedEOF)
+}
+
+fn parse_decl(it: &mut ParseIter) -> Result<Var, ParseErrorKind> {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Sql => {
+        it.next();
+        let mut pieces: Vec<Var> = Vec::new();
+        loop {
+          let new_piece = parse_decl(it)?;
+          pieces.push(new_piece);
+          if !use_token(it, Token::Com) {
+            break;
+          }
+        }
+        require_token(it, Token::Sqr)?;
+        Ok(Var::Multi(pieces))
+      }
+      Token::Name(ref x) => {
+        it.next();
+        Ok(Var::Single(x.clone()))
       }
       ref x => Err(UnexpectedToken(x.clone())),
     };
