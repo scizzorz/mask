@@ -360,3 +360,42 @@ fn test_if_stmt() {
     }),
   );
 }
+
+#[test]
+fn test_for_stmt() {
+  test_parse(
+    "for x in true
+       pass",
+    &parse_stmt,
+    Ok(Node::For {
+      decl: Var::Single(String::from("x")),
+      expr: Box::new(Node::Bool(true)),
+      body: vec![Node::Pass],
+    }),
+  );
+}
+
+#[test]
+fn test_while_stmt() {
+  test_parse(
+    "while true
+       pass",
+    &parse_stmt,
+    Ok(Node::While {
+      expr: Box::new(Node::Bool(true)),
+      body: vec![Node::Pass],
+    }),
+  );
+}
+
+#[test]
+fn test_loop_stmt() {
+  test_parse(
+    "loop
+       pass",
+    &parse_stmt,
+    Ok(Node::Loop {
+      body: vec![Node::Pass],
+    }),
+  );
+}

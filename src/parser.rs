@@ -29,12 +29,23 @@ pub enum Node {
   Else {
     body: Vec<Node>,
   },
+  For {
+    decl: Var,
+    expr: Box<Node>,
+    body: Vec<Node>,
+  },
+  While {
+    expr: Box<Node>,
+    body: Vec<Node>,
+  },
+  Loop {
+    body: Vec<Node>,
+  },
   Return(Option<Box<Node>>),
   Break,
   Continue,
   Expr,
   Pass,
-  Decl(Var),
   Index {
     lhs: Box<Node>,
     rhs: Box<Node>,
@@ -529,6 +540,37 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
           let body = parse_block(it)?;
           Ok(Node::Else { body: body })
         }
+      }
+
+      Token::For => {
+        it.next();
+        let decl = parse_decl(it)?;
+        require_token(it, Token::In)?;
+        let expr = parse_il_expr(it)?;
+        let body = parse_block(it)?;
+        Ok(Node::For {
+          decl: decl,
+          expr: Box::new(expr),
+          body: body,
+        })
+      }
+
+      Token::While => {
+        it.next();
+        let expr = parse_il_expr(it)?;
+        let body = parse_block(it)?;
+        Ok(Node::While {
+          expr: Box::new(expr),
+          body: body,
+        })
+      }
+
+      Token::Loop => {
+        it.next();
+        let body = parse_block(it)?;
+        Ok(Node::Loop {
+          body: body,
+        })
       }
 
       Token::Return => {
