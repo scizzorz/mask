@@ -320,4 +320,46 @@ fn test_return_stmt() {
     &parse_stmt,
     Ok(Node::Return(Some(Box::new(Node::Int(5))))),
   );
+
+  test_parse(
+    "return fn()
+       return 5",
+    &parse_stmt,
+    Ok(Node::Return(Some(Box::new(Node::Func {
+      params: Vec::new(),
+      body: vec![Node::Return(Some(Box::new(Node::Int(5))))],
+    })))),
+  );
+}
+
+#[test]
+fn test_if_stmt() {
+  test_parse(
+    "if true
+       pass",
+    &parse_stmt,
+    Ok(Node::If {
+      cond: Box::new(Node::Bool(true)),
+      body: vec![Node::Pass],
+    }),
+  );
+
+  test_parse(
+    "else if true
+       pass",
+    &parse_stmt,
+    Ok(Node::ElseIf {
+      cond: Box::new(Node::Bool(true)),
+      body: vec![Node::Pass],
+    }),
+  );
+
+  test_parse(
+    "else
+       pass",
+    &parse_stmt,
+    Ok(Node::Else {
+      body: vec![Node::Pass],
+    }),
+  );
 }

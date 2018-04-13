@@ -20,6 +20,14 @@ pub enum Node {
   Catch(Vec<Node>),
   If {
     cond: Box<Node>,
+    body: Vec<Node>,
+  },
+  ElseIf {
+    cond: Box<Node>,
+    body: Vec<Node>,
+  },
+  Else {
+    body: Vec<Node>,
   },
   Return(Option<Box<Node>>),
   Break,
@@ -496,6 +504,31 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
       Token::Continue => {
         it.next();
         Ok(Node::Continue)
+      }
+
+      Token::If => {
+        it.next();
+        let cond = parse_bin_expr(it)?;
+        let body = parse_block(it)?;
+        Ok(Node::If {
+          cond: Box::new(cond),
+          body: body,
+        })
+      }
+
+      Token::Else => {
+        it.next();
+        if use_token(it, Token::If) {
+          let cond = parse_bin_expr(it)?;
+          let body = parse_block(it)?;
+          Ok(Node::ElseIf {
+            cond: Box::new(cond),
+            body: body,
+          })
+        } else {
+          let body = parse_block(it)?;
+          Ok(Node::Else { body: body })
+        }
       }
 
       Token::Return => {
