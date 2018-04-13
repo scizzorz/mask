@@ -15,6 +15,7 @@ pub enum Token {
   Exit,
   Space,
   End,
+  Tab, // lol
   Comment(String),
 
   // Literals
@@ -229,6 +230,10 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
           } else {
             End
           }
+        }
+        '\t' => {
+          it.next();
+          Tab
         }
 
         // Compound
