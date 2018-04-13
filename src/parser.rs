@@ -16,11 +16,12 @@ pub enum Var {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
   Block(Vec<Node>),
+  Stmt(Box<Node>),
   Catch(Vec<Node>),
   If {
     cond: Box<Node>,
   },
-  Stmt(Box<Node>),
+  Return(Option<Box<Node>>),
   Break,
   Continue,
   Expr,
@@ -495,6 +496,17 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
       Token::Continue => {
         it.next();
         Ok(Node::Continue)
+      }
+
+      Token::Return => {
+        it.next();
+        let val = if peek_token(it, Token::End) {
+          None
+        } else {
+          let val = parse_ml_expr(it)?;
+          Some(Box::new(val))
+        };
+        Ok(Node::Return(val))
       }
 
       Token::Pass => {

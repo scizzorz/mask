@@ -310,3 +310,14 @@ fn test_decl() {
     ])),
   );
 }
+
+#[test]
+fn test_return_stmt() {
+  test_parse("return", &parse_stmt, Ok(Node::Return(None)));
+
+  test_parse(
+    "return 5",
+    &parse_stmt,
+    Ok(Node::Return(Some(Box::new(Node::Int(5))))),
+  );
+}
