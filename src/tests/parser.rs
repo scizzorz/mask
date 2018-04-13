@@ -11,26 +11,23 @@ fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   lexer::lex(&file)
 }
 
-fn test_parse<T: Debug + PartialEq>(source: &str, func: &Fn(&mut ParseIter) -> T, expect: T) {
+fn test_parse<T: Debug + PartialEq>(
+  source: &str,
+  func: &Fn(&mut ParseIter) -> Result<T, ParseErrorKind>,
+  expect: Result<T, ParseErrorKind>,
+) {
   let tokens = get_tokens(source);
   let mut it = tokens.iter().peekable();
 
   assert_eq!(func(&mut it), expect);
 
-  // wait, why do these all use parse_un_expr instead of the &Fn we get?
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::End))
-  );
+  assert_eq!(func(&mut it), Err(UnexpectedToken(lexer::Token::End)));
   it.next();
 
-  assert_eq!(
-    parse_un_expr(&mut it),
-    Err(UnexpectedToken(lexer::Token::EOF))
-  );
+  assert_eq!(func(&mut it), Err(UnexpectedToken(lexer::Token::EOF)));
   it.next();
 
-  assert_eq!(parse_un_expr(&mut it), Err(UnexpectedEOF));
+  assert_eq!(func(&mut it), Err(UnexpectedEOF));
 }
 
 #[test]
