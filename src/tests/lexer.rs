@@ -208,3 +208,19 @@ else
   assert_eq!(tokens[62].node, End);
   assert_eq!(tokens[63].node, EOF);
 }
+
+#[test]
+fn lex_trailing_exits() {
+  let source = "if true
+  pass";
+  let tokens = get_tokens(source);
+  assert_eq!(tokens.len(), 8);
+  assert_eq!(tokens[0].node, If);
+  assert_eq!(tokens[1].node, Bool(true));
+  assert_eq!(tokens[2].node, Enter);
+  assert_eq!(tokens[3].node, Pass);
+  assert_eq!(tokens[4].node, End);
+  assert_eq!(tokens[5].node, Exit);
+  assert_eq!(tokens[6].node, End);
+  assert_eq!(tokens[7].node, EOF);
+}

@@ -384,6 +384,16 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
   let end = input.source().len() as u64;
   let span = input.span.subspan(end, end);
 
+  // sometimes a trailing newline goes missing before EOF
+  if let Some(x) = tokens.last().cloned() {
+    if x.node != End {
+      tokens.push(Spanned {
+        node: End,
+        span: span,
+      });
+    }
+  }
+
   // exit blocks that are open at EOF
   while indent_stack.len() > 1 {
     tokens.push(Spanned {
@@ -395,16 +405,6 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
       span: span,
     });
     indent_stack.pop();
-  }
-
-  // sometimes a trailing newline goes missing before EOF
-  if let Some(x) = tokens.last().cloned() {
-    if x.node != End {
-      tokens.push(Spanned {
-        node: End,
-        span: span,
-      });
-    }
   }
 
   // push the EOF token
