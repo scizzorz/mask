@@ -10,6 +10,8 @@ use std::io::Write;
 use std::io::prelude::*;
 use std::io;
 use std::path::Path;
+use mask::parser::ParseErrorKind;
+use mask::lexer::Token;
 
 fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<mask::lexer::Token>>) {
   let mut indent = 0;
@@ -99,24 +101,54 @@ fn main() {
     // initial idea is to request an extra line when the AST matches
     // UnexpectedToken(End) | UnexpectedEOF
     // and then concatenate it to the previous line(s)
+    // FIXME ^ this is implemented, but isn't quite right
+    // ie, if you enter `if` as your first line, it will never get it right
+    // there needs to be an 'unexpected X, expected Token::Enter`, maybe?
+
+    let mut chunk = String::new();
+    let mut wait_for_blank = false;
+
     loop {
       let mut buffer = String::new();
-      print!("> ");
+      if wait_for_blank {
+        print!(". ");
+      } else {
+        print!("> ");
+      }
       io::stdout().flush();
 
       match io::stdin().read_line(&mut buffer) {
         Ok(nbytes) => {
-          if nbytes == 0 || buffer == "quit\n" {
+          chunk.push_str(&buffer);
+
+          if nbytes == 0 || chunk == "quit\n" {
             println!("");
             break;
           }
 
-          let file = map.add_file(String::from("_stdin"), buffer);
+          if wait_for_blank && buffer != "\n" {
+            continue;
+          }
 
-          // see FIXME above
+          let file = map.add_file(String::from("_stdin"), chunk.clone());
+
           let tokens = mask::lexer::lex(&file);
           let ast = mask::parser::parse(tokens);
-          println!("AST: {:?}", ast);
+          match ast {
+            // incomplete statement - say we're waiting for an empty line and then skip the rest
+            Err(ParseErrorKind::UnexpectedToken(Token::End))
+            | Err(ParseErrorKind::UnexpectedEOF) => {
+              wait_for_blank = true;
+              continue;
+            }
+
+            // we have a complete statement! parse it!
+            _ => {
+              println!("AST: {:?}", ast);
+              chunk.clear();
+              wait_for_blank = false;
+            }
+          }
         }
 
         Err(why) => {
