@@ -338,6 +338,7 @@ fn test_if_stmt() {
     Ok(Node::If {
       cond: Box::new(Node::Bool(true)),
       body: vec![Node::Pass],
+      els: None,
     }),
   );
 
@@ -397,5 +398,88 @@ fn test_loop_stmt() {
     Ok(Node::Loop {
       body: vec![Node::Pass],
     }),
+  );
+}
+
+#[test]
+fn test_place() {
+  test_parse(
+    "x",
+    &parse_place,
+    Ok(Place::Single(Box::new(Node::Name(String::from("x"))))),
+  );
+
+  test_parse(
+    "[x]",
+    &parse_place,
+    Ok(Place::Multi(vec![
+      Place::Single(Box::new(Node::Name(String::from("x")))),
+    ])),
+  );
+
+  test_parse(
+    "[x.y]",
+    &parse_place,
+    Ok(Place::Multi(vec![
+      Place::Single(Box::new(Node::Index {
+        lhs: Box::new(Node::Name(String::from("x"))),
+        rhs: Box::new(Node::Str(String::from("y"))),
+      })),
+    ])),
+  );
+
+  test_parse(
+    "[x, y]",
+    &parse_place,
+    Ok(Place::Multi(vec![
+      Place::Single(Box::new(Node::Name(String::from("x")))),
+      Place::Single(Box::new(Node::Name(String::from("y")))),
+    ])),
+  );
+
+  test_parse(
+    "[[x, y], z]",
+    &parse_place,
+    Ok(Place::Multi(vec![
+      Place::Multi(vec![
+        Place::Single(Box::new(Node::Name(String::from("x")))),
+        Place::Single(Box::new(Node::Name(String::from("y")))),
+      ]),
+      Place::Single(Box::new(Node::Name(String::from("z")))),
+    ])),
+  );
+
+  test_parse(
+    "[x, [y, z]]",
+    &parse_place,
+    Ok(Place::Multi(vec![
+      Place::Single(Box::new(Node::Name(String::from("x")))),
+      Place::Multi(vec![
+        Place::Single(Box::new(Node::Name(String::from("y")))),
+        Place::Single(Box::new(Node::Name(String::from("z")))),
+      ]),
+    ])),
+  );
+
+  test_parse(
+    "[[x], [y]]",
+    &parse_place,
+    Ok(Place::Multi(vec![
+      Place::Multi(vec![Place::Single(Box::new(Node::Name(String::from("x"))))]),
+      Place::Multi(vec![Place::Single(Box::new(Node::Name(String::from("y"))))]),
+    ])),
+  );
+
+  test_parse(
+    "[x, [y, z], q]",
+    &parse_place,
+    Ok(Place::Multi(vec![
+      Place::Single(Box::new(Node::Name(String::from("x")))),
+      Place::Multi(vec![
+        Place::Single(Box::new(Node::Name(String::from("y")))),
+        Place::Single(Box::new(Node::Name(String::from("z")))),
+      ]),
+      Place::Single(Box::new(Node::Name(String::from("q")))),
+    ])),
   );
 }
