@@ -7,7 +7,7 @@ block :: ENTER (stmt END)+ EXIT
 
 stmt :: 'var' decl assn
       | 'if' bin_expr block
-      | 'elif' bin_expr block
+      | 'else' 'if' bin_expr block
       | 'else' block
       | 'for' decl 'in' il_expr block
       | 'while' bin_expr block
@@ -16,7 +16,7 @@ stmt :: 'var' decl assn
       | 'break'
       | 'continue'
       | 'return' ml_expr?
-      | assn_item (assn | fn_call)
+      | place (assn | fn_call)
 
 decl :: '[' decl (',' decl)* ']'
       | NAME
@@ -25,7 +25,7 @@ assn = '=' ml_expr
 
 index :: '.' NAME | '[' bin_expr ']'
 
-assn_item :: '[' assn_item (',' assn_item)* ']'
+place :: '[' place (',' place)* ']'
              | simple
 
 ml_expr :: 'fn' '(' fn_params ')' block

@@ -557,12 +557,10 @@ fn parse_assn(it: &mut ParseIter) -> Parse {
         })
       }
 
-      _ => {
-        match place {
-          Place::Single(bx) => Ok(Node::Stmt(bx)),
-          Place::Multi(_) => Err(UnusedPlaces),
-        }
-      }
+      _ => match place {
+        Place::Single(bx) => Ok(Node::Stmt(bx)),
+        Place::Multi(_) => Err(UnusedPlaces),
+      },
     };
   }
 
