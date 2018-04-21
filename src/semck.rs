@@ -33,9 +33,32 @@ impl SemChecker {
         self.check(&mut n)?;
       },
 
-      Node::Loop { body: ref mut ls } => {
+      Node::Loop { ref mut body } => {
         self.in_loop = true;
-        for mut n in ls {
+        for mut n in body {
+          self.check(&mut n)?;
+        }
+        self.in_loop = false;
+      }
+
+      Node::While {
+        ref mut body,
+        ref expr,
+      } => {
+        self.in_loop = true;
+        for mut n in body {
+          self.check(&mut n)?;
+        }
+        self.in_loop = false;
+      }
+
+      Node::For {
+        ref mut body,
+        ref decl,
+        ref expr,
+      } => {
+        self.in_loop = true;
+        for mut n in body {
           self.check(&mut n)?;
         }
         self.in_loop = false;
@@ -47,6 +70,8 @@ impl SemChecker {
         }
       }
 
+      // TODO add if-else if-else checks
+      // TODO add assn checks
       _ => {}
     }
 
