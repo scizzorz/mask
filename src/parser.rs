@@ -14,10 +14,20 @@ pub enum Var {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+pub enum Place {
+  Single(Box<Node>),
+  Multi(Vec<Place>),
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Node {
   Block(Vec<Node>),
   Stmt(Box<Node>),
   Catch(Vec<Node>),
+  Assn {
+    lhs: Place,
+    rhs: Box<Node>,
+  },
   If {
     cond: Box<Node>,
     body: Vec<Node>,
@@ -107,6 +117,7 @@ pub enum ParseErrorKind {
   UnexpectedEOF,
   UnknownBinaryOperator,
   UnknownUnaryOperator,
+  UnusedPlaces,
 }
 
 // Return true if the next token in `it` is `kind`
@@ -505,6 +516,59 @@ fn parse_decl(it: &mut ParseIter) -> Result<Var, ParseErrorKind> {
   Err(UnexpectedEOF)
 }
 
+fn parse_place(it: &mut ParseIter) -> Result<Place, ParseErrorKind> {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Sql => {
+        it.next();
+        let mut pieces: Vec<Place> = Vec::new();
+        loop {
+          let new_piece = parse_place(it)?;
+          pieces.push(new_piece);
+          if !use_token(it, Token::Com) {
+            break;
+          }
+        }
+        require_token(it, Token::Sqr)?;
+        Ok(Place::Multi(pieces))
+      }
+
+      _ => {
+        let node = parse_il_expr(it)?;
+        Ok(Place::Single(Box::new(node)))
+      }
+    };
+  }
+
+  Err(UnexpectedEOF)
+}
+
+fn parse_assn(it: &mut ParseIter) -> Parse {
+  let place = parse_place(it)?;
+
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Ass => {
+        it.next();
+        let rhs = parse_ml_expr(it)?;
+        Ok(Node::Assn {
+          lhs: place,
+          rhs: Box::new(rhs),
+        })
+      }
+
+      _ => {
+        match place {
+          Place::Single(bx) => Ok(Node::Stmt(bx)),
+          Place::Multi(_) => Err(UnusedPlaces),
+        }
+      }
+    };
+  }
+
+  Err(UnexpectedEOF)
+}
+
 fn parse_stmt(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
@@ -589,7 +653,9 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::Pass)
       }
 
-      _ => parse_ml_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
+      Token::Func | Token::Catch => parse_ml_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
+
+      _ => parse_assn(it),
     };
   }
 
