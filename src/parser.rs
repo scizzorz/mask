@@ -21,6 +21,7 @@ pub enum Node {
   If {
     cond: Box<Node>,
     body: Vec<Node>,
+    els: Option<Box<Node>>,
   },
   ElseIf {
     cond: Box<Node>,
@@ -524,6 +525,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::If {
           cond: Box::new(cond),
           body: body,
+          els: None,
         })
       }
 
@@ -568,9 +570,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
       Token::Loop => {
         it.next();
         let body = parse_block(it)?;
-        Ok(Node::Loop {
-          body: body,
-        })
+        Ok(Node::Loop { body: body })
       }
 
       Token::Return => {

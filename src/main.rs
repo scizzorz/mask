@@ -5,27 +5,30 @@ extern crate mask;
 use clap::App;
 use clap::Arg;
 use codemap::CodeMap;
+use mask::lexer::Token;
+use mask::lexer;
+use mask::parser::ParseErrorKind;
+use mask::parser;
+use mask::semck;
 use std::fs::File;
 use std::io::Write;
 use std::io::prelude::*;
 use std::io;
 use std::path::Path;
-use mask::parser::ParseErrorKind;
-use mask::lexer::Token;
 
-fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<mask::lexer::Token>>) {
+fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<lexer::Token>>) {
   let mut indent = 0;
 
   for token in tokens {
     match token.node {
-      mask::lexer::Token::End | mask::lexer::Token::EOF => {
+      lexer::Token::End | lexer::Token::EOF => {
         println!("{:?}", token.node);
         for _ in 0..indent {
           print!(" ");
         }
       }
 
-      mask::lexer::Token::Enter => {
+      lexer::Token::Enter => {
         indent += 2;
         println!("{:?}", token.node);
         for _ in 0..indent {
@@ -33,7 +36,7 @@ fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<mask::lexer::Token>
         }
       }
 
-      mask::lexer::Token::Exit => {
+      lexer::Token::Exit => {
         indent -= 2;
         print!("{:?} ", token.node);
       }
@@ -76,9 +79,21 @@ fn main() {
 
     // FIXME this code is duplicated a lot, but that's because there's no
     // "module" component in the compiler yet
-    let tokens = mask::lexer::lex(&file);
-    let ast = mask::parser::parse(tokens);
-    println!("AST: {:?}", ast);
+    let tokens = lexer::lex(&file);
+    let ast = parser::parse(tokens);
+
+    match ast {
+      Ok(mut root) => {
+        {
+          let mut ck = semck::SemChecker::new();
+          ck.check(&mut root);
+        }
+        println!("Checked: {:?}", root);
+      }
+      Err(why) => {
+        panic!("Couldn't semck: {:?}", why);
+      }
+    };
   } else if let Some(filename) = argv.value_of("path") {
     let path = Path::new(&filename);
     let mut file = match File::open(path) {
@@ -93,9 +108,19 @@ fn main() {
     };
 
     // see FIXME above
-    let tokens = mask::lexer::lex(&cm_file);
-    let ast = mask::parser::parse(tokens);
-    println!("AST: {:?}", ast);
+    let tokens = lexer::lex(&cm_file);
+    let mut ast = match parser::parse(tokens) {
+      Ok(root) => root,
+      Err(why) => panic!("Couldn't semck: {:?}", why),
+    };
+
+    let mut ck = semck::SemChecker::new();
+    match ck.check(&mut ast) {
+      Err(why) => panic!("Bad semck: {:?}", why),
+      _ => {}
+    }
+
+    println!("Checked: {:?}", ast);
   } else {
     // FIXME needs to handle multiline statements
     // initial idea is to request an extra line when the AST matches
@@ -132,8 +157,8 @@ fn main() {
 
           let file = map.add_file(String::from("_stdin"), chunk.clone());
 
-          let tokens = mask::lexer::lex(&file);
-          let ast = mask::parser::parse(tokens);
+          let tokens = lexer::lex(&file);
+          let ast = parser::parse(tokens);
           match ast {
             // incomplete statement - say we're waiting for an empty line and then skip the rest
             Err(ParseErrorKind::UnexpectedToken(Token::End))
