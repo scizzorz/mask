@@ -117,6 +117,32 @@ fn test_simple() {
 #[test]
 fn test_fn_args() {
   test_parse("()", &parse_fn_args, Ok(Vec::new()));
+  test_parse(
+    "(x)",
+    &parse_fn_args,
+    Ok(vec![Node::Name(String::from("x"))]),
+  );
+  test_parse(
+    "(x,)",
+    &parse_fn_args,
+    Ok(vec![Node::Name(String::from("x"))]),
+  );
+  test_parse(
+    "(x,y)",
+    &parse_fn_args,
+    Ok(vec![
+      Node::Name(String::from("x")),
+      Node::Name(String::from("y")),
+    ]),
+  );
+  test_parse(
+    "(x,y,)",
+    &parse_fn_args,
+    Ok(vec![
+      Node::Name(String::from("x")),
+      Node::Name(String::from("y")),
+    ]),
+  );
 }
 
 #[test]

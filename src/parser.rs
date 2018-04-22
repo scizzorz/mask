@@ -352,10 +352,17 @@ fn parse_fn_params(it: &mut ParseIter) -> Result<Vec<String>, ParseErrorKind> {
 }
 
 fn parse_fn_args(it: &mut ParseIter) -> Result<Vec<Node>, ParseErrorKind> {
+  let mut args = Vec::new();
   require_token(it, Token::Pal)?;
-  // FIXME
+  while !peek_token(it, Token::Par) {
+    let arg = parse_il_expr(it)?;
+    args.push(arg);
+    if !use_token(it, Token::Com) {
+      break;
+    }
+  }
   require_token(it, Token::Par)?;
-  Ok(Vec::new())
+  Ok(args)
 }
 
 fn parse_simple(it: &mut ParseIter) -> Parse {
