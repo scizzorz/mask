@@ -22,56 +22,58 @@ pub enum Place {
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
+  // Generic
+  Expr(Box<Node>),
   Block(Vec<Node>),
-  Stmt(Box<Node>),
-  Catch {
-    body: Box<Node>,
-  },
+
+  // Simple statements
+  Return(Option<Box<Node>>),
+  Break,
+  Continue,
+  Pass,
+
+  // Compound statements
   Assn {
     lhs: Place,
     rhs: Box<Node>,
   },
+
+  Catch {
+    body: Box<Node>,
+  },
+
   If {
     cond: Box<Node>,
     body: Box<Node>,
     els: Option<Box<Node>>,
   },
+
   ElseIf {
     cond: Box<Node>,
     body: Box<Node>,
   },
+
   Else {
     body: Box<Node>,
   },
+
   For {
     decl: Var,
     expr: Box<Node>,
     body: Box<Node>,
   },
+
   While {
     expr: Box<Node>,
     body: Box<Node>,
   },
+
   Loop {
     body: Box<Node>,
   },
-  Return(Option<Box<Node>>),
-  Break,
-  Continue,
-  Expr,
-  Pass,
-  Index {
-    lhs: Box<Node>,
-    rhs: Box<Node>,
-  },
 
-  Method {
-    owner: Box<Node>,
-    method: Box<Node>,
-    args: Vec<Node>,
-  },
-
-  Func {
+  // Copound expressions
+  FuncDef {
     params: Vec<String>,
     body: Box<Node>,
   },
@@ -81,7 +83,18 @@ pub enum Node {
     expr: Box<Node>,
   },
 
-  Call {
+  Index {
+    lhs: Box<Node>,
+    rhs: Box<Node>,
+  },
+
+  MethodCall {
+    owner: Box<Node>,
+    method: Box<Node>,
+    args: Vec<Node>,
+  },
+
+  FuncCall {
     func: Box<Node>,
     args: Vec<Node>,
   },
@@ -176,7 +189,7 @@ fn parse_ml_expr(it: &mut ParseIter) -> Parse {
         let params = parse_fn_params(it)?;
         require_token(it, Token::Par)?;
         let body = parse_block(it)?;
-        Ok(Node::Func {
+        Ok(Node::FuncDef {
           params: params,
           body: Box::new(body),
         })
@@ -378,7 +391,7 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
         it.next();
         let method = parse_name_as_str(it)?;
         let args = parse_fn_args(it)?;
-        atom = Node::Method {
+        atom = Node::MethodCall {
           owner: Box::new(atom),
           method: Box::new(method),
           args: args,
@@ -387,7 +400,7 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
 
       Token::Pal => {
         let args = parse_fn_args(it)?;
-        atom = Node::Call {
+        atom = Node::FuncCall {
           func: Box::new(atom),
           args: args,
         };
@@ -570,7 +583,7 @@ fn parse_assn(it: &mut ParseIter) -> Parse {
       }
 
       _ => match place {
-        Place::Single(bx) => Ok(Node::Stmt(bx)),
+        Place::Single(bx) => Ok(Node::Expr(bx)),
         Place::Multi(_) => Err(UnusedPlaces),
       },
     };
@@ -667,7 +680,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::Pass)
       }
 
-      Token::Func | Token::Catch => parse_ml_expr(it).map(|expr| Node::Stmt(Box::new(expr))),
+      Token::Func | Token::Catch => parse_ml_expr(it).map(|expr| Node::Expr(Box::new(expr))),
 
       _ => parse_assn(it),
     };

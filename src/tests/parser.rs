@@ -72,7 +72,7 @@ fn test_simple() {
   test_parse(
     "foo()",
     &parse_simple,
-    Ok(Node::Call {
+    Ok(Node::FuncCall {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
     }),
@@ -80,7 +80,7 @@ fn test_simple() {
   test_parse(
     "foo:bar()",
     &parse_simple,
-    Ok(Node::Method {
+    Ok(Node::MethodCall {
       owner: Box::new(Node::Name(String::from("foo"))),
       method: Box::new(Node::Str(String::from("bar"))),
       args: Vec::new(),
@@ -89,7 +89,7 @@ fn test_simple() {
   test_parse(
     "foo.bar()",
     &parse_simple,
-    Ok(Node::Call {
+    Ok(Node::FuncCall {
       func: Box::new(Node::Index {
         lhs: Box::new(Node::Name(String::from("foo"))),
         rhs: Box::new(Node::Str(String::from("bar"))),
@@ -100,7 +100,7 @@ fn test_simple() {
   test_parse(
     "foo.bar[baz]:qux()",
     &parse_simple,
-    Ok(Node::Method {
+    Ok(Node::MethodCall {
       owner: Box::new(Node::Index {
         lhs: Box::new(Node::Index {
           lhs: Box::new(Node::Name(String::from("foo"))),
@@ -152,7 +152,7 @@ fn test_un_expr() {
   test_parse(
     "foo()",
     &parse_un_expr,
-    Ok(Node::Call {
+    Ok(Node::FuncCall {
       func: Box::new(Node::Name(String::from("foo"))),
       args: Vec::new(),
     }),
@@ -348,7 +348,7 @@ fn test_return_stmt() {
     "return fn()
        return 5",
     &parse_stmt,
-    Ok(Node::Return(Some(Box::new(Node::Func {
+    Ok(Node::Return(Some(Box::new(Node::FuncDef {
       params: Vec::new(),
       body: Box::new(Node::Block(vec![
         Node::Return(Some(Box::new(Node::Int(5)))),
