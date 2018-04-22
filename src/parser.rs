@@ -659,7 +659,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
 
       Token::Continue => {
         it.next();
-        Ok(Spanned: {
+        Ok(Spanned {
           node: Node::Continue,
           span: tok.span,
         })
@@ -760,11 +760,10 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         })
       }
 
-      Token::Func | Token::Catch => parse_ml_expr(it).
-        map(|expr| Spanned {
-          node: Node::Stmt(Box::new(expr.node)),
-          span: expr.span,
-        }),
+      Token::Func | Token::Catch => parse_ml_expr(it).map(|expr| Spanned {
+        node: Node::Stmt(Box::new(expr.node)),
+        span: expr.span,
+      }),
 
       _ => parse_assn(it),
     };
