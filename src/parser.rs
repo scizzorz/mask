@@ -11,7 +11,7 @@ type Parse = Result<Node, ParseErrorKind>;
 #[derive(Debug, Clone, PartialEq)]
 pub enum Var {
   Single(String),
-  Multi(Vec<Var>),
+  Multi(Vec<Spanned<Var>>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -58,7 +58,7 @@ pub enum Node {
   },
 
   For {
-    decl: Var,
+    decl: Spanned<Var>,
     expr: Box<Node>,
     body: Box<Node>,
   },
@@ -394,7 +394,7 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
         atom = Node::MethodCall {
           owner: Box::new(atom),
           method: Box::new(method),
-          args: args,
+          args,
         };
       }
 
@@ -402,7 +402,7 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
         let args = parse_fn_args(it)?;
         atom = Node::FuncCall {
           func: Box::new(atom),
-          args: args,
+          args,
         };
       }
 
@@ -514,12 +514,12 @@ fn parse_quark(it: &mut ParseIter) -> Parse {
   Err(UnexpectedEOF)
 }
 
-fn parse_decl(it: &mut ParseIter) -> Result<Var, ParseErrorKind> {
+fn parse_decl(it: &mut ParseIter) -> Result<Spanned<Var>, ParseErrorKind> {
   if let Some(&tok) = it.peek() {
     return match tok.node {
       Token::Sql => {
         it.next();
-        let mut pieces: Vec<Var> = Vec::new();
+        let mut pieces: Vec<Spanned<Var>> = Vec::new();
         loop {
           let new_piece = parse_decl(it)?;
           pieces.push(new_piece);
@@ -527,12 +527,18 @@ fn parse_decl(it: &mut ParseIter) -> Result<Var, ParseErrorKind> {
             break;
           }
         }
-        require_token(it, Token::Sqr)?;
-        Ok(Var::Multi(pieces))
+        let end_span = require_token(it, Token::Sqr)?;
+        Ok(Spanned {
+          node: Var::Multi(pieces),
+          span: tok.span.merge(end_span),
+        })
       }
       Token::Name(ref x) => {
         it.next();
-        Ok(Var::Single(x.clone()))
+        Ok(Spanned {
+          node: Var::Single(x.clone()),
+          span: tok.span,
+        })
       }
       ref x => Err(UnexpectedToken(x.clone())),
     };
@@ -640,7 +646,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         let expr = parse_il_expr(it)?;
         let body = parse_block(it)?;
         Ok(Node::For {
-          decl: decl,
+          decl,
           expr: Box::new(expr),
           body: Box::new(body),
         })
@@ -690,7 +696,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
 }
 
 fn parse_block(it: &mut ParseIter) -> Parse {
-  let mut nodes: Vec<Node> = vec![];
+  let mut nodes = Vec::new();
 
   require_token(it, Token::Enter)?;
 
@@ -707,7 +713,7 @@ fn parse_block(it: &mut ParseIter) -> Parse {
 
 pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {
   let mut it: ParseIter = tokens.iter().peekable();
-  let mut nodes: Vec<Node> = vec![];
+  let mut nodes = Vec::new();
 
   while !peek_token(&mut it, Token::EOF) {
     let stmt = parse_stmt(&mut it)?;
