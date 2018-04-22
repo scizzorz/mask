@@ -1,8 +1,9 @@
+use codemap::Span;
 use codemap::Spanned;
 use lexer::Token;
+use self::ParseErrorKind::*;
 use std::iter::Peekable;
 use std::slice::Iter;
-use self::ParseErrorKind::*;
 
 type ParseIter<'a> = Peekable<Iter<'a, Spanned<Token>>>;
 type Parse = Result<Node, ParseErrorKind>;
@@ -142,11 +143,11 @@ fn use_token(it: &mut ParseIter, kind: Token) -> bool {
 }
 
 // Panic if the next token in `it` is *not* `kind`
-fn require_token(it: &mut ParseIter, kind: Token) -> Result<(), ParseErrorKind> {
+fn require_token(it: &mut ParseIter, kind: Token) -> Result<Span, ParseErrorKind> {
   if let Some(&tok) = it.peek() {
     if tok.node == kind {
       it.next();
-      return Ok(());
+      return Ok(tok.span);
     }
 
     return Err(UnexpectedToken(tok.node.clone()));
