@@ -350,7 +350,9 @@ fn test_return_stmt() {
     &parse_stmt,
     Ok(Node::Return(Some(Box::new(Node::Func {
       params: Vec::new(),
-      body: vec![Node::Return(Some(Box::new(Node::Int(5))))],
+      body: Box::new(Node::Block(vec![
+        Node::Return(Some(Box::new(Node::Int(5)))),
+      ])),
     })))),
   );
 }
@@ -363,7 +365,7 @@ fn test_if_stmt() {
     &parse_stmt,
     Ok(Node::If {
       cond: Box::new(Node::Bool(true)),
-      body: vec![Node::Pass],
+      body: Box::new(Node::Block(vec![Node::Pass])),
       els: None,
     }),
   );
@@ -374,7 +376,7 @@ fn test_if_stmt() {
     &parse_stmt,
     Ok(Node::ElseIf {
       cond: Box::new(Node::Bool(true)),
-      body: vec![Node::Pass],
+      body: Box::new(Node::Block(vec![Node::Pass])),
     }),
   );
 
@@ -383,7 +385,7 @@ fn test_if_stmt() {
        pass",
     &parse_stmt,
     Ok(Node::Else {
-      body: vec![Node::Pass],
+      body: Box::new(Node::Block(vec![Node::Pass])),
     }),
   );
 }
@@ -397,7 +399,7 @@ fn test_for_stmt() {
     Ok(Node::For {
       decl: Var::Single(String::from("x")),
       expr: Box::new(Node::Bool(true)),
-      body: vec![Node::Pass],
+      body: Box::new(Node::Block(vec![Node::Pass])),
     }),
   );
 }
@@ -410,7 +412,7 @@ fn test_while_stmt() {
     &parse_stmt,
     Ok(Node::While {
       expr: Box::new(Node::Bool(true)),
-      body: vec![Node::Pass],
+      body: Box::new(Node::Block(vec![Node::Pass])),
     }),
   );
 }
@@ -422,7 +424,7 @@ fn test_loop_stmt() {
        pass",
     &parse_stmt,
     Ok(Node::Loop {
-      body: vec![Node::Pass],
+      body: Box::new(Node::Block(vec![Node::Pass])),
     }),
   );
 }
