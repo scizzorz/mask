@@ -27,6 +27,31 @@ fn lex_numbers() {
 }
 
 #[test]
+fn lex_string() {
+  let source = "'hello' 'this\\nis\\nmultiline' 'this\\\\is\\\\escaped' 'this\\tis\\ttabbed' 'this
+is
+real
+multiline' 'and this is unclosed";
+  let tokens = get_tokens(source);
+
+  assert_eq!(tokens.len(), 8);
+  assert_eq!(tokens[0].node, Str(String::from("hello")));
+  assert_eq!(tokens[1].node, Str(String::from("this\nis\nmultiline")));
+  assert_eq!(tokens[2].node, Str(String::from("this\\is\\escaped")));
+  assert_eq!(tokens[3].node, Str(String::from("this\tis\ttabbed")));
+  assert_eq!(
+    tokens[4].node,
+    Str(String::from("this\nis\nreal\nmultiline"))
+  );
+  assert_eq!(
+    tokens[5].node,
+    UnclosedStr(String::from("and this is unclosed"))
+  );
+  assert_eq!(tokens[6].node, End);
+  assert_eq!(tokens[7].node, EOF);
+}
+
+#[test]
 fn lex_keywords() {
   let source = "break catch continue else for fn if import in loop pass return save var while name true false null";
   let tokens = get_tokens(source);

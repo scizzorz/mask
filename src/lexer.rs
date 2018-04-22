@@ -25,6 +25,7 @@ pub enum Token {
   Int(i64),
   Str(String),
   Name(String),
+  UnclosedStr(String),
 
   // Keywords
   Break,
@@ -156,7 +157,6 @@ fn lex_comment(it: &mut LexIter) -> Token {
     }
   }
 
-  println!("Comment: {:?}", comment);
   Comment(comment)
 }
 
@@ -190,6 +190,60 @@ fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Token {
   // is this right? if peek() returns a None, we just return `solo`?
   // seems right. None should be the EOF, meaning `solo` is the last token
   solo
+}
+
+fn lex_string(it: &mut LexIter) -> Token {
+  let mut contents = String::new();
+  let mut escaped = false;
+  it.next();
+
+  loop {
+    if let Some(&(_i, c)) = it.peek() {
+      if escaped {
+        match c {
+          'n' => {
+            it.next();
+            contents.push('\n');
+          }
+          'r' => {
+            it.next();
+            contents.push('\r');
+          }
+          't' => {
+            it.next();
+            contents.push('\t');
+          }
+          _ => {
+            it.next();
+            contents.push(c);
+          }
+        }
+        escaped = false;
+      } else {
+        match c {
+          '\'' => {
+            it.next();
+            break;
+          }
+          '\\' => {
+            it.next();
+            escaped = true;
+          }
+          _ => {
+            it.next();
+            contents.push(c);
+          }
+        }
+      }
+    } else {
+      // this is kind of an escape hatch because I didn't think through the
+      // lexer it hadn't occurred to me at the time that lexing a token could
+      // fail, so the lexer has no functionality to support failure. oh well.
+      return UnclosedStr(contents);
+    }
+  }
+
+  Str(contents)
 }
 
 pub fn lex(input: &File) -> Vec<Spanned<Token>> {
@@ -235,6 +289,8 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
           it.next();
           Tab
         }
+
+        '\'' => lex_string(&mut it),
 
         // Compound
         '-' => lex_pair('>', Sub, Arr, &mut it),
