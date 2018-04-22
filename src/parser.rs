@@ -184,7 +184,9 @@ fn parse_ml_expr(it: &mut ParseIter) -> Parse {
       Token::Catch => {
         it.next();
         let block = parse_block(it)?;
-        Ok(Node::Catch{body: Box::new(block)})
+        Ok(Node::Catch {
+          body: Box::new(block),
+        })
       }
       _ => parse_il_expr(it),
     };
@@ -612,7 +614,9 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
           })
         } else {
           let body = parse_block(it)?;
-          Ok(Node::Else { body: Box::new(body) })
+          Ok(Node::Else {
+            body: Box::new(body),
+          })
         }
       }
 
@@ -642,7 +646,9 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
       Token::Loop => {
         it.next();
         let body = parse_block(it)?;
-        Ok(Node::Loop { body: Box::new(body) })
+        Ok(Node::Loop {
+          body: Box::new(body),
+        })
       }
 
       Token::Return => {

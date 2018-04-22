@@ -35,9 +35,9 @@ impl SemChecker {
         self.check(&mut n)?;
       },
 
-      Node::Catch{ref mut body} => {
+      Node::Catch { ref mut body } => {
         self.check(body)?;
-      },
+      }
 
       Node::Loop { ref mut body } => {
         self.in_loop = true;
