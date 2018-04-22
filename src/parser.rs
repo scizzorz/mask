@@ -24,34 +24,36 @@ pub enum Place {
 pub enum Node {
   Block(Vec<Node>),
   Stmt(Box<Node>),
-  Catch(Vec<Node>),
+  Catch {
+    body: Box<Node>,
+  },
   Assn {
     lhs: Place,
     rhs: Box<Node>,
   },
   If {
     cond: Box<Node>,
-    body: Vec<Node>,
+    body: Box<Node>,
     els: Option<Box<Node>>,
   },
   ElseIf {
     cond: Box<Node>,
-    body: Vec<Node>,
+    body: Box<Node>,
   },
   Else {
-    body: Vec<Node>,
+    body: Box<Node>,
   },
   For {
     decl: Var,
     expr: Box<Node>,
-    body: Vec<Node>,
+    body: Box<Node>,
   },
   While {
     expr: Box<Node>,
-    body: Vec<Node>,
+    body: Box<Node>,
   },
   Loop {
-    body: Vec<Node>,
+    body: Box<Node>,
   },
   Return(Option<Box<Node>>),
   Break,
@@ -71,7 +73,7 @@ pub enum Node {
 
   Func {
     params: Vec<String>,
-    body: Vec<Node>,
+    body: Box<Node>,
   },
 
   Lambda {
@@ -176,13 +178,13 @@ fn parse_ml_expr(it: &mut ParseIter) -> Parse {
         let body = parse_block(it)?;
         Ok(Node::Func {
           params: params,
-          body: body,
+          body: Box::new(body),
         })
       }
       Token::Catch => {
         it.next();
         let block = parse_block(it)?;
-        Ok(Node::Catch(block))
+        Ok(Node::Catch{body: Box::new(block)})
       }
       _ => parse_il_expr(it),
     };
@@ -594,7 +596,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         let body = parse_block(it)?;
         Ok(Node::If {
           cond: Box::new(cond),
-          body: body,
+          body: Box::new(body),
           els: None,
         })
       }
@@ -606,11 +608,11 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
           let body = parse_block(it)?;
           Ok(Node::ElseIf {
             cond: Box::new(cond),
-            body: body,
+            body: Box::new(body),
           })
         } else {
           let body = parse_block(it)?;
-          Ok(Node::Else { body: body })
+          Ok(Node::Else { body: Box::new(body) })
         }
       }
 
@@ -623,7 +625,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         Ok(Node::For {
           decl: decl,
           expr: Box::new(expr),
-          body: body,
+          body: Box::new(body),
         })
       }
 
@@ -633,14 +635,14 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         let body = parse_block(it)?;
         Ok(Node::While {
           expr: Box::new(expr),
-          body: body,
+          body: Box::new(body),
         })
       }
 
       Token::Loop => {
         it.next();
         let body = parse_block(it)?;
-        Ok(Node::Loop { body: body })
+        Ok(Node::Loop { body: Box::new(body) })
       }
 
       Token::Return => {
@@ -668,7 +670,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
   Err(UnexpectedEOF)
 }
 
-fn parse_block(it: &mut ParseIter) -> Result<Vec<Node>, ParseErrorKind> {
+fn parse_block(it: &mut ParseIter) -> Parse {
   let mut nodes: Vec<Node> = vec![];
 
   require_token(it, Token::Enter)?;
@@ -681,7 +683,7 @@ fn parse_block(it: &mut ParseIter) -> Result<Vec<Node>, ParseErrorKind> {
 
   require_token(it, Token::Exit)?;
 
-  Ok(nodes)
+  Ok(Node::Block(nodes))
 }
 
 pub fn parse(tokens: Vec<Spanned<Token>>) -> Parse {

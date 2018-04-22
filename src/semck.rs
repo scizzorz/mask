@@ -31,15 +31,17 @@ impl SemChecker {
         self.check(bx)?;
       }
 
-      Node::Block(ref mut ls) | Node::Catch(ref mut ls) => for mut n in ls {
+      Node::Block(ref mut ls) => for mut n in ls {
         self.check(&mut n)?;
+      },
+
+      Node::Catch{ref mut body} => {
+        self.check(body)?;
       },
 
       Node::Loop { ref mut body } => {
         self.in_loop = true;
-        for mut n in body {
-          self.check(&mut n)?;
-        }
+        self.check(body)?;
         self.in_loop = false;
       }
 
@@ -48,9 +50,7 @@ impl SemChecker {
         expr: _,
       } => {
         self.in_loop = true;
-        for mut n in body {
-          self.check(&mut n)?;
-        }
+        self.check(body)?;
         self.in_loop = false;
       }
 
@@ -60,9 +60,7 @@ impl SemChecker {
         expr: _,
       } => {
         self.in_loop = true;
-        for mut n in body {
-          self.check(&mut n)?;
-        }
+        self.check(body)?;
         self.in_loop = false;
       }
 
