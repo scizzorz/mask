@@ -1,4 +1,5 @@
 use parser::Node;
+use parser::Place;
 
 type Check = Result<(), CheckErrorKind>;
 
@@ -6,6 +7,7 @@ type Check = Result<(), CheckErrorKind>;
 pub enum CheckErrorKind {
   NotInLoop,
   MissingIf,
+  NotPlace,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -43,7 +45,7 @@ impl SemChecker {
 
       Node::While {
         ref mut body,
-        ref expr,
+        expr: _,
       } => {
         self.in_loop = true;
         for mut n in body {
@@ -54,8 +56,8 @@ impl SemChecker {
 
       Node::For {
         ref mut body,
-        ref decl,
-        ref expr,
+        decl: _,
+        expr: _,
       } => {
         self.in_loop = true;
         for mut n in body {
@@ -70,11 +72,36 @@ impl SemChecker {
         }
       }
 
-      // TODO add if-else if-else checks
-      // TODO add assn checks
+      Node::Assn { rhs: _, ref lhs } => {
+        self.check_place(lhs)?;
+      }
+
+      // TODO add if-elif-else checks
       _ => {}
     }
 
     Ok(())
+  }
+
+  fn check_place(&self, place: &Place) -> Check {
+    match *place {
+      Place::Single(ref node) => {
+        self.is_place(node)?;
+      }
+      Place::Multi(ref places) => {
+        let mut valid = true;
+        for pl in places {
+          self.check_place(&pl)?;
+        }
+      }
+    };
+    Ok(())
+  }
+
+  fn is_place(&self, node: &Node) -> Check {
+    match *node {
+      Node::Name(_) | Node::Index { lhs: _, rhs: _ } => Ok(()),
+      _ => Err(CheckErrorKind::NotPlace),
+    }
   }
 }
