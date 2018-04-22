@@ -86,7 +86,7 @@ fn main() {
       Ok(mut root) => {
         {
           let mut ck = semck::SemChecker::new();
-          ck.check(&mut root);
+          ck.check(&mut root.node);
         }
         println!("Checked: {:?}", root);
       }
@@ -115,7 +115,7 @@ fn main() {
     };
 
     let mut ck = semck::SemChecker::new();
-    match ck.check(&mut ast) {
+    match ck.check(&mut ast.node) {
       Err(why) => panic!("Bad semck: {:?}", why),
       _ => {}
     }

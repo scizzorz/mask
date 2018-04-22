@@ -31,13 +31,13 @@ impl SemChecker {
         self.check(bx)?;
       }
 
-      Node::Block(ref mut ls) | Node::Catch(ref mut ls) => for mut n in ls {
+      Node::Block(ref mut ls) | Node::Catch(ref mut ls) => for mut n in ls.node {
         self.check(&mut n)?;
       },
 
       Node::Loop { ref mut body } => {
         self.in_loop = true;
-        for mut n in body {
+        for mut n in body.node {
           self.check(&mut n)?;
         }
         self.in_loop = false;
@@ -48,7 +48,7 @@ impl SemChecker {
         expr: _,
       } => {
         self.in_loop = true;
-        for mut n in body {
+        for mut n in body.node {
           self.check(&mut n)?;
         }
         self.in_loop = false;
@@ -60,7 +60,7 @@ impl SemChecker {
         expr: _,
       } => {
         self.in_loop = true;
-        for mut n in body {
+        for mut n in body.node {
           self.check(&mut n)?;
         }
         self.in_loop = false;
@@ -90,7 +90,7 @@ impl SemChecker {
       }
       Place::Multi(ref places) => {
         let mut valid = true;
-        for pl in places {
+        for pl in places.node {
           self.check_place(&pl)?;
         }
       }

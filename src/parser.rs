@@ -10,48 +10,48 @@ type Parse = Result<Spanned<Node>, ParseErrorKind>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Var {
-  Single(String),
-  Multi(Vec<Var>),
+  Single(Spanned<String>),
+  Multi(Spanned<Vec<Var>>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Place {
-  Single(Box<Node>),
-  Multi(Vec<Place>),
+  Single(Box<Spanned<Node>>),
+  Multi(Spanned<Vec<Place>>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
-  Block(Vec<Spanned<Node>>),
+  Block(Spanned<Vec<Spanned<Node>>>),
   Stmt(Box<Spanned<Node>>),
-  Catch(Vec<Spanned<Node>>),
+  Catch(Spanned<Vec<Spanned<Node>>>),
   Assn {
     lhs: Place,
     rhs: Box<Spanned<Node>>,
   },
   If {
     cond: Box<Spanned<Node>>,
-    body: Vec<Spanned<Node>>,
+    body: Spanned<Vec<Spanned<Node>>>,
     els: Option<Box<Spanned<Node>>>,
   },
   ElseIf {
     cond: Box<Spanned<Node>>,
-    body: Vec<Spanned<Node>>,
+    body: Spanned<Vec<Spanned<Node>>>,
   },
   Else {
-    body: Vec<Spanned<Node>>,
+    body: Spanned<Vec<Spanned<Node>>>,
   },
   For {
     decl: Var,
     expr: Box<Spanned<Node>>,
-    body: Vec<Spanned<Node>>,
+    body: Spanned<Vec<Spanned<Node>>>,
   },
   While {
     expr: Box<Spanned<Node>>,
-    body: Vec<Spanned<Node>>,
+    body: Spanned<Vec<Spanned<Node>>>,
   },
   Loop {
-    body: Vec<Spanned<Node>>,
+    body: Spanned<Vec<Spanned<Node>>>,
   },
   Return(Option<Box<Spanned<Node>>>),
   Break,
@@ -71,7 +71,7 @@ pub enum Node {
 
   Func {
     params: Vec<String>,
-    body: Vec<Spanned<Node>>,
+    body: Spanned<Vec<Spanned<Node>>>,
   },
 
   Lambda {
@@ -575,12 +575,18 @@ fn parse_decl(it: &mut ParseIter) -> Result<Var, ParseErrorKind> {
             break;
           }
         }
-        require_token(it, Token::Sqr)?;
-        Ok(Var::Multi(pieces))
+        let end_span = require_token(it, Token::Sqr)?;
+        Ok(Var::Multi(Spanned {
+          node: pieces,
+          span: tok.span.merge(end_span.span),
+        }))
       }
       Token::Name(ref x) => {
         it.next();
-        Ok(Var::Single(x.clone()))
+        Ok(Var::Single(Spanned {
+          node: x.clone(),
+          span: tok.span,
+        })
       }
       ref x => Err(UnexpectedToken(x.clone())),
     };
@@ -602,13 +608,19 @@ fn parse_place(it: &mut ParseIter) -> Result<Place, ParseErrorKind> {
             break;
           }
         }
-        require_token(it, Token::Sqr)?;
-        Ok(Place::Multi(pieces))
+        let end_span = require_token(it, Token::Sqr)?;
+        Ok(Place::Multi(Spanned {
+          node: pieces,
+          span: tok.span.merge(end_span.span),
+        }))
       }
 
       _ => {
         let node = parse_il_expr(it)?;
-        Ok(Place::Single(Box::new(node)))
+        Ok(Place::Single(Box::new(Spanned {
+          node: node,
+          span: node.span,
+        })))
       }
     };
   }
