@@ -1,6 +1,7 @@
 extern crate clap;
 extern crate codemap;
 extern crate mask;
+extern crate serde_yaml;
 
 use clap::App;
 use clap::Arg;
@@ -80,20 +81,18 @@ fn main() {
     // FIXME this code is duplicated a lot, but that's because there's no
     // "module" component in the compiler yet
     let tokens = lexer::lex(&file);
-    let ast = parser::parse(tokens);
-
-    match ast {
-      Ok(mut root) => {
-        {
-          let mut ck = semck::SemChecker::new();
-          ck.check(&mut root);
-        }
-        println!("Checked: {:?}", root);
-      }
-      Err(why) => {
-        panic!("Couldn't semck: {:?}", why);
-      }
+    let mut ast = match parser::parse(tokens) {
+      Ok(root) => root,
+      Err(why) => panic!("Couldn't semck: {:?}", why),
     };
+
+    let mut ck = semck::SemChecker::new();
+    match ck.check(&mut ast) {
+      Err(why) => panic!("Bad semck: {:?}", why),
+      _ => {}
+    }
+
+    println!("Checked: {}", serde_yaml::to_string(&ast).unwrap());
   } else if let Some(filename) = argv.value_of("path") {
     let path = Path::new(&filename);
     let mut file = match File::open(path) {
@@ -120,7 +119,7 @@ fn main() {
       _ => {}
     }
 
-    println!("Checked: {:?}", ast);
+    println!("Checked: {}", serde_yaml::to_string(&ast).unwrap());
   } else {
     // FIXME needs to handle multiline statements
     // initial idea is to request an extra line when the AST matches
