@@ -7,8 +7,11 @@ use clap::Arg;
 use codemap::CodeMap;
 use mask::lexer::Token;
 use mask::lexer;
+use mask::module::ModuleErrorKind;
+use mask::module;
 use mask::parser::ParseErrorKind;
 use mask::parser;
+use mask::semck::CheckErrorKind;
 use mask::semck;
 use std::fs::File;
 use std::io::Write;
@@ -79,21 +82,12 @@ fn main() {
 
     // FIXME this code is duplicated a lot, but that's because there's no
     // "module" component in the compiler yet
-    let tokens = lexer::lex(&file);
-    let ast = parser::parse(tokens);
+    let mut module = module::Module::new(&map, &file);
 
-    match ast {
-      Ok(mut root) => {
-        {
-          let mut ck = semck::SemChecker::new();
-          ck.check(&mut root);
-        }
-        println!("Checked: {:?}", root);
-      }
-      Err(why) => {
-        panic!("Couldn't semck: {:?}", why);
-      }
-    };
+    match module {
+      Ok(module) => println!("Checked: {:?}", module.ast),
+      Err(why) => panic!("Unable to check: {:?}", why),
+    }
   } else if let Some(filename) = argv.value_of("path") {
     let path = Path::new(&filename);
     let mut file = match File::open(path) {
@@ -108,19 +102,12 @@ fn main() {
     };
 
     // see FIXME above
-    let tokens = lexer::lex(&cm_file);
-    let mut ast = match parser::parse(tokens) {
-      Ok(root) => root,
-      Err(why) => panic!("Couldn't semck: {:?}", why),
-    };
+    let mut module = module::Module::new(&map, &cm_file);
 
-    let mut ck = semck::SemChecker::new();
-    match ck.check(&mut ast) {
-      Err(why) => panic!("Bad semck: {:?}", why),
-      _ => {}
+    match module {
+      Ok(module) => println!("Checked: {:?}", module.ast),
+      Err(why) => panic!("Unable to check: {:?}", why),
     }
-
-    println!("Checked: {:?}", ast);
   } else {
     // FIXME needs to handle multiline statements
     // initial idea is to request an extra line when the AST matches
