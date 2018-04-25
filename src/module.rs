@@ -1,5 +1,7 @@
 use codemap::CodeMap;
 use codemap::File;
+use compiler::CompileErrorKind;
+use compiler;
 use lexer;
 use parser::Node;
 use parser::ParseErrorKind;
@@ -16,6 +18,7 @@ use std::sync::Arc;
 pub enum ModuleErrorKind {
   CheckError(CheckErrorKind),
   ParseError(ParseErrorKind),
+  CompileError(CompileErrorKind),
   IOError(io::Error),
 }
 
