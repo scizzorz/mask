@@ -5,6 +5,7 @@ extern crate mask;
 use clap::App;
 use clap::Arg;
 use codemap::CodeMap;
+use mask::engine;
 use mask::lexer::Token;
 use mask::lexer;
 use mask::module;
@@ -40,7 +41,7 @@ fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<lexer::Token>>) {
       }
 
       _ => {
-        let span = map.look_up_span(token.span);
+        let _span = map.look_up_span(token.span);
         print!("{:?} ", token.node);
         //print!("{}:{}:{}: {:?} ", span.file.name(), span.begin.line, span.begin.column, token.node);
         //print!("{:?}<{:?}> ", token.node, );
@@ -70,23 +71,24 @@ fn main() {
     )
     .get_matches();
 
-  let mut map = CodeMap::new();
+  let mut engine = engine::Engine::new();
 
   if let Some(source) = argv.value_of("code") {
-    let mut module = module::Module::from_string(&mut map, source);
+    let mut module = module::Module::from_string(&mut engine.map, source);
 
     match module {
       Ok(module) => println!("Checked: {:?}", module.ast),
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else if let Some(filename) = argv.value_of("path") {
-    let mut module = module::Module::from_file(&mut map, filename);
+    let mut module = module::Module::from_file(&mut engine.map, filename);
 
     match module {
       Ok(module) => println!("Checked: {:?}", module.ast),
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else {
+    // FIXME this is a nightmare
     // FIXME needs to handle multiline statements
     // initial idea is to request an extra line when the AST matches
     // UnexpectedToken(End) | UnexpectedEOF
@@ -120,7 +122,7 @@ fn main() {
             continue;
           }
 
-          let file = map.add_file(String::from("_stdin"), chunk.clone());
+          let file = engine.map.add_file(String::from("_stdin"), chunk.clone());
 
           let tokens = lexer::lex(&file);
           let ast = parser::parse(tokens);

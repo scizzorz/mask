@@ -8,7 +8,6 @@ use semck::CheckErrorKind;
 use semck;
 use std::fs;
 use std::io::Read;
-use std::io::Write;
 use std::io;
 use std::path::Path;
 use std::sync::Arc;
