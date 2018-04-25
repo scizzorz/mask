@@ -7,17 +7,12 @@ use clap::Arg;
 use codemap::CodeMap;
 use mask::lexer::Token;
 use mask::lexer;
-use mask::module::ModuleErrorKind;
 use mask::module;
 use mask::parser::ParseErrorKind;
 use mask::parser;
-use mask::semck::CheckErrorKind;
-use mask::semck;
-use std::fs::File;
 use std::io::Write;
 use std::io::prelude::*;
 use std::io;
-use std::path::Path;
 
 fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<lexer::Token>>) {
   let mut indent = 0;
@@ -78,31 +73,14 @@ fn main() {
   let mut map = CodeMap::new();
 
   if let Some(source) = argv.value_of("code") {
-    let file = map.add_file(String::from("_stdin"), source.to_string());
-
-    // FIXME this code is duplicated a lot, but that's because there's no
-    // "module" component in the compiler yet
-    let mut module = module::Module::new(&map, &file);
+    let mut module = module::Module::from_string(&mut map, source);
 
     match module {
       Ok(module) => println!("Checked: {:?}", module.ast),
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else if let Some(filename) = argv.value_of("path") {
-    let path = Path::new(&filename);
-    let mut file = match File::open(path) {
-      Ok(file) => file,
-      Err(why) => panic!("Couldn't open {}: {}", path.display(), why),
-    };
-
-    let mut contents = String::new();
-    let cm_file = match file.read_to_string(&mut contents) {
-      Ok(_) => map.add_file(filename.to_string(), contents.to_string()),
-      Err(why) => panic!("Couldn't read {}: {}", path.display(), why),
-    };
-
-    // see FIXME above
-    let mut module = module::Module::new(&map, &cm_file);
+    let mut module = module::Module::from_file(&mut map, filename);
 
     match module {
       Ok(module) => println!("Checked: {:?}", module.ast),
