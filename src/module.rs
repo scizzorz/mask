@@ -1,12 +1,15 @@
+use code::Instr;
 use codemap::CodeMap;
 use codemap::File;
 use compiler::CompileErrorKind;
+use compiler::Compiler;
 use compiler;
 use lexer;
 use parser::Node;
 use parser::ParseErrorKind;
 use parser;
 use semck::CheckErrorKind;
+use semck::SemChecker;
 use semck;
 use std::fs;
 use std::io::Read;
@@ -25,7 +28,7 @@ pub enum ModuleErrorKind {
 pub struct Module<'a> {
   map: &'a CodeMap,
   file: Arc<File>,
-  pub ast: Node,
+  pub code: Vec<Instr>,
 }
 
 impl<'a> Module<'a> {
@@ -57,12 +60,22 @@ impl<'a> Module<'a> {
       Err(why) => return Err(ModuleErrorKind::ParseError(why)),
     };
 
-    let mut ck = semck::SemChecker::new();
+    let mut ck = SemChecker::new();
     match ck.check(&mut ast) {
       Err(why) => return Err(ModuleErrorKind::CheckError(why)),
       _ => {}
     }
 
-    Ok(Module { map, file, ast })
+    let mut compiler = Compiler::new();
+    match compiler.compile(&ast) {
+      Err(why) => return Err(ModuleErrorKind::CompileError(why)),
+      _ => {}
+    }
+
+    Ok(Module {
+      map,
+      file,
+      code: compiler.get_instrs(),
+    })
   }
 }

@@ -22,9 +22,7 @@ pub struct Compiler {
 
 impl Block {
   pub fn new() -> Block {
-    Block {
-      instrs: Vec::new(),
-    }
+    Block { instrs: Vec::new() }
   }
 
   pub fn add(&mut self, instr: Instr) {
@@ -34,12 +32,13 @@ impl Block {
 
 impl Compiler {
   pub fn new() -> Compiler {
-    Compiler {
-      blocks: Vec::new(),
-    }
+    Compiler { blocks: Vec::new() }
   }
 
-  pub fn compile(&mut self, root: &mut Node) -> Compile {
+  pub fn compile(&mut self, root: &Node) -> Compile {
+    let mut block = Block::new();
+    block.add(Instr::Dup);
+    self.add_block(block);
     Ok(())
   }
 
@@ -49,5 +48,15 @@ impl Compiler {
 
   fn add_block(&mut self, block: Block) {
     self.blocks.push(block);
+  }
+
+  pub fn get_instrs(&self) -> Vec<Instr> {
+    let mut instrs = Vec::new();
+    for block in &self.blocks {
+      for instr in &block.instrs {
+        instrs.push(instr.clone());
+      }
+    }
+    instrs
   }
 }
