@@ -9,9 +9,24 @@ pub enum Data {
   Table, // FIXME
 }
 
+impl Data {
+  pub fn truth(&self) -> bool {
+    match *self {
+      Data::Null | Data::Bool(false) => false,
+      _ => true,
+    }
+  }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct Item {
+  val: Data,
+  meta: Data,
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Instr {
-  Push(Data),
+  Push(u32),
   Pop,
   Dup,
 }
