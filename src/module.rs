@@ -1,3 +1,4 @@
+use code::Data;
 use code::Instr;
 use codemap::CodeMap;
 use codemap::File;
@@ -29,6 +30,7 @@ pub struct Module<'a> {
   map: &'a CodeMap,
   file: Arc<File>,
   pub code: Vec<Instr>,
+  pub consts: Vec<Data>,
 }
 
 impl<'a> Module<'a> {
@@ -76,6 +78,7 @@ impl<'a> Module<'a> {
       map,
       file,
       code: compiler.get_instrs(),
+      consts: compiler.get_consts(),
     })
   }
 }

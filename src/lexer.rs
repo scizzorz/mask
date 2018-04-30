@@ -246,6 +246,10 @@ fn lex_string(it: &mut LexIter) -> Token {
   Str(contents)
 }
 
+// this should definitely return a result originally, I hadn't considered that
+// lexing could fail and that all failure should be in the parser, but...
+// maybe invalid characters and mismatched strings and whatnot should fail at
+// the lexing
 pub fn lex(input: &File) -> Vec<Spanned<Token>> {
   let mut tokens: Vec<Spanned<Token>> = Vec::new();
   let mut it: LexIter = input.source().chars().enumerate().peekable();

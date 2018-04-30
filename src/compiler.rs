@@ -109,4 +109,8 @@ impl Compiler {
     }
     instrs
   }
+
+  pub fn get_consts(self) -> Vec<Data> {
+    self.consts
+  }
 }

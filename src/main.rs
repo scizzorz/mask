@@ -77,14 +77,34 @@ fn main() {
     let mut module = module::Module::from_string(&mut engine.map, source);
 
     match module {
-      Ok(module) => println!("Checked: {:?}", module.code),
+      Ok(module) => {
+        println!("Constants:");
+        for data in module.consts {
+          println!("{:?}", data);
+        }
+
+        println!("Code:");
+        for instr in module.code {
+          println!("{:?}", instr);
+        }
+      }
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else if let Some(filename) = argv.value_of("path") {
     let mut module = module::Module::from_file(&mut engine.map, filename);
 
     match module {
-      Ok(module) => println!("Checked: {:?}", module.code),
+      Ok(module) => {
+        println!("Constants:");
+        for data in module.consts {
+          println!("{:?}", data);
+        }
+
+        println!("Code:");
+        for instr in module.code {
+          println!("{:?}", instr);
+        }
+      }
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else {
