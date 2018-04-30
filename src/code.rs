@@ -26,7 +26,9 @@ pub struct Item {
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Instr {
-  Push(u32),
+  PushConst(usize),
   Pop,
   Dup,
+  Print,
+  Nop,
 }
