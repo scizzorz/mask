@@ -7,7 +7,7 @@ use std::str::Chars;
 
 type LexIter<'a> = Peekable<Enumerate<Chars<'a>>>;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize)]
 pub enum Token {
   // Structure
   EOF,

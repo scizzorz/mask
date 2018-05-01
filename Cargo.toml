@@ -4,5 +4,10 @@ version = "0.0.1"
 authors = ["John Weachock <jweachock@gmail.com>"]
 
 [dependencies]
+bincode = "1.0.0"
+blake2 = "0.7.1"
 clap = "2.30.0"
 codemap = "0.1.1"
+serde = "1.0.42"
+serde_derive = "1.0.42"
+serde_yaml = "0.7.4"

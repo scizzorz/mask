@@ -1,4 +1,4 @@
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Data {
   Null,
   Int(i64),
@@ -24,7 +24,7 @@ pub struct Item {
   meta: Data,
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Instr {
   PushConst(usize),
   Pop,

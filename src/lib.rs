@@ -1,4 +1,10 @@
+extern crate bincode;
+extern crate blake2;
 extern crate codemap;
+extern crate serde;
+
+#[macro_use]
+extern crate serde_derive;
 
 pub mod code;
 pub mod compiler;
