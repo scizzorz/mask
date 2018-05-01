@@ -41,6 +41,7 @@ fn hash_bytes(bytes: Vec<u8>) -> [u8; 8] {
 
 #[derive(Serialize, Deserialize)]
 pub struct Module {
+  file_hash: [u8; 8],
   lex_hash: [u8; 8],
   ast_hash: [u8; 8],
   pub code: Vec<Instr>,
@@ -79,8 +80,23 @@ impl Module {
       Ok(file) => {
         bincode::deserialize_from(file).ok()
       }
-      Err(_) => None,
+      _ => None,
     };
+    let (file_cache, lex_cache, ast_cache) = match cached {
+      Some(ref cached) => (Some(cached.file_hash), Some(cached.lex_hash), Some(cached.ast_hash)),
+      _ => (None, None, None),
+    };
+
+    // hash file
+    let file_hash = hash_bytes(file.source().as_bytes().to_vec());
+
+    // check file cache
+    if let Some(file_cache) = file_cache {
+      if file_cache == file_hash {
+        println!("returning from file cache");
+        return Ok(cached.unwrap());
+      }
+    }
 
     // generate tokens
     let tokens = lexer::lex(&file);
@@ -93,10 +109,11 @@ impl Module {
       Err(why) => return Err(ModuleErrorKind::BincodeError(why)),
     };
 
-    if let Some(cached) = cached {
-      if cached.lex_hash == lex_hash {
+    // check lex cache
+    if let Some(lex_cache) = lex_cache {
+      if lex_cache == lex_hash {
         println!("returning from lex cache");
-        return Ok(cached);
+        return Ok(cached.unwrap());
       }
     }
 
@@ -120,14 +137,13 @@ impl Module {
       Err(why) => return Err(ModuleErrorKind::BincodeError(why)),
     };
 
-    /*
-    if let Some(cached) = cached {
-      if cached.ast_hash == ast_hash {
+    // check AST cache
+    if let Some(ast_cache) = ast_cache {
+      if ast_cache == ast_hash {
         println!("returning from ast cache");
-        return Ok(cached);
+        return Ok(cached.unwrap());
       }
     }
-    */
 
     // generate bytecode
     let mut compiler = Compiler::new();
@@ -137,6 +153,7 @@ impl Module {
     }
 
     let ret = Module {
+      file_hash,
       lex_hash,
       ast_hash,
       code: compiler.get_instrs(),
