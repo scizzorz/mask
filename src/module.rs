@@ -72,7 +72,12 @@ impl Module {
   }
 
   pub fn write_cache(&self, cache_path: &Path) -> Option<()> {
-    match OpenOptions::new().write(true).truncate(true).create(true).open(&cache_path) {
+    match OpenOptions::new()
+      .write(true)
+      .truncate(true)
+      .create(true)
+      .open(&cache_path)
+    {
       Ok(file) => bincode::serialize_into(file, &self).ok(),
       _ => None,
     }
@@ -97,20 +102,23 @@ impl Module {
       Some(cache) => {
         if cache.version == ::VERSION {
           Some(cache)
-        }
-        else {
+        } else {
           println!("declining to use cache: version mismatch");
           None
         }
       }
-      _ => None
+      _ => None,
     };
 
     // copy the hash values out so we can match on them instead of cache
     // (can't figure out move semantics to match on something multiple times
     // and possibly return it each time)
     let (file_cache, lex_cache, ast_cache) = match cache {
-      Some(ref cache) => (Some(cache.file_hash), Some(cache.lex_hash), Some(cache.ast_hash)),
+      Some(ref cache) => (
+        Some(cache.file_hash),
+        Some(cache.lex_hash),
+        Some(cache.ast_hash),
+      ),
       _ => (None, None, None),
     };
 
