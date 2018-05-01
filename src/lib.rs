@@ -13,3 +13,5 @@ pub mod lexer;
 pub mod module;
 pub mod parser;
 pub mod semck;
+
+const VERSION: [u8; 4] = [0, 0, 1, 0];

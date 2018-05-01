@@ -41,6 +41,7 @@ fn hash_bytes(bytes: Vec<u8>) -> [u8; 8] {
 
 #[derive(Serialize, Deserialize)]
 pub struct Module {
+  version: [u8; 4],
   file_hash: [u8; 8],
   lex_hash: [u8; 8],
   ast_hash: [u8; 8],
@@ -84,13 +85,26 @@ impl Module {
     }
   }
 
+  // FIXME this shouldn't even try to load the cache unless we're reading
+  // from a file... uhg.
   pub fn new(map: &CodeMap, file: Arc<File>) -> Result<Module, ModuleErrorKind> {
     let cache_filename = &format!("{}c", file.name());
     let cache_path = Path::new(&cache_filename);
 
     // if we can't read the cache, it's not a fatal error,
     // or really even an error worth reporting... (is it?)
-    let cache = Module::from_cache(&cache_path);
+    let cache = match Module::from_cache(&cache_path) {
+      Some(cache) => {
+        if cache.version == ::VERSION {
+          Some(cache)
+        }
+        else {
+          println!("declining to use cache: version mismatch");
+          None
+        }
+      }
+      _ => None
+    };
 
     // copy the hash values out so we can match on them instead of cache
     // (can't figure out move semantics to match on something multiple times
@@ -175,6 +189,7 @@ impl Module {
     }
 
     let ret = Module {
+      version: ::VERSION,
       file_hash,
       lex_hash,
       ast_hash,
