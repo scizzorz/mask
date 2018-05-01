@@ -1,10 +1,11 @@
 extern crate clap;
 extern crate codemap;
 extern crate mask;
+extern crate serde_yaml;
 
 use clap::App;
 use clap::Arg;
-use codemap::CodeMap;
+use mask::code::Instr;
 use mask::engine;
 use mask::lexer::Token;
 use mask::lexer;
@@ -15,37 +16,18 @@ use std::io::Write;
 use std::io::prelude::*;
 use std::io;
 
-fn print_tokens(map: &CodeMap, tokens: &Vec<codemap::Spanned<lexer::Token>>) {
-  let mut indent = 0;
+fn print_module(module: &module::Module) {
+  // println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
+  println!("consts:");
+  for data in &module.consts {
+    println!("- {:?}", data);
+  }
 
-  for token in tokens {
-    match token.node {
-      lexer::Token::End | lexer::Token::EOF => {
-        println!("{:?}", token.node);
-        for _ in 0..indent {
-          print!(" ");
-        }
-      }
-
-      lexer::Token::Enter => {
-        indent += 2;
-        println!("{:?}", token.node);
-        for _ in 0..indent {
-          print!(" ");
-        }
-      }
-
-      lexer::Token::Exit => {
-        indent -= 2;
-        print!("{:?} ", token.node);
-      }
-
-      _ => {
-        let _span = map.look_up_span(token.span);
-        print!("{:?} ", token.node);
-        //print!("{}:{}:{}: {:?} ", span.file.name(), span.begin.line, span.begin.column, token.node);
-        //print!("{:?}<{:?}> ", token.node, );
-      }
+  println!("code:");
+  for instr in &module.code {
+    match *instr {
+      Instr::PushConst(x) => println!("- {:?} {:?}", instr, module.consts[x]),
+      _ => println!("- {:?}", instr),
     }
   }
 }
@@ -77,34 +59,14 @@ fn main() {
     let mut module = module::Module::from_string(&mut engine.map, source);
 
     match module {
-      Ok(module) => {
-        println!("Constants:");
-        for data in module.consts {
-          println!("{:?}", data);
-        }
-
-        println!("Code:");
-        for instr in module.code {
-          println!("{:?}", instr);
-        }
-      }
+      Ok(module) => print_module(&module),
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else if let Some(filename) = argv.value_of("path") {
     let mut module = module::Module::from_file(&mut engine.map, filename);
 
     match module {
-      Ok(module) => {
-        println!("Constants:");
-        for data in module.consts {
-          println!("{:?}", data);
-        }
-
-        println!("Code:");
-        for instr in module.code {
-          println!("{:?}", instr);
-        }
-      }
+      Ok(module) => print_module(&module),
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else {
