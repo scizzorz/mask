@@ -26,20 +26,18 @@ pub enum ModuleErrorKind {
   IOError(io::Error),
 }
 
-pub struct Module<'a> {
-  map: &'a CodeMap,
-  file: Arc<File>,
+pub struct Module {
   pub code: Vec<Instr>,
   pub consts: Vec<Data>,
 }
 
-impl<'a> Module<'a> {
-  pub fn from_string(map: &'a mut CodeMap, chunk: &str) -> Result<Module<'a>, ModuleErrorKind> {
+impl Module {
+  pub fn from_string(map: &mut CodeMap, chunk: &str) -> Result<Module, ModuleErrorKind> {
     let file = map.add_file(String::from("_anon"), chunk.to_string());
     Module::new(map, file)
   }
 
-  pub fn from_file(map: &'a mut CodeMap, filename: &str) -> Result<Module<'a>, ModuleErrorKind> {
+  pub fn from_file(map: &mut CodeMap, filename: &str) -> Result<Module, ModuleErrorKind> {
     let path = Path::new(&filename);
     let mut fs_file = match fs::File::open(path) {
       Ok(file) => file,
@@ -55,7 +53,7 @@ impl<'a> Module<'a> {
     Module::new(map, file)
   }
 
-  pub fn new(map: &'a CodeMap, file: Arc<File>) -> Result<Module<'a>, ModuleErrorKind> {
+  pub fn new(map: &CodeMap, file: Arc<File>) -> Result<Module, ModuleErrorKind> {
     let tokens = lexer::lex(&file);
     let mut ast = match parser::parse(tokens) {
       Ok(root) => root,
@@ -75,8 +73,6 @@ impl<'a> Module<'a> {
     }
 
     Ok(Module {
-      map,
-      file,
       code: compiler.get_instrs(),
       consts: compiler.get_consts(),
     })
