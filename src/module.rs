@@ -1,7 +1,6 @@
 use bincode::serialize;
 use bincode;
 use blake2::Blake2b;
-// use blake2::Digest;
 use blake2::digest::Input;
 use blake2::digest::VariableOutput;
 use code::Data;
@@ -15,6 +14,7 @@ use parser::ParseErrorKind;
 use parser;
 use semck::CheckErrorKind;
 use semck::SemChecker;
+use std::fs::OpenOptions;
 use std::fs;
 use std::io::Read;
 use std::io;
@@ -70,20 +70,33 @@ impl Module {
     Module::new(map, file)
   }
 
+  pub fn write_cache(&self, cache_path: &Path) -> Option<()> {
+    match OpenOptions::new().write(true).truncate(true).create(true).open(&cache_path) {
+      Ok(file) => bincode::serialize_into(file, &self).ok(),
+      _ => None,
+    }
+  }
+
+  pub fn from_cache(cache_path: &Path) -> Option<Module> {
+    match fs::File::open(&cache_path) {
+      Ok(file) => bincode::deserialize_from(file).ok(),
+      _ => None,
+    }
+  }
+
   pub fn new(map: &CodeMap, file: Arc<File>) -> Result<Module, ModuleErrorKind> {
     let cache_filename = &format!("{}c", file.name());
     let cache_path = Path::new(&cache_filename);
 
     // if we can't read the cache, it's not a fatal error,
     // or really even an error worth reporting... (is it?)
-    let cached: Option<Module> = match fs::File::open(&cache_path) {
-      Ok(file) => {
-        bincode::deserialize_from(file).ok()
-      }
-      _ => None,
-    };
-    let (file_cache, lex_cache, ast_cache) = match cached {
-      Some(ref cached) => (Some(cached.file_hash), Some(cached.lex_hash), Some(cached.ast_hash)),
+    let cache = Module::from_cache(&cache_path);
+
+    // copy the hash values out so we can match on them instead of cache
+    // (can't figure out move semantics to match on something multiple times
+    // and possibly return it each time)
+    let (file_cache, lex_cache, ast_cache) = match cache {
+      Some(ref cache) => (Some(cache.file_hash), Some(cache.lex_hash), Some(cache.ast_hash)),
       _ => (None, None, None),
     };
 
@@ -93,8 +106,8 @@ impl Module {
     // check file cache
     if let Some(file_cache) = file_cache {
       if file_cache == file_hash {
-        println!("returning from file cache");
-        return Ok(cached.unwrap());
+        let ret = cache.unwrap();
+        return Ok(ret);
       }
     }
 
@@ -112,8 +125,12 @@ impl Module {
     // check lex cache
     if let Some(lex_cache) = lex_cache {
       if lex_cache == lex_hash {
-        println!("returning from lex cache");
-        return Ok(cached.unwrap());
+        let ret = Module {
+          file_hash,
+          ..cache.unwrap()
+        };
+        ret.write_cache(&cache_path);
+        return Ok(ret);
       }
     }
 
@@ -140,8 +157,13 @@ impl Module {
     // check AST cache
     if let Some(ast_cache) = ast_cache {
       if ast_cache == ast_hash {
-        println!("returning from ast cache");
-        return Ok(cached.unwrap());
+        let ret = Module {
+          file_hash,
+          lex_hash,
+          ..cache.unwrap()
+        };
+        ret.write_cache(&cache_path);
+        return Ok(ret);
       }
     }
 
@@ -160,13 +182,8 @@ impl Module {
       consts: compiler.get_consts(),
     };
 
-    // again, if we can'write read the cache, it's not a fatal error.
-    match fs::File::create(&cache_path) {
-      Ok(file) => {
-        bincode::serialize_into(file, &ret);
-      }
-      Err(_) => {},
-    };
+    // again, if we can't write read the cache, it's not a fatal error.
+    ret.write_cache(&cache_path);
 
     Ok(ret)
   }
