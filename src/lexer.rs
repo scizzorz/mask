@@ -1,3 +1,4 @@
+use std::fs;
 use codemap::File;
 use codemap::Spanned;
 use self::Token::*;

@@ -25,7 +25,6 @@ impl SemChecker {
   }
 
   pub fn check(&mut self, node: &mut Node) -> Check {
-    println!("checking: {:?}", node);
     match *node {
       Node::Expr(ref mut bx) => {
         self.check(bx)?;

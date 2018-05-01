@@ -70,6 +70,18 @@ impl Module {
   }
 
   pub fn new(map: &CodeMap, file: Arc<File>) -> Result<Module, ModuleErrorKind> {
+    let cache_filename = &format!("{}c", file.name());
+    let cache_path = Path::new(&cache_filename);
+
+    // if we can't read the cache, it's not a fatal error,
+    // or really even an error worth reporting... (is it?)
+    let cached: Option<Module> = match fs::File::open(&cache_path) {
+      Ok(file) => {
+        bincode::deserialize_from(file).ok()
+      }
+      Err(_) => None,
+    };
+
     // generate tokens
     let tokens = lexer::lex(&file);
 
@@ -80,6 +92,13 @@ impl Module {
       Ok(x) => hash_bytes(x),
       Err(why) => return Err(ModuleErrorKind::BincodeError(why)),
     };
+
+    if let Some(cached) = cached {
+      if cached.lex_hash == lex_hash {
+        println!("returning from lex cache");
+        return Ok(cached);
+      }
+    }
 
     // generate AST
     let mut ast = match parser::parse(tokens) {
@@ -101,6 +120,15 @@ impl Module {
       Err(why) => return Err(ModuleErrorKind::BincodeError(why)),
     };
 
+    /*
+    if let Some(cached) = cached {
+      if cached.ast_hash == ast_hash {
+        println!("returning from ast cache");
+        return Ok(cached);
+      }
+    }
+    */
+
     // generate bytecode
     let mut compiler = Compiler::new();
     match compiler.compile(&ast) {
@@ -108,11 +136,21 @@ impl Module {
       _ => {}
     }
 
-    Ok(Module {
+    let ret = Module {
       lex_hash,
       ast_hash,
       code: compiler.get_instrs(),
       consts: compiler.get_consts(),
-    })
+    };
+
+    // again, if we can'write read the cache, it's not a fatal error.
+    match fs::File::create(&cache_path) {
+      Ok(file) => {
+        bincode::serialize_into(file, &ret);
+      }
+      Err(_) => {},
+    };
+
+    Ok(ret)
   }
 }
