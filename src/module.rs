@@ -52,7 +52,7 @@ pub struct Module {
 impl Module {
   pub fn from_string(map: &mut CodeMap, chunk: &str) -> Result<Module, ModuleErrorKind> {
     let file = map.add_file(String::from("_anon"), chunk.to_string());
-    Module::new(map, file)
+    Module::new(file, false)
   }
 
   pub fn from_file(map: &mut CodeMap, filename: &str) -> Result<Module, ModuleErrorKind> {
@@ -68,7 +68,7 @@ impl Module {
       Err(why) => return Err(ModuleErrorKind::IOError(why)),
     };
 
-    Module::new(map, file)
+    Module::new(file, true)
   }
 
   pub fn write_cache(&self, cache_path: &Path) -> Option<()> {
@@ -83,30 +83,24 @@ impl Module {
     }
   }
 
-  pub fn from_cache(cache_path: &Path) -> Option<Module> {
+  pub fn read_cache(cache_path: &Path) -> Option<Module> {
     match fs::File::open(&cache_path) {
       Ok(file) => bincode::deserialize_from(file).ok(),
       _ => None,
     }
   }
 
-  // FIXME this shouldn't even try to load the cache unless we're reading
-  // from a file... uhg.
-  pub fn new(map: &CodeMap, file: Arc<File>) -> Result<Module, ModuleErrorKind> {
+  fn new(file: Arc<File>, use_cache: bool) -> Result<Module, ModuleErrorKind> {
     let cache_filename = &format!("{}c", file.name());
     let cache_path = Path::new(&cache_filename);
 
     // if we can't read the cache, it's not a fatal error,
     // or really even an error worth reporting... (is it?)
-    let cache = match Module::from_cache(&cache_path) {
-      Some(cache) => {
-        if cache.version == ::VERSION {
-          Some(cache)
-        } else {
-          println!("declining to use cache: version mismatch");
-          None
-        }
-      }
+    let cache = match (use_cache, Module::read_cache(&cache_path)) {
+      (true, Some(cache)) => match cache.version {
+        ::VERSION => Some(cache),
+        _ => None,
+      },
       _ => None,
     };
 
@@ -205,8 +199,10 @@ impl Module {
       consts: compiler.get_consts(),
     };
 
-    // again, if we can't write read the cache, it's not a fatal error.
-    ret.write_cache(&cache_path);
+    if use_cache {
+      // again, if we can't write read the cache, it's not a fatal error.
+      ret.write_cache(&cache_path);
+    }
 
     Ok(ret)
   }
