@@ -10,15 +10,15 @@ pub enum CompileErrorKind {
   MissingCurrentBlock,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block {
-  instrs: Vec<Instr>,
+  pub instrs: Vec<Instr>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Compiler {
-  blocks: Vec<Block>,
-  consts: Vec<Data>,
+  pub block: Block,
+  pub consts: Vec<Data>,
 }
 
 impl Block {
@@ -34,7 +34,7 @@ impl Block {
 impl Compiler {
   pub fn new() -> Compiler {
     Compiler {
-      blocks: Vec::new(),
+      block: Block::new(),
       consts: Vec::new(),
     }
   }
@@ -51,8 +51,17 @@ impl Compiler {
   }
 
   pub fn compile(&mut self, root: &Node) -> Compile {
-    let mut block = Block::new();
+    self.block = self.compile_block(root)?;
+    Ok(())
+  }
 
+  fn compile_block(&mut self, root: &Node) -> Result<Block, CompileErrorKind> {
+    let mut block = Block::new();
+    self.compile_aux(root, &mut block)?;
+    Ok(block)
+  }
+
+  fn compile_aux(&mut self, root: &Node, block: &mut Block) -> Compile {
     match *root {
       Node::Null => {
         let const_id = self.get_const(Data::Null);
@@ -80,39 +89,40 @@ impl Compiler {
       }
 
       Node::Expr(ref bx) => {
-        self.compile(bx)?;
+        self.compile_aux(bx, block)?;
         block.add(Instr::Pop);
       }
 
       Node::Block(ref ls) => for n in ls {
-        self.compile(n)?;
+        self.compile_aux(n, block)?;
       },
+
+      Node::Catch { ref body } => {
+        let new_block = self.compile_block(body)?;
+        block.add(Instr::Block(new_block.instrs));
+      }
+
+      Node::If {
+        ref cond,
+        ref body,
+        ref els,
+      } => {
+        let if_block = self.compile_block(body)?;
+        self.compile_aux(cond, block)?;
+        match *els {
+          Some(ref els) => {
+            let els_block = self.compile_block(els)?;
+            block.add(Instr::IfElse(if_block.instrs, els_block.instrs));
+          }
+          _ => {
+            block.add(Instr::If(if_block.instrs));
+          }
+        }
+      }
+
       _ => {}
     }
 
-    self.add_block(block);
     Ok(())
-  }
-
-  fn new_block(&mut self) {
-    self.blocks.push(Block::new());
-  }
-
-  fn add_block(&mut self, block: Block) {
-    self.blocks.push(block);
-  }
-
-  pub fn get_instrs(&self) -> Vec<Instr> {
-    let mut instrs = Vec::new();
-    for block in &self.blocks {
-      for instr in &block.instrs {
-        instrs.push(instr.clone());
-      }
-    }
-    instrs
-  }
-
-  pub fn get_consts(self) -> Vec<Data> {
-    self.consts
   }
 }

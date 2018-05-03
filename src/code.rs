@@ -26,9 +26,13 @@ pub struct Item {
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub enum Instr {
-  PushConst(usize),
-  Pop,
+  Block(Vec<Instr>),
   Dup,
-  Print,
+  If(Vec<Instr>),
+  IfElse(Vec<Instr>, Vec<Instr>),
+  Jump(isize),
   Nop,
+  Pop,
+  Print,
+  PushConst(usize),
 }

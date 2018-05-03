@@ -5,7 +5,6 @@ extern crate serde_yaml;
 
 use clap::App;
 use clap::Arg;
-use mask::code::Instr;
 use mask::engine;
 use mask::lexer::Token;
 use mask::lexer;
@@ -17,19 +16,7 @@ use std::io::prelude::*;
 use std::io;
 
 fn print_module(module: &module::Module) {
-  // println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
-  println!("consts:");
-  for data in &module.consts {
-    println!("- {:?}", data);
-  }
-
-  println!("code:");
-  for instr in &module.code {
-    match *instr {
-      Instr::PushConst(x) => println!("- {:?} {:?}", instr, module.consts[x]),
-      _ => println!("- {:?}", instr),
-    }
-  }
+  println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
 }
 
 fn main() {

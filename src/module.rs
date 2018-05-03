@@ -3,8 +3,8 @@ use bincode;
 use blake2::Blake2b;
 use blake2::digest::Input;
 use blake2::digest::VariableOutput;
+use compiler::Block;
 use code::Data;
-use code::Instr;
 use codemap::CodeMap;
 use codemap::File;
 use compiler::CompileErrorKind;
@@ -45,7 +45,7 @@ pub struct Module {
   file_hash: [u8; 8],
   lex_hash: [u8; 8],
   ast_hash: [u8; 8],
-  pub code: Vec<Instr>,
+  pub code: Block,
   pub consts: Vec<Data>,
 }
 
@@ -195,8 +195,8 @@ impl Module {
       file_hash,
       lex_hash,
       ast_hash,
-      code: compiler.get_instrs(),
-      consts: compiler.get_consts(),
+      code: compiler.block,
+      consts: compiler.consts,
     };
 
     if use_cache {
