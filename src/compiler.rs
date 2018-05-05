@@ -1,3 +1,4 @@
+use code::Const;
 use code::Data;
 use code::Instr;
 use parser::Node;
@@ -18,7 +19,7 @@ pub struct Block {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Compiler {
   pub block: Block,
-  pub consts: Vec<Data>,
+  pub consts: Vec<Const>,
 }
 
 impl Block {
@@ -39,7 +40,7 @@ impl Compiler {
     }
   }
 
-  pub fn get_const(&mut self, data: Data) -> usize {
+  pub fn get_const(&mut self, data: Const) -> usize {
     for (i, k) in self.consts.iter().enumerate() {
       if *k == data {
         return i;
@@ -64,27 +65,27 @@ impl Compiler {
   fn compile_aux(&mut self, root: &Node, block: &mut Block) -> Compile {
     match *root {
       Node::Null => {
-        let const_id = self.get_const(Data::Null);
+        let const_id = self.get_const(Const::Null);
         block.add(Instr::PushConst(const_id));
       }
 
       Node::Int(x) => {
-        let const_id = self.get_const(Data::Int(x));
+        let const_id = self.get_const(Const::Int(x));
         block.add(Instr::PushConst(const_id));
       }
 
       Node::Float(x) => {
-        let const_id = self.get_const(Data::Float(x));
+        let const_id = self.get_const(Const::Float(x));
         block.add(Instr::PushConst(const_id));
       }
 
       Node::Bool(x) => {
-        let const_id = self.get_const(Data::Bool(x));
+        let const_id = self.get_const(Const::Bool(x));
         block.add(Instr::PushConst(const_id));
       }
 
       Node::Str(ref x) => {
-        let const_id = self.get_const(Data::Str(x.clone()));
+        let const_id = self.get_const(Const::Str(x.clone()));
         block.add(Instr::PushConst(const_id));
       }
 

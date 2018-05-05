@@ -4,6 +4,7 @@ use blake2::Blake2b;
 use blake2::digest::Input;
 use blake2::digest::VariableOutput;
 use compiler::Block;
+use code::Const;
 use code::Data;
 use codemap::CodeMap;
 use codemap::File;
@@ -46,7 +47,7 @@ pub struct Module {
   lex_hash: [u8; 8],
   ast_hash: [u8; 8],
   pub code: Block,
-  pub consts: Vec<Data>,
+  pub consts: Vec<Const>,
 }
 
 impl Module {
