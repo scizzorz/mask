@@ -1,5 +1,5 @@
-use ::float;
-use ::int;
+use float;
+use int;
 use codemap::Span;
 use codemap::Spanned;
 use lexer::Token;

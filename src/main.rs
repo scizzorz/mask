@@ -51,7 +51,7 @@ fn main() {
     }
   } else if let Some(filename) = argv.value_of("path") {
     match engine.import(filename) {
-      Ok(x) => {},
+      Ok(x) => {}
       Err(why) => panic!("Unable to import: {:?}", why),
     }
   } else {

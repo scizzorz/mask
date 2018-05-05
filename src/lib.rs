@@ -1,7 +1,7 @@
-extern crate ordered_float;
 extern crate bincode;
 extern crate blake2;
 extern crate codemap;
+extern crate ordered_float;
 extern crate serde;
 
 #[macro_use]
@@ -14,7 +14,6 @@ pub mod lexer;
 pub mod module;
 pub mod parser;
 pub mod semck;
-
 
 const VERSION: [u8; 4] = [0, 0, 1, 0];
 

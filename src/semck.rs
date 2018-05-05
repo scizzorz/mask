@@ -16,7 +16,6 @@ pub struct SemChecker {
   has_if: bool,
 }
 
-
 impl SemChecker {
   pub fn new() -> SemChecker {
     SemChecker {
@@ -86,11 +85,9 @@ impl SemChecker {
       Place::Single(ref node) => {
         self.is_place(node)?;
       }
-      Place::Multi(ref places) => {
-        for pl in places {
-          self.check_place(&pl)?;
-        }
-      }
+      Place::Multi(ref places) => for pl in places {
+        self.check_place(&pl)?;
+      },
     };
 
     Ok(())

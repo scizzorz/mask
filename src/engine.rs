@@ -51,37 +51,31 @@ impl Engine {
       Instr::Pop => {
         self.data_stack.pop();
       }
-      Instr::Dup => {
-        match self.data_stack.pop() {
-          Some(x) => {
-            self.data_stack.push(x.clone());
-            self.data_stack.push(x);
-          }
-          None => println!("WARNING: attempting to dup empty stack"),
+      Instr::Dup => match self.data_stack.pop() {
+        Some(x) => {
+          self.data_stack.push(x.clone());
+          self.data_stack.push(x);
         }
-      }
+        None => println!("WARNING: attempting to dup empty stack"),
+      },
       Instr::Nop => {}
-      Instr::Print => {
-        match self.data_stack.pop() {
-          Some(x) => println!("{:?}", x),
-          None => println!("WARNING: attempting to print empty stack"),
-        }
-      }
+      Instr::Print => match self.data_stack.pop() {
+        Some(x) => println!("{:?}", x),
+        None => println!("WARNING: attempting to print empty stack"),
+      },
 
-      Instr::If(ref body) => {
-        match self.data_stack.pop() {
-          Some(x) => {
-            if x.truth() {
-              self.ex_many(module, body);
-            }
+      Instr::If(ref body) => match self.data_stack.pop() {
+        Some(x) => {
+          if x.truth() {
+            self.ex_many(module, body);
           }
-          None => println!("WARNING: attempting to if empty stack"),
         }
-      }
+        None => println!("WARNING: attempting to if empty stack"),
+      },
 
       _ => {
         println!("WARNING: Unable to use instruction: {:?}", instr);
-      },
+      }
     }
   }
 }

@@ -1,5 +1,5 @@
-use ::float;
-use ::int;
+use float;
+use int;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::hash::Hasher;
@@ -11,7 +11,7 @@ pub enum Data {
   Float(float),
   Bool(bool),
   Str(String),
-  Func,  // FIXME
+  Func, // FIXME
   Table(HashMap<Data, Data>),
 }
 
@@ -37,7 +37,7 @@ impl Data {
 impl Hash for Data {
   fn hash<H: Hasher>(&self, state: &mut H) {
     match *self {
-      Data::Table(ref x) =>  {
+      Data::Table(ref x) => {
         (0).hash(state); // FIXME LOOOOOL
       }
       _ => {

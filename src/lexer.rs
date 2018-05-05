@@ -1,5 +1,5 @@
-use ::float;
-use ::int;
+use float;
+use int;
 use codemap::File;
 use codemap::Spanned;
 use self::Token::*;

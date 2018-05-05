@@ -1,3 +1,4 @@
+use VERSION;
 use bincode::serialize;
 use bincode;
 use blake2::Blake2b;
@@ -99,7 +100,7 @@ impl Module {
     // or really even an error worth reporting... (is it?)
     let cache = match (use_cache, Module::read_cache(&cache_path)) {
       (true, Some(cache)) => match cache.version {
-        ::VERSION => Some(cache),
+        VERSION => Some(cache),
         _ => None,
       },
       _ => None,
