@@ -16,6 +16,13 @@ pub enum Data {
 }
 
 impl Data {
+  pub fn truth(&self) -> bool {
+    match *self {
+      Data::Null | Data::Bool(false) => false,
+      _ => true,
+    }
+  }
+
   pub fn to_const(&self) -> Const {
     match *self {
       Data::Int(x) => Const::Int(x),
@@ -58,16 +65,6 @@ impl Const {
       Const::Float(x) => Data::Float(x),
       Const::Bool(x) => Data::Bool(x),
       Const::Str(ref x) => Data::Str(x.clone()),
-    }
-  }
-}
-
-
-impl Data {
-  pub fn truth(&self) -> bool {
-    match *self {
-      Data::Null | Data::Bool(false) => false,
-      _ => true,
     }
   }
 }

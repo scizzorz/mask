@@ -3,9 +3,9 @@ use bincode;
 use blake2::Blake2b;
 use blake2::digest::Input;
 use blake2::digest::VariableOutput;
-use compiler::Block;
 use code::Const;
 use code::Data;
+use code::Instr;
 use codemap::CodeMap;
 use codemap::File;
 use compiler::CompileErrorKind;
@@ -46,7 +46,7 @@ pub struct Module {
   file_hash: [u8; 8],
   lex_hash: [u8; 8],
   ast_hash: [u8; 8],
-  pub code: Block,
+  pub code: Vec<Instr>,
   pub consts: Vec<Const>,
 }
 

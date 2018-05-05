@@ -50,11 +50,9 @@ fn main() {
       Err(why) => panic!("Unable to check: {:?}", why),
     }
   } else if let Some(filename) = argv.value_of("path") {
-    let mut module = module::Module::from_file(&mut engine.map, filename);
-
-    match module {
-      Ok(module) => print_module(&module),
-      Err(why) => panic!("Unable to check: {:?}", why),
+    match engine.import(filename) {
+      Ok(x) => {},
+      Err(why) => panic!("Unable to import: {:?}", why),
     }
   } else {
     // FIXME this is a nightmare

@@ -11,31 +11,16 @@ pub enum CompileErrorKind {
   MissingCurrentBlock,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Block {
-  pub instrs: Vec<Instr>,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Compiler {
-  pub block: Block,
+  pub block: Vec<Instr>,
   pub consts: Vec<Const>,
-}
-
-impl Block {
-  pub fn new() -> Block {
-    Block { instrs: Vec::new() }
-  }
-
-  pub fn add(&mut self, instr: Instr) {
-    self.instrs.push(instr);
-  }
 }
 
 impl Compiler {
   pub fn new() -> Compiler {
     Compiler {
-      block: Block::new(),
+      block: Vec::new(),
       consts: Vec::new(),
     }
   }
@@ -56,42 +41,42 @@ impl Compiler {
     Ok(())
   }
 
-  fn compile_block(&mut self, root: &Node) -> Result<Block, CompileErrorKind> {
-    let mut block = Block::new();
+  fn compile_block(&mut self, root: &Node) -> Result<Vec<Instr>, CompileErrorKind> {
+    let mut block = Vec::new();
     self.compile_aux(root, &mut block)?;
     Ok(block)
   }
 
-  fn compile_aux(&mut self, root: &Node, block: &mut Block) -> Compile {
+  fn compile_aux(&mut self, root: &Node, block: &mut Vec<Instr>) -> Compile {
     match *root {
       Node::Null => {
         let const_id = self.get_const(Const::Null);
-        block.add(Instr::PushConst(const_id));
+        block.push(Instr::PushConst(const_id));
       }
 
       Node::Int(x) => {
         let const_id = self.get_const(Const::Int(x));
-        block.add(Instr::PushConst(const_id));
+        block.push(Instr::PushConst(const_id));
       }
 
       Node::Float(x) => {
         let const_id = self.get_const(Const::Float(x));
-        block.add(Instr::PushConst(const_id));
+        block.push(Instr::PushConst(const_id));
       }
 
       Node::Bool(x) => {
         let const_id = self.get_const(Const::Bool(x));
-        block.add(Instr::PushConst(const_id));
+        block.push(Instr::PushConst(const_id));
       }
 
       Node::Str(ref x) => {
         let const_id = self.get_const(Const::Str(x.clone()));
-        block.add(Instr::PushConst(const_id));
+        block.push(Instr::PushConst(const_id));
       }
 
       Node::Expr(ref bx) => {
         self.compile_aux(bx, block)?;
-        block.add(Instr::Pop);
+        block.push(Instr::Pop);
       }
 
       Node::Block(ref ls) => for n in ls {
@@ -100,7 +85,7 @@ impl Compiler {
 
       Node::Catch { ref body } => {
         let new_block = self.compile_block(body)?;
-        block.add(Instr::Block(new_block.instrs));
+        block.push(Instr::Block(new_block));
       }
 
       Node::If {
@@ -113,10 +98,10 @@ impl Compiler {
         match *els {
           Some(ref els) => {
             let els_block = self.compile_block(els)?;
-            block.add(Instr::IfElse(if_block.instrs, els_block.instrs));
+            block.push(Instr::IfElse(if_block, els_block));
           }
           _ => {
-            block.add(Instr::If(if_block.instrs));
+            block.push(Instr::If(if_block));
           }
         }
       }
