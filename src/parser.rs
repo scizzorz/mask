@@ -1,3 +1,5 @@
+use ::float;
+use ::int;
 use codemap::Span;
 use codemap::Spanned;
 use lexer::Token;
@@ -8,19 +10,19 @@ use std::slice::Iter;
 type ParseIter<'a> = Peekable<Iter<'a, Spanned<Token>>>;
 type Parse = Result<Node, ParseErrorKind>;
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Var {
   Single(String),
   Multi(Vec<Var>),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Place {
   Single(Box<Node>),
   Multi(Vec<Place>),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Node {
   // Generic
   Expr(Box<Node>),
@@ -113,21 +115,22 @@ pub enum Node {
   // Literals
   Null,
   Bool(bool),
-  Float(f64),
-  Int(i64),
+  #[serde(with = "::FloatDef")]
+  Float(float),
+  Int(int),
   Str(String),
   Name(String),
   Table,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Op {
   Right(u32),
   Left(u32),
   None,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseErrorKind {
   UnexpectedToken(Token),
   UnexpectedEOF,

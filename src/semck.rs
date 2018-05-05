@@ -3,18 +3,19 @@ use parser::Place;
 
 type Check = Result<(), CheckErrorKind>;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CheckErrorKind {
   NotInLoop,
   MissingIf,
   NotPlace,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub struct SemChecker {
   in_loop: bool,
   has_if: bool,
 }
+
 
 impl SemChecker {
   pub fn new() -> SemChecker {
@@ -86,12 +87,12 @@ impl SemChecker {
         self.is_place(node)?;
       }
       Place::Multi(ref places) => {
-        let mut valid = true;
         for pl in places {
           self.check_place(&pl)?;
         }
       }
     };
+
     Ok(())
   }
 

@@ -1,8 +1,12 @@
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+use ::float;
+use ::int;
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Serialize, Deserialize)]
 pub enum Data {
   Null,
-  Int(i64),
-  Float(f64),
+  Int(int),
+  #[serde(with = "::FloatDef")]
+  Float(float),
   Bool(bool),
   Str(String),
   Func,  // FIXME
@@ -18,13 +22,13 @@ impl Data {
   }
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub struct Item {
   val: Data,
   meta: Data,
 }
 
-#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum Instr {
   Block(Vec<Instr>),
   Dup,

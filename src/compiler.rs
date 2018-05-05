@@ -5,17 +5,17 @@ use parser::Place;
 
 type Compile = Result<(), CompileErrorKind>;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompileErrorKind {
   MissingCurrentBlock,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Block {
   pub instrs: Vec<Instr>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Compiler {
   pub block: Block,
   pub consts: Vec<Data>,

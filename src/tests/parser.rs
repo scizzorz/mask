@@ -35,8 +35,8 @@ fn test_quark() {
   test_parse("null", &parse_quark, Ok(Node::Null));
   test_parse("true", &parse_quark, Ok(Node::Bool(true)));
   test_parse("false", &parse_quark, Ok(Node::Bool(false)));
-  test_parse("1.3", &parse_quark, Ok(Node::Float(1.3)));
-  test_parse("0.3", &parse_quark, Ok(Node::Float(0.3)));
+  test_parse("1.3", &parse_quark, Ok(Node::Float(float::from(1.3))));
+  test_parse("0.3", &parse_quark, Ok(Node::Float(float::from(0.3))));
   test_parse("2", &parse_quark, Ok(Node::Int(2)));
   test_parse("3", &parse_quark, Ok(Node::Int(3)));
   test_parse("name", &parse_quark, Ok(Node::Name(String::from("name"))));

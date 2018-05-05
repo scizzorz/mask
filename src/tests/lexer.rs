@@ -17,11 +17,11 @@ fn lex_numbers() {
   assert_eq!(tokens[0].node, Int(0));
   assert_eq!(tokens[1].node, Int(5));
   assert_eq!(tokens[2].node, Int(5));
-  assert_eq!(tokens[3].node, Float(5.3));
-  assert_eq!(tokens[4].node, Float(1.234));
-  assert_eq!(tokens[5].node, Float(1.0));
-  assert_eq!(tokens[6].node, Float(0.0));
-  assert_eq!(tokens[7].node, Float(0.0));
+  assert_eq!(tokens[3].node, Float(float::from(5.3)));
+  assert_eq!(tokens[4].node, Float(float::from(1.234)));
+  assert_eq!(tokens[5].node, Float(float::from(1.0)));
+  assert_eq!(tokens[6].node, Float(float::from(0.0)));
+  assert_eq!(tokens[7].node, Float(float::from(0.0)));
   assert_eq!(tokens[8].node, End);
   assert_eq!(tokens[9].node, EOF);
 }

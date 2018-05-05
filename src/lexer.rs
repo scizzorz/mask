@@ -1,4 +1,5 @@
-use std::fs;
+use ::float;
+use ::int;
 use codemap::File;
 use codemap::Spanned;
 use self::Token::*;
@@ -8,7 +9,7 @@ use std::str::Chars;
 
 type LexIter<'a> = Peekable<Enumerate<Chars<'a>>>;
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Token {
   // Structure
   EOF,
@@ -22,8 +23,9 @@ pub enum Token {
   // Literals
   Null,
   Bool(bool),
-  Float(f64),
-  Int(i64),
+  #[serde(with = "::FloatDef")]
+  Float(float),
+  Int(int),
   Str(String),
   Name(String),
   UnclosedStr(String),
@@ -99,7 +101,7 @@ fn lex_number(it: &mut LexIter) -> Token {
   }
 
   match digits.contains(".") {
-    true => Float(digits.parse::<f64>().unwrap()),
+    true => Float(float::from(digits.parse::<f64>().unwrap())),
     false => Int(digits.parse::<i64>().unwrap()),
   }
 }
