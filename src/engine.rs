@@ -1,13 +1,16 @@
 use code::Data;
 use code::Instr;
+use code::Item;
 use codemap::CodeMap;
 use module::Module;
 use module::ModuleErrorKind;
+use std::collections::HashMap;
 
 pub struct Engine {
   pub map: CodeMap,
   pub mods: Vec<Module>,
-  data_stack: Vec<Data>,
+  data_stack: Vec<Item>,
+  scope: Item,
 }
 
 #[derive(Debug)]
@@ -21,10 +24,14 @@ impl Engine {
       map: CodeMap::new(),
       mods: Vec::new(),
       data_stack: Vec::new(),
+      scope: Item {
+        val: Data::Table(HashMap::new()),
+        meta: Data::Null,
+      },
     }
   }
 
-  pub fn import(&mut self, filename: &str) -> Result<(), EngineErrorKind> {
+  pub fn import(&mut self, filename: &str) -> Result<(()), EngineErrorKind> {
     let module = match Module::from_file(&mut self.map, filename) {
       Err(why) => return Err(EngineErrorKind::ModuleError(why)),
       Ok(module) => module,
@@ -46,7 +53,7 @@ impl Engine {
   fn ex(&mut self, module: &Module, instr: &Instr) {
     match *instr {
       Instr::PushConst(x) => {
-        self.data_stack.push(module.consts[x].to_data());
+        self.data_stack.push(module.consts[x].to_item());
       }
       Instr::Pop => {
         self.data_stack.pop();

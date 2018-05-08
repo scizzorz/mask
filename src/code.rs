@@ -12,7 +12,7 @@ pub enum Data {
   Bool(bool),
   Str(String),
   Func, // FIXME
-  Table(HashMap<Data, Data>),
+  Table(HashMap<Data, Item>),
 }
 
 impl Data {
@@ -37,7 +37,7 @@ impl Data {
 impl Hash for Data {
   fn hash<H: Hasher>(&self, state: &mut H) {
     match *self {
-      Data::Table(ref x) => {
+      Data::Table(ref _x) => {
         (0).hash(state); // FIXME LOOOOOL
       }
       _ => {
@@ -67,12 +67,25 @@ impl Const {
       Const::Str(ref x) => Data::Str(x.clone()),
     }
   }
+
+  pub fn to_item(&self) -> Item {
+    Item {
+      val: self.to_data(),
+      meta: Data::Null,
+    }
+  }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub struct Item {
-  val: Data,
-  meta: Data,
+  pub val: Data,
+  pub meta: Data,
+}
+
+impl Item {
+  pub fn truth(&self) -> bool {
+    self.val.truth()
+  }
 }
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
