@@ -74,6 +74,13 @@ impl Compiler {
         block.push(Instr::PushConst(const_id));
       }
 
+      Node::Name(ref x) => {
+        let const_id = self.get_const(Const::Str(x.clone()));
+        block.push(Instr::PushConst(const_id));
+        block.push(Instr::PushScope);
+        block.push(Instr::Get);
+      }
+
       Node::Expr(ref bx) => {
         self.compile_aux(bx, block)?;
         block.push(Instr::Pop);
@@ -88,11 +95,20 @@ impl Compiler {
         block.push(Instr::Block(new_block));
       }
 
-      Node::Print {
-        ref expr
-      } => {
+      Node::Print { ref expr } => {
         self.compile_aux(expr, block)?;
         block.push(Instr::Print);
+      }
+
+      Node::Assn { ref lhs, ref rhs } => {
+        if let Place::Single(ref place) = *lhs {
+          self.compile_aux(rhs, block)?;
+          self.compile_place_single(place, block)?;
+          block.push(Instr::PushScope);
+          block.push(Instr::Set);
+        } else {
+          panic!("can't use multi places");
+        }
       }
 
       Node::If {
@@ -113,9 +129,26 @@ impl Compiler {
         }
       }
 
-      _ => {}
+      _ => {
+        println!("WARNING: unable to compile node: {:?}", root);
+      }
     }
 
+    Ok(())
+  }
+
+  fn compile_place_single(&mut self, place: &Node, block: &mut Vec<Instr>) -> Compile {
+    // stable Rust doesn't let you destructure boxes in patterns
+    // but it does let you destructure references, which boxes can
+    // be coerced into...
+
+    match *place {
+      Node::Name(ref name) => {
+        let const_id = self.get_const(Const::Str(name.clone()));
+        block.push(Instr::PushConst(const_id));
+      }
+      _ => {}
+    }
     Ok(())
   }
 }

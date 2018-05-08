@@ -117,4 +117,7 @@ pub enum Instr {
   Pop,
   Print,
   PushConst(usize),
+  PushScope,
+  Set,
+  Get,
 }
