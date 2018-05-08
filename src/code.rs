@@ -65,6 +65,18 @@ impl Data {
     }
     (Const::Null).to_item()
   }
+
+  pub fn to_string(&self) -> String {
+    match *self {
+      Data::Null => String::from("null"),
+      Data::Int(x) => format!("{}", x),
+      Data::Float(x) => format!("{}", x),
+      Data::Bool(x) => format!("{}", x),
+      Data::Str(ref x) => x.clone(),
+      Data::Func => String::from("func"),
+      Data::Table(_) => String::from("table"),
+    }
+  }
 }
 
 impl Hash for Data {
@@ -145,6 +157,10 @@ impl Item {
     }
 
     (Const::Null).to_item()
+  }
+
+  pub fn to_string(&self) -> String {
+    self.val.to_string()
   }
 }
 

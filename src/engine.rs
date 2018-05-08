@@ -36,6 +36,14 @@ pub enum EngineErrorKind {
   ModuleError(ModuleErrorKind),
 }
 
+#[derive(Debug)]
+pub enum ExecuteErrorKind {
+  Exception(Item),
+  EmptyStack,
+}
+
+type Execute = Result<(), ExecuteErrorKind>;
+
 impl Engine {
   pub fn new() -> Engine {
     Engine {
@@ -58,14 +66,14 @@ impl Engine {
     Ok(())
   }
 
-  fn ex_many(&mut self, module: &RuntimeModule, instrs: &Vec<Instr>) {
+  fn ex_many(&mut self, module: &RuntimeModule, instrs: &Vec<Instr>) -> Execute {
     for instr in instrs {
-      self.ex(module, instr);
+      self.ex(module, instr)?;
     }
+    Ok(())
   }
 
-  fn ex(&mut self, module: &RuntimeModule, instr: &Instr) {
-    println!("executing {:?}", instr);
+  fn ex(&mut self, module: &RuntimeModule, instr: &Instr) -> Execute {
     match *instr {
       Instr::PushConst(x) => {
         self.data_stack.push(module.consts[x].to_item());
@@ -78,7 +86,6 @@ impl Engine {
         let mut scope = self.data_stack.pop().unwrap();
         let key = self.data_stack.pop().unwrap().val.clone();
         let val = self.data_stack.pop().unwrap();
-        println!("setting key! [{:?}] = {:?}", key, val);
         scope.set_key(key, val);
       }
       Instr::Get => {
@@ -96,26 +103,28 @@ impl Engine {
           self.data_stack.push(x.clone());
           self.data_stack.push(x);
         }
-        None => println!("WARNING: attempting to dup empty stack"),
+        None => return Err(ExecuteErrorKind::EmptyStack),
       },
       Instr::Nop => {}
       Instr::Print => match self.data_stack.pop() {
-        Some(x) => println!("{:?}", x),
-        None => println!("WARNING: attempting to print empty stack"),
+        Some(x) => println!("{}", x.to_string()),
+        None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
       Instr::If(ref body) => match self.data_stack.pop() {
         Some(x) => {
           if x.truth() {
-            self.ex_many(module, body);
+            self.ex_many(module, body)?;
           }
         }
-        None => println!("WARNING: attempting to if empty stack"),
+        None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
       _ => {
         println!("WARNING: Unable to use instruction: {:?}", instr);
       }
     }
+
+    Ok(())
   }
 }
