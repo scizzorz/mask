@@ -73,8 +73,23 @@ impl Hash for Data {
       Data::Table(ref _x) => {
         (0).hash(state); // FIXME LOOOOOL
       }
+      Data::Null => {
+        (0).hash(state); // FIXME
+      }
+      Data::Int(x) => {
+        x.hash(state);
+      }
+      Data::Float(x) => {
+        x.hash(state);
+      }
+      Data::Bool(x) => {
+        x.hash(state);
+      }
+      Data::Str(ref x) => {
+        x.hash(state);
+      }
       _ => {
-        self.hash(state);
+        (0).hash(state); // FIXME
       }
     }
   }
