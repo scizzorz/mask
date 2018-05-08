@@ -50,6 +50,13 @@ impl Data {
     }
   }
 
+  pub fn contains_key(&self, key: &Data) -> bool {
+    if let Data::Table(ref map) = *self {
+      return map.borrow().contains_key(key);
+    }
+    false
+  }
+
   pub fn get_key(&self, key: &Data) -> Item {
     if let Data::Table(ref map) = *self {
       if let Some(k) = map.borrow().get(key) {
@@ -97,7 +104,7 @@ impl Const {
   pub fn to_item(&self) -> Item {
     Item {
       val: self.to_data(),
-      meta: Data::Null,
+      meta: None,
     }
   }
 }
@@ -105,12 +112,24 @@ impl Const {
 #[derive(Debug, PartialEq, Eq, Clone, Trace, Finalize)]
 pub struct Item {
   pub val: Data,
-  pub meta: Data,
+  pub meta: Option<Table>,
 }
 
 impl Item {
   pub fn truth(&self) -> bool {
     self.val.truth()
+  }
+
+  pub fn set_key(&mut self, key: Data, val: Item) {
+    self.val.set_key(key, val);
+  }
+
+  pub fn get_key(&self, key: &Data) -> Item {
+    if self.val.contains_key(key) {
+      return self.val.get_key(key);
+    }
+
+    (Const::Null).to_item()
   }
 }
 
