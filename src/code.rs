@@ -32,6 +32,24 @@ impl Data {
       _ => Const::Null,
     }
   }
+
+  pub fn set_key(&mut self, key: Data, val: Item) {
+    match *self {
+      Data::Table(ref mut map) => {
+        map.insert(key, val);
+      }
+      _ => {}
+    }
+  }
+
+  pub fn get_key(&self, key: &Data) -> Item {
+    if let Data::Table(ref map) = *self {
+      if let Some(k) = map.get(key) {
+        return k.clone();
+      }
+    }
+    (Const::Null).to_item()
+  }
 }
 
 impl Hash for Data {
