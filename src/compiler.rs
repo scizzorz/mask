@@ -88,6 +88,13 @@ impl Compiler {
         block.push(Instr::Block(new_block));
       }
 
+      Node::Print {
+        ref expr
+      } => {
+        self.compile_aux(expr, block)?;
+        block.push(Instr::Print);
+      }
+
       Node::If {
         ref cond,
         ref body,

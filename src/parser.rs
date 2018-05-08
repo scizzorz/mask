@@ -65,6 +65,10 @@ pub enum Node {
     body: Box<Node>,
   },
 
+  Print {
+    expr: Box<Node>,
+  },
+
   While {
     expr: Box<Node>,
     body: Box<Node>,
@@ -646,6 +650,14 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
           decl: decl,
           expr: Box::new(expr),
           body: Box::new(body),
+        })
+      }
+
+      Token::Print => {
+        it.next();
+        let expr = parse_il_expr(it)?;
+        Ok(Node::Print {
+          expr: Box::new(expr),
         })
       }
 
