@@ -6,6 +6,8 @@ use std::collections::HashMap;
 use std::hash::Hash;
 use std::hash::Hasher;
 
+type Table = Gc<GcCell<HashMap<Data, Item>>>;
+
 #[derive(Debug, PartialEq, Eq, Clone, Trace, Finalize)]
 pub enum Data {
   Null,
@@ -14,10 +16,14 @@ pub enum Data {
   Bool(bool),
   Str(String),
   Func, // FIXME
-  Table(HashMap<Data, Item>),
+  Table(Table),
 }
 
 impl Data {
+  pub fn new_table() -> Data {
+    Data::Table(Gc::new(GcCell::new(HashMap::new())))
+  }
+
   pub fn truth(&self) -> bool {
     match *self {
       Data::Null | Data::Bool(false) => false,
@@ -38,7 +44,7 @@ impl Data {
   pub fn set_key(&mut self, key: Data, val: Item) {
     match *self {
       Data::Table(ref mut map) => {
-        map.insert(key, val);
+        map.borrow_mut().insert(key, val);
       }
       _ => {}
     }
@@ -46,7 +52,7 @@ impl Data {
 
   pub fn get_key(&self, key: &Data) -> Item {
     if let Data::Table(ref map) = *self {
-      if let Some(k) = map.get(key) {
+      if let Some(k) = map.borrow().get(key) {
         return k.clone();
       }
     }

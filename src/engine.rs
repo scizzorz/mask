@@ -4,7 +4,6 @@ use code::Item;
 use codemap::CodeMap;
 use module::Module;
 use module::ModuleErrorKind;
-use std::collections::HashMap;
 
 pub struct Engine {
   pub map: CodeMap,
@@ -25,7 +24,7 @@ impl Engine {
       mods: Vec::new(),
       data_stack: Vec::new(),
       scope: Item {
-        val: Data::Table(HashMap::new()),
+        val: Data::new_table(),
         meta: Data::Null,
       },
     }
