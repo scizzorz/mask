@@ -32,14 +32,15 @@ pub struct Engine {
 }
 
 #[derive(Debug)]
-pub enum EngineErrorKind {
-  ModuleError(ModuleErrorKind),
-}
-
-#[derive(Debug)]
 pub enum ExecuteErrorKind {
   Exception(Item),
   EmptyStack,
+}
+
+#[derive(Debug)]
+pub enum EngineErrorKind {
+  ModuleError(ModuleErrorKind),
+  ExecuteError(ExecuteErrorKind),
 }
 
 type Execute = Result<(), ExecuteErrorKind>;
@@ -59,7 +60,10 @@ impl Engine {
       Ok(module) => RuntimeModule::from_static(module),
     };
 
-    self.ex_many(&module, &module.code);
+    match self.ex_many(&module, &module.code) {
+      Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
+      Ok(_) => {}
+    }
 
     self.mods.push(module);
 
@@ -78,26 +82,40 @@ impl Engine {
       Instr::PushConst(x) => {
         self.data_stack.push(module.consts[x].to_item());
       }
+
       Instr::PushScope => {
         self.data_stack.push(module.scope.clone());
       }
+
       Instr::Set => {
-        // FIXME
+        // this should guarantee that we can pop/unwrap thrice
+        if self.data_stack.len() < 3 {
+          return Err(ExecuteErrorKind::EmptyStack);
+        }
+
         let mut scope = self.data_stack.pop().unwrap();
-        let key = self.data_stack.pop().unwrap().val.clone();
+        let key = self.data_stack.pop().unwrap();
         let val = self.data_stack.pop().unwrap();
-        scope.set_key(key, val);
+        scope.set_key(key.val.clone(), val);
       }
+
       Instr::Get => {
-        // FIXME
+        // this should guarantee that we can pop/unwrap twice
+        if self.data_stack.len() < 2 {
+          return Err(ExecuteErrorKind::EmptyStack);
+        }
+
         let scope = self.data_stack.pop().unwrap();
         let key = self.data_stack.pop().unwrap();
         let val = scope.get_key(&key.val);
         self.data_stack.push(val);
       }
-      Instr::Pop => {
-        self.data_stack.pop();
-      }
+
+      Instr::Pop => match self.data_stack.pop() {
+        Some(_) => {}
+        None => return Err(ExecuteErrorKind::EmptyStack),
+      },
+
       Instr::Dup => match self.data_stack.pop() {
         Some(x) => {
           self.data_stack.push(x.clone());
@@ -105,7 +123,9 @@ impl Engine {
         }
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
+
       Instr::Nop => {}
+
       Instr::Print => match self.data_stack.pop() {
         Some(x) => println!("{}", x.to_string()),
         None => return Err(ExecuteErrorKind::EmptyStack),
