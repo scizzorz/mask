@@ -1,14 +1,16 @@
 use float;
+use gc::Gc;
+use gc::GcCell;
 use int;
 use std::collections::HashMap;
 use std::hash::Hash;
 use std::hash::Hasher;
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Trace, Finalize)]
 pub enum Data {
   Null,
   Int(int),
-  Float(float),
+  Float(#[unsafe_ignore_trace] float),
   Bool(bool),
   Str(String),
   Func, // FIXME
@@ -94,7 +96,7 @@ impl Const {
   }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Trace, Finalize)]
 pub struct Item {
   pub val: Data,
   pub meta: Data,

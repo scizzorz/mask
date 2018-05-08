@@ -1,8 +1,12 @@
 extern crate bincode;
 extern crate blake2;
 extern crate codemap;
+extern crate gc;
 extern crate ordered_float;
 extern crate serde;
+
+#[macro_use]
+extern crate gc_derive;
 
 #[macro_use]
 extern crate serde_derive;
