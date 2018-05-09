@@ -123,7 +123,6 @@ pub enum Node {
     rhs: Box<Node>,
   },
 
-
   UnExpr {
     val: Box<Node>,
     op: Token,
@@ -263,7 +262,7 @@ fn parse_logic_expr(it: &mut ParseIter) -> Parse {
           rhs: Box::new(rhs),
         };
       }
-      _ => break
+      _ => break,
     }
   }
 
@@ -284,7 +283,7 @@ fn parse_cmp_expr(it: &mut ParseIter) -> Parse {
           rhs: Box::new(rhs),
         };
       }
-      _ => break
+      _ => break,
     }
   }
 

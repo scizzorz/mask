@@ -192,21 +192,17 @@ impl Engine {
         }
       }
 
-      Instr::UnOp(ref op) => {
-        match (self.data_stack.pop(), op) {
-          (Some(val), &Token::Mul) => {
-            match val.meta {
-              Some(ref meta) => {
-                self.data_stack.push(*meta.clone());
-              }
-              None => {
-                self.data_stack.push(Const::Null.to_item());
-              }
-            }
+      Instr::UnOp(ref op) => match (self.data_stack.pop(), op) {
+        (Some(val), &Token::Mul) => match val.meta {
+          Some(ref meta) => {
+            self.data_stack.push(*meta.clone());
           }
-          _ => {}
-        }
-      }
+          None => {
+            self.data_stack.push(Const::Null.to_item());
+          }
+        },
+        _ => {}
+      },
 
       _ => {
         println!("WARNING: Unable to use instruction: {:?}", instr);

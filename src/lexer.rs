@@ -69,18 +69,18 @@ pub enum Token {
   Sqr, // ]
 
   // Operators
-  Add, // +
-  Amp, // &
-  At,  // @
-  Car, // ^
-  Div, // /
-  Dol, // $
-  Mul, // *
-  Neg, // ~
-  Not, // !
-  Pct, // %
+  Add,  // +
+  Amp,  // &
+  At,   // @
+  Car,  // ^
+  Div,  // /
+  Dol,  // $
+  Mul,  // *
+  Neg,  // ~
+  Not,  // !
+  Pct,  // %
   Pipe, // |
-  Sub, // -
+  Sub,  // -
 
   // Comparisons
   Eql, // ==
