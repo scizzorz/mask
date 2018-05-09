@@ -171,7 +171,7 @@ impl Engine {
           return Ok(());
         }
 
-        match (&rhs.val, &lhs.val) {
+        match (&lhs.val, &rhs.val) {
           (&Data::Int(x), &Data::Int(y)) => {
             let data = Engine::ex_bin_int(op, x, y)?;
             self.data_stack.push(Data::Int(data).to_item());
