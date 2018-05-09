@@ -21,7 +21,8 @@ pub mod semck;
 
 const VERSION: [u8; 4] = [0, 0, 1, 0];
 
-type float = ordered_float::OrderedFloat<f64>;
+type float_base = f64;
+type float = ordered_float::OrderedFloat<float_base>;
 type int = i64;
 
 // ordered_float doesn't implement these, so we need to manually derive here

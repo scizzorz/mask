@@ -1,3 +1,4 @@
+use lexer::Token;
 use float;
 use gc::Gc;
 use gc::GcCell;
@@ -77,6 +78,13 @@ impl Data {
       Data::Table(_) => String::from("table"),
     }
   }
+
+  pub fn to_item(self) -> Item {
+    Item {
+      val: self,
+      meta: None,
+    }
+  }
 }
 
 impl Hash for Data {
@@ -129,10 +137,7 @@ impl Const {
   }
 
   pub fn to_item(&self) -> Item {
-    Item {
-      val: self.to_data(),
-      meta: None,
-    }
+    self.to_data().to_item()
   }
 }
 
@@ -179,4 +184,6 @@ pub enum Instr {
   NewTable,
   Set,
   Get,
+  BinOp(Token),
+  UnOp(Token),
 }

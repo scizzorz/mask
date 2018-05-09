@@ -3,6 +3,10 @@ use code::Data;
 use code::Instr;
 use code::Item;
 use codemap::CodeMap;
+use float;
+use float_base;
+use int;
+use lexer::Token;
 use module::Module;
 use module::ModuleErrorKind;
 
@@ -34,6 +38,8 @@ pub struct Engine {
 #[derive(Debug)]
 pub enum ExecuteErrorKind {
   Exception(Item),
+  BadBinOp(Token),
+  BadUnOp(Token),
   EmptyStack,
 }
 
@@ -147,11 +153,65 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
+      Instr::BinOp(ref op) => {
+        // this should guarantee that we can pop/unwrap twice
+        if self.data_stack.len() < 2 {
+          return Err(ExecuteErrorKind::EmptyStack);
+        }
+
+        let rhs = self.data_stack.pop().unwrap();
+        let lhs = self.data_stack.pop().unwrap();
+
+        match (&rhs.val, &lhs.val) {
+          (&Data::Int(x), &Data::Int(y)) => {
+            let data = Engine::ex_bin_int(op, x, y)?;
+            self.data_stack.push(Data::Int(data).to_item());
+          }
+          (&Data::Int(x), &Data::Float(y)) => {
+            let data = Engine::ex_bin_float(op, float::from(x as float_base), y)?;
+            self.data_stack.push(Data::Float(data).to_item());
+          }
+          (&Data::Float(x), &Data::Int(y)) => {
+            let data = Engine::ex_bin_float(op, x, float::from(y as float_base))?;
+            self.data_stack.push(Data::Float(data).to_item());
+          }
+          (&Data::Float(x), &Data::Float(y)) => {
+            let data = Engine::ex_bin_float(op, x, y)?;
+            self.data_stack.push(Data::Float(data).to_item());
+          }
+          _ => {}
+        }
+      }
+
+      Instr::UnOp(ref op) => {}
+
       _ => {
         println!("WARNING: Unable to use instruction: {:?}", instr);
       }
     }
 
     Ok(())
+  }
+
+  fn ex_bin_int(op: &Token, x: int, y: int) -> Result<int, ExecuteErrorKind> {
+    match *op {
+      Token::Add => Ok(x + y),
+      Token::Sub => Ok(x - y),
+      Token::Mul => Ok(x * y),
+      Token::Div => Ok(x / y),
+      _ => Err(ExecuteErrorKind::BadBinOp(op.clone())),
+    }
+  }
+
+  fn ex_bin_float(op: &Token, x: float, y: float) -> Result<float, ExecuteErrorKind> {
+    let x = x.into_inner();
+    let y = y.into_inner();
+    match *op {
+      Token::Add => Ok(float::from(x + y)),
+      Token::Sub => Ok(float::from(x - y)),
+      Token::Mul => Ok(float::from(x * y)),
+      Token::Div => Ok(float::from(x / y)),
+      _ => Err(ExecuteErrorKind::BadBinOp(op.clone())),
+    }
   }
 }

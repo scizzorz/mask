@@ -120,6 +120,21 @@ impl Compiler {
         }
       }
 
+      Node::BinExpr {
+        ref lhs,
+        ref op,
+        ref rhs,
+      } => {
+        self.compile_aux(lhs, block)?;
+        self.compile_aux(rhs, block)?;
+        block.push(Instr::BinOp(op.clone()));
+      }
+
+      Node::UnExpr { ref op, ref val } => {
+        self.compile_aux(val, block)?;
+        block.push(Instr::BinOp(op.clone()));
+      }
+
       Node::If {
         ref cond,
         ref body,
@@ -157,7 +172,7 @@ impl Compiler {
         block.push(Instr::PushConst(const_id));
         block.push(Instr::PushScope);
       }
-      Node::Index {ref lhs, ref rhs } => {
+      Node::Index { ref lhs, ref rhs } => {
         self.compile_aux(rhs, block)?;
         self.compile_aux(lhs, block)?;
       }
