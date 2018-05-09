@@ -87,6 +87,13 @@ impl Engine {
         self.data_stack.push(module.scope.clone());
       }
 
+      Instr::NewTable => {
+        self.data_stack.push(Item {
+          val: Data::new_table(),
+          meta: None,
+        });
+      }
+
       Instr::Set => {
         // this should guarantee that we can pop/unwrap thrice
         if self.data_stack.len() < 3 {

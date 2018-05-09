@@ -81,6 +81,16 @@ impl Compiler {
         block.push(Instr::Get);
       }
 
+      Node::Index { ref lhs, ref rhs } => {
+        self.compile_aux(rhs, block)?;
+        self.compile_aux(lhs, block)?;
+        block.push(Instr::Get);
+      }
+
+      Node::Table => {
+        block.push(Instr::NewTable);
+      }
+
       Node::Expr(ref bx) => {
         self.compile_aux(bx, block)?;
         block.push(Instr::Pop);
@@ -104,7 +114,6 @@ impl Compiler {
         if let Place::Single(ref place) = *lhs {
           self.compile_aux(rhs, block)?;
           self.compile_place_single(place, block)?;
-          block.push(Instr::PushScope);
           block.push(Instr::Set);
         } else {
           panic!("can't use multi places");
@@ -146,6 +155,11 @@ impl Compiler {
       Node::Name(ref name) => {
         let const_id = self.get_const(Const::Str(name.clone()));
         block.push(Instr::PushConst(const_id));
+        block.push(Instr::PushScope);
+      }
+      Node::Index {ref lhs, ref rhs } => {
+        self.compile_aux(rhs, block)?;
+        self.compile_aux(lhs, block)?;
       }
       _ => {}
     }

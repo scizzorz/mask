@@ -176,6 +176,7 @@ pub enum Instr {
   Print,
   PushConst(usize),
   PushScope,
+  NewTable,
   Set,
   Get,
 }
