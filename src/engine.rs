@@ -162,6 +162,15 @@ impl Engine {
         let rhs = self.data_stack.pop().unwrap();
         let lhs = self.data_stack.pop().unwrap();
 
+        if *op == Token::Meta {
+          let ret = Item {
+            meta: Some(Box::new(rhs)),
+            val: lhs.val.clone(),
+          };
+          self.data_stack.push(ret);
+          return Ok(());
+        }
+
         match (&rhs.val, &lhs.val) {
           (&Data::Int(x), &Data::Int(y)) => {
             let data = Engine::ex_bin_int(op, x, y)?;
@@ -183,7 +192,21 @@ impl Engine {
         }
       }
 
-      Instr::UnOp(ref op) => {}
+      Instr::UnOp(ref op) => {
+        match (self.data_stack.pop(), op) {
+          (Some(val), &Token::Mul) => {
+            match val.meta {
+              Some(ref meta) => {
+                self.data_stack.push(*meta.clone());
+              }
+              None => {
+                self.data_stack.push(Const::Null.to_item());
+              }
+            }
+          }
+          _ => {}
+        }
+      }
 
       _ => {
         println!("WARNING: Unable to use instruction: {:?}", instr);

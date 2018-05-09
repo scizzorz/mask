@@ -132,7 +132,7 @@ impl Compiler {
 
       Node::UnExpr { ref op, ref val } => {
         self.compile_aux(val, block)?;
-        block.push(Instr::BinOp(op.clone()));
+        block.push(Instr::UnOp(op.clone()));
       }
 
       Node::If {

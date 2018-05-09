@@ -51,11 +51,11 @@ dict_item :: ((NAME | '[' bin_expr ']') '=' il_expr)
 
 dict_expr :: '{' (dict_item (',' dict_item)*)? ','? '}'
 
-bin_op :: '+' | '-' | '*' | '/' | '^'
+bin_op :: '+' | '-' | '*' | '/' | '^' | '::'
 
 bin_expr :: un_expr (bin_op un_expr)*
 
-un_op :: '-' | '!' | '~'
+un_op :: '-' | '!' | '~' | '*'
 
 un_expr = un_op* simple
 

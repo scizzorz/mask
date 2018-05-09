@@ -63,7 +63,7 @@ impl Data {
         return k.clone();
       }
     }
-    (Const::Null).to_item()
+    Const::Null.to_item()
   }
 
   pub fn to_string(&self) -> String {
@@ -143,7 +143,7 @@ impl Const {
 #[derive(Debug, PartialEq, Eq, Clone, Trace, Finalize)]
 pub struct Item {
   pub val: Data,
-  pub meta: Option<Table>,
+  pub meta: Option<Box<Item>>,
 }
 
 impl Item {
@@ -160,7 +160,11 @@ impl Item {
       return self.val.get_key(key);
     }
 
-    (Const::Null).to_item()
+    if let Some(ref bx) = self.meta {
+      return bx.get_key(key);
+    }
+
+    Const::Null.to_item()
   }
 
   pub fn to_string(&self) -> String {
