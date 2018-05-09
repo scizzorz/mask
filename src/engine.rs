@@ -1,7 +1,7 @@
-use code::Const;
-use code::Data;
+use data::Const;
+use data::Data;
 use code::Instr;
-use code::Item;
+use data::Item;
 use codemap::CodeMap;
 use float;
 use float_base;

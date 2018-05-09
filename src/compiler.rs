@@ -1,5 +1,5 @@
-use code::Const;
-use code::Data;
+use data::Const;
+use data::Data;
 use code::Instr;
 use parser::Node;
 use parser::Place;

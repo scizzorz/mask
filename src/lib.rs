@@ -13,6 +13,7 @@ extern crate serde_derive;
 
 pub mod code;
 pub mod compiler;
+pub mod data;
 pub mod engine;
 pub mod lexer;
 pub mod module;
