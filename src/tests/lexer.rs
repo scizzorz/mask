@@ -53,30 +53,32 @@ multiline' 'and this is unclosed";
 
 #[test]
 fn lex_keywords() {
-  let source = "break catch continue else for fn if import in loop pass return save var while name true false null";
+  let source = "and break catch continue else for fn if import in loop or pass return save var while name true false null";
   let tokens = get_tokens(source);
-  assert_eq!(tokens.len(), 21);
-  assert_eq!(tokens[0].node, Break);
-  assert_eq!(tokens[1].node, Catch);
-  assert_eq!(tokens[2].node, Continue);
-  assert_eq!(tokens[3].node, Else);
-  assert_eq!(tokens[4].node, For);
-  assert_eq!(tokens[5].node, Func);
-  assert_eq!(tokens[6].node, If);
-  assert_eq!(tokens[7].node, Import);
-  assert_eq!(tokens[8].node, In);
-  assert_eq!(tokens[9].node, Loop);
-  assert_eq!(tokens[10].node, Pass);
-  assert_eq!(tokens[11].node, Return);
-  assert_eq!(tokens[12].node, Save);
-  assert_eq!(tokens[13].node, Var);
-  assert_eq!(tokens[14].node, While);
-  assert_eq!(tokens[15].node, Name(String::from("name")));
-  assert_eq!(tokens[16].node, Bool(true));
-  assert_eq!(tokens[17].node, Bool(false));
-  assert_eq!(tokens[18].node, Null);
-  assert_eq!(tokens[19].node, End);
-  assert_eq!(tokens[20].node, EOF);
+  assert_eq!(tokens.len(), 23);
+  assert_eq!(tokens[0].node, And);
+  assert_eq!(tokens[1].node, Break);
+  assert_eq!(tokens[2].node, Catch);
+  assert_eq!(tokens[3].node, Continue);
+  assert_eq!(tokens[4].node, Else);
+  assert_eq!(tokens[5].node, For);
+  assert_eq!(tokens[6].node, Func);
+  assert_eq!(tokens[7].node, If);
+  assert_eq!(tokens[8].node, Import);
+  assert_eq!(tokens[9].node, In);
+  assert_eq!(tokens[10].node, Loop);
+  assert_eq!(tokens[11].node, Or);
+  assert_eq!(tokens[12].node, Pass);
+  assert_eq!(tokens[13].node, Return);
+  assert_eq!(tokens[14].node, Save);
+  assert_eq!(tokens[15].node, Var);
+  assert_eq!(tokens[16].node, While);
+  assert_eq!(tokens[17].node, Name(String::from("name")));
+  assert_eq!(tokens[18].node, Bool(true));
+  assert_eq!(tokens[19].node, Bool(false));
+  assert_eq!(tokens[20].node, Null);
+  assert_eq!(tokens[21].node, End);
+  assert_eq!(tokens[22].node, EOF);
 }
 
 #[test]
@@ -101,7 +103,7 @@ fn lex_symbols() {
   assert_eq!(tokens[13].node, Sqr);
 
   assert_eq!(tokens[14].node, Add);
-  assert_eq!(tokens[15].node, And);
+  assert_eq!(tokens[15].node, Amp);
   assert_eq!(tokens[16].node, At);
   assert_eq!(tokens[17].node, Car);
   assert_eq!(tokens[18].node, Div);
@@ -109,7 +111,7 @@ fn lex_symbols() {
   assert_eq!(tokens[20].node, Mul);
   assert_eq!(tokens[21].node, Neg);
   assert_eq!(tokens[22].node, Not);
-  assert_eq!(tokens[23].node, Or);
+  assert_eq!(tokens[23].node, Pipe);
   assert_eq!(tokens[24].node, Pct);
   assert_eq!(tokens[25].node, Sub);
   assert_eq!(tokens[26].node, Eql);

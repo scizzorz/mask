@@ -193,6 +193,66 @@ fn test_un_expr() {
 }
 
 #[test]
+fn test_logic_expr() {
+  test_parse(
+    "1 and 2",
+    &parse_logic_expr,
+    Ok(Node::LogicExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::And,
+      rhs: Box::new(Node::Int(2)),
+    }),
+  );
+
+  test_parse(
+    "1 or 2",
+    &parse_logic_expr,
+    Ok(Node::LogicExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::Or,
+      rhs: Box::new(Node::Int(2)),
+    }),
+  );
+
+  test_parse(
+    "1 and 2 or 3",
+    &parse_logic_expr,
+    Ok(Node::LogicExpr {
+      lhs: Box::new(Node::LogicExpr {
+        lhs: Box::new(Node::Int(1)),
+        op: lexer::Token::And,
+        rhs: Box::new(Node::Int(2)),
+      }),
+      op: lexer::Token::Or,
+      rhs: Box::new(Node::Int(3)),
+    }),
+  );
+}
+
+#[test]
+fn test_cmp_expr() {
+  test_parse(
+    "1 < 2",
+    &parse_cmp_expr,
+    Ok(Node::CmpExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::Lt,
+      rhs: Box::new(Node::Int(2)),
+    }),
+  );
+
+  test_parse(
+    "1 > 2",
+    &parse_cmp_expr,
+    Ok(Node::CmpExpr {
+      lhs: Box::new(Node::Int(1)),
+      op: lexer::Token::Gt,
+      rhs: Box::new(Node::Int(2)),
+    }),
+  );
+}
+
+#[test]
 fn test_bin_expr() {
   test_parse(
     "1 + 2",
@@ -225,6 +285,20 @@ fn test_bin_expr() {
         op: lexer::Token::Mul,
         rhs: Box::new(Node::Int(3)),
       }),
+    }),
+  );
+
+  test_parse(
+    "1 * 2 + 3",
+    &parse_bin_expr,
+    Ok(Node::BinExpr {
+      lhs: Box::new(Node::BinExpr {
+        lhs: Box::new(Node::Int(1)),
+        op: lexer::Token::Mul,
+        rhs: Box::new(Node::Int(2)),
+      }),
+      op: lexer::Token::Add,
+      rhs: Box::new(Node::Int(3)),
     }),
   );
 }

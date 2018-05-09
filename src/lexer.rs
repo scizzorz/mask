@@ -31,6 +31,7 @@ pub enum Token {
   UnclosedStr(String),
 
   // Keywords
+  And,
   Break,
   Catch,
   Continue,
@@ -41,6 +42,7 @@ pub enum Token {
   Import,
   In,
   Loop,
+  Or,
   Pass,
   Print,
   Return,
@@ -68,7 +70,7 @@ pub enum Token {
 
   // Operators
   Add, // +
-  And, // &
+  Amp, // &
   At,  // @
   Car, // ^
   Div, // /
@@ -76,8 +78,8 @@ pub enum Token {
   Mul, // *
   Neg, // ~
   Not, // !
-  Or,  // |
   Pct, // %
+  Pipe, // |
   Sub, // -
 
   // Comparisons
@@ -126,6 +128,7 @@ fn lex_name(it: &mut LexIter) -> Token {
     "false" => Bool(false),
     "null" => Null,
 
+    "and" => And,
     "break" => Break,
     "catch" => Catch,
     "continue" => Continue,
@@ -136,6 +139,7 @@ fn lex_name(it: &mut LexIter) -> Token {
     "import" => Import,
     "in" => In,
     "loop" => Loop,
+    "or" => Or,
     "print" => Print,
     "pass" => Pass,
     "return" => Return,
@@ -360,7 +364,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
         }
         '&' => {
           it.next();
-          And
+          Amp
         }
         '@' => {
           it.next();
@@ -389,7 +393,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
         // ! Not
         '|' => {
           it.next();
-          Or
+          Pipe
         }
         '%' => {
           it.next();

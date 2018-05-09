@@ -111,6 +111,19 @@ pub enum Node {
     rhs: Box<Node>,
   },
 
+  CmpExpr {
+    lhs: Box<Node>,
+    op: Token,
+    rhs: Box<Node>,
+  },
+
+  LogicExpr {
+    lhs: Box<Node>,
+    op: Token,
+    rhs: Box<Node>,
+  },
+
+
   UnExpr {
     val: Box<Node>,
     op: Token,
@@ -219,21 +232,63 @@ fn parse_ml_expr(it: &mut ParseIter) -> Parse {
 fn parse_il_expr(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
-      Token::Or => {
+      Token::Pipe => {
         it.next();
         let params = parse_fn_params(it)?;
-        require_token(it, Token::Or)?;
+        require_token(it, Token::Pipe)?;
         let expr = parse_il_expr(it)?;
         Ok(Node::Lambda {
           params: params,
           expr: Box::new(expr),
         })
       }
-      _ => parse_bin_expr(it),
+      _ => parse_logic_expr(it),
     };
   }
 
   Err(UnexpectedEOF)
+}
+
+fn parse_logic_expr(it: &mut ParseIter) -> Parse {
+  let mut expr = parse_cmp_expr(it)?;
+
+  while let Some(&tok) = it.peek() {
+    match tok.node {
+      Token::And | Token::Or => {
+        it.next();
+        let rhs = parse_cmp_expr(it)?;
+        expr = Node::LogicExpr {
+          lhs: Box::new(expr),
+          op: tok.node.clone(),
+          rhs: Box::new(rhs),
+        };
+      }
+      _ => break
+    }
+  }
+
+  Ok(expr)
+}
+
+fn parse_cmp_expr(it: &mut ParseIter) -> Parse {
+  let mut expr = parse_bin_expr(it)?;
+
+  while let Some(&tok) = it.peek() {
+    match tok.node {
+      Token::Eql | Token::Ne | Token::Ge | Token::Gt | Token::Le | Token::Lt => {
+        it.next();
+        let rhs = parse_bin_expr(it)?;
+        expr = Node::CmpExpr {
+          lhs: Box::new(expr),
+          op: tok.node.clone(),
+          rhs: Box::new(rhs),
+        };
+      }
+      _ => break
+    }
+  }
+
+  Ok(expr)
 }
 
 fn parse_bin_expr(it: &mut ParseIter) -> Parse {
@@ -416,7 +471,7 @@ fn parse_simple(it: &mut ParseIter) -> Parse {
 
       Token::Sql => {
         it.next();
-        let idx = parse_bin_expr(it)?;
+        let idx = parse_logic_expr(it)?;
         require_token(it, Token::Sqr)?;
         atom = Node::Index {
           lhs: Box::new(atom),
@@ -445,7 +500,7 @@ fn parse_atom(it: &mut ParseIter) -> Parse {
     return match tok.node {
       Token::Pal => {
         it.next();
-        let out = parse_bin_expr(it)?;
+        let out = parse_logic_expr(it)?;
         require_token(it, Token::Par)?;
         Ok(out)
       }
@@ -615,7 +670,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
 
       Token::If => {
         it.next();
-        let cond = parse_bin_expr(it)?;
+        let cond = parse_logic_expr(it)?;
         let body = parse_block(it)?;
         Ok(Node::If {
           cond: Box::new(cond),
@@ -627,7 +682,7 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
       Token::Else => {
         it.next();
         if use_token(it, Token::If) {
-          let cond = parse_bin_expr(it)?;
+          let cond = parse_logic_expr(it)?;
           let body = parse_block(it)?;
           Ok(Node::ElseIf {
             cond: Box::new(cond),
