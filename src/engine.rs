@@ -245,7 +245,7 @@ impl Engine {
         (None, _) => return Err(ExecuteErrorKind::EmptyStack),
       },
 
-      Instr::CmpOp(ref op) => {
+      Instr::CmpOp(ref op, chain) => {
         // this should guarantee that we can pop/unwrap twice
         if self.data_stack.len() < 2 {
           return Err(ExecuteErrorKind::EmptyStack);
@@ -270,7 +270,18 @@ impl Engine {
           _ => return Err(ExecuteErrorKind::BadCmpOperands),
         };
 
-        self.data_stack.push(Data::Bool(result).to_item());
+        match (chain, result) {
+          (true, false) => {
+            self.data_stack.push(Data::Bool(result).to_item());
+            return Err(ExecuteErrorKind::Return);
+          }
+          (true, true) => {
+            self.data_stack.push(rhs);
+          }
+          (false, _) => {
+            self.data_stack.push(Data::Bool(result).to_item());
+          }
+        }
       }
 
       _ => {

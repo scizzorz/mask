@@ -134,16 +134,17 @@ impl Compiler {
         if nodes.len() == 2 {
           self.compile_aux(&nodes[0], block)?;
           self.compile_aux(&nodes[1], block)?;
-          block.push(Instr::CmpOp(ops[0].clone()));
+          block.push(Instr::CmpOp(ops[0].clone(), false));
         }
         else {
-          /* let mut new_block = Vec::new(); */
-          /* self.compile_aux(&nodes[0], &mut new_block)?; */
-          /* for (op, node) in ops.iter().zip(&nodes[1..]) { */
-          /*   self.compile_aux(&node, &mut new_block)?; */
-          /*   new_block.push(Instr::CmpOp(op.clone())); */
-          /* } */
-          /* block.push(Instr::Returnable(new_block)); */
+          let mut new_block = Vec::new();
+          self.compile_aux(&nodes[0], &mut new_block)?;
+          let end = ops.len() - 1;
+          for (i, (op, node)) in ops.iter().zip(&nodes[1..]).enumerate() {
+            self.compile_aux(&node, &mut new_block)?;
+            new_block.push(Instr::CmpOp(op.clone(), i != end));
+          }
+          block.push(Instr::Returnable(new_block));
         }
       }
 
