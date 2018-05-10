@@ -44,6 +44,9 @@ pub enum ExecuteErrorKind {
   BadCmpOp(Token),
   BadLogicOp(Token),
   BadUnOp(Token),
+  BadUnOperand,
+  BadBinOperands,
+  BadCmpOperands,
   EmptyStack,
   Exception,
   Return,
@@ -201,7 +204,7 @@ impl Engine {
             let data = Engine::ex_bin_float(op, x, y)?;
             self.data_stack.push(Data::Float(data).to_item());
           }
-          _ => {}
+          _ => return Err(ExecuteErrorKind::BadBinOperands),
         }
       }
 
