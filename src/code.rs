@@ -20,4 +20,5 @@ pub enum Instr {
   CmpOp(Token),
   LogicOp(Token),
   Returnable(Vec<Instr>),
+  Truth,
 }

@@ -154,6 +154,13 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
+      Instr::Truth => match self.data_stack.pop() {
+        Some(x) => {
+          self.data_stack.push(Data::Bool(x.truth()).to_item());
+        }
+        None => return Err(ExecuteErrorKind::EmptyStack),
+      },
+
       Instr::If(ref body) => match self.data_stack.pop() {
         Some(x) => {
           if x.truth() {
