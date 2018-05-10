@@ -267,6 +267,9 @@ impl Engine {
           (&Data::Float(x), &Data::Float(y)) => {
             Engine::ex_cmp_float(op, x, y)?
           }
+          (&Data::Bool(x), &Data::Bool(y)) => {
+            Engine::ex_cmp_bool(op, x, y)?
+          }
           _ => return Err(ExecuteErrorKind::BadCmpOperands),
         };
 
@@ -334,6 +337,15 @@ impl Engine {
       Token::Ge => Ok(x >= y),
       Token::Eql => Ok(x == y),
       Token::Ne => Ok(x != y),
+      _ => Err(ExecuteErrorKind::BadCmpOp(op.clone())),
+    }
+  }
+
+  fn ex_cmp_bool(op: &Token, x: bool, y: bool) -> Result<bool, ExecuteErrorKind> {
+    match *op {
+      Token::Eql => Ok(x == y),
+      Token::Ne => Ok(x != y),
+      Token::Lt | Token::Le | Token::Gt | Token::Ge => Err(ExecuteErrorKind::BadCmpOperands),
       _ => Err(ExecuteErrorKind::BadCmpOp(op.clone())),
     }
   }
