@@ -249,16 +249,18 @@ fn parse_il_expr(it: &mut ParseIter) -> Parse {
 fn parse_logic_expr(it: &mut ParseIter) -> Parse {
   let mut expr = parse_cmp_expr(it)?;
 
+  let mut break_left = false;
+
   while let Some(&tok) = it.peek() {
     match tok.node {
       Token::And | Token::Or => {
         it.next();
         let new = parse_cmp_expr(it)?;
-        match expr {
-          Node::LogicExpr {
+        match (break_left, expr.clone()) {
+          (true, Node::LogicExpr {
             ref mut nodes,
             ref mut ops,
-          } => {
+          }) => {
             nodes.push(new);
             ops.push(tok.node.clone());
           }
@@ -267,7 +269,9 @@ fn parse_logic_expr(it: &mut ParseIter) -> Parse {
             expr = Node::LogicExpr {
               nodes: vec![expr, new],
               ops: vec![tok.node.clone()],
-            }
+            };
+
+            break_left = true;
           }
         }
       }
@@ -280,17 +284,18 @@ fn parse_logic_expr(it: &mut ParseIter) -> Parse {
 
 fn parse_cmp_expr(it: &mut ParseIter) -> Parse {
   let mut expr = parse_bin_expr(it)?;
+  let mut break_left = false;
 
   while let Some(&tok) = it.peek() {
     match tok.node {
       Token::Eql | Token::Ne | Token::Ge | Token::Gt | Token::Le | Token::Lt => {
         it.next();
         let new = parse_bin_expr(it)?;
-        match expr {
-          Node::CmpExpr {
+        match (break_left, expr.clone()) {
+          (true, Node::CmpExpr {
             ref mut nodes,
             ref mut ops,
-          } => {
+          }) => {
             nodes.push(new);
             ops.push(tok.node.clone());
           }
@@ -299,7 +304,9 @@ fn parse_cmp_expr(it: &mut ParseIter) -> Parse {
             expr = Node::CmpExpr {
               nodes: vec![expr, new],
               ops: vec![tok.node.clone()],
-            }
+            };
+
+            break_left = true;
           }
         }
       }
