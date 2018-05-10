@@ -35,12 +35,18 @@ pub struct Engine {
   data_stack: Vec<Item>,
 }
 
+// this is used as a bit of a control flow hack - `Return` and `Exception`
+// aren't necessarily errors, but I'm using them with Rust's ? operator
+// to skip a lot of boiler plate code later
 #[derive(Debug)]
 pub enum ExecuteErrorKind {
-  Exception(Item),
   BadBinOp(Token),
+  BadCmpOp(Token),
+  BadLogicOp(Token),
   BadUnOp(Token),
   EmptyStack,
+  Exception,
+  Return,
 }
 
 #[derive(Debug)]
@@ -84,6 +90,7 @@ impl Engine {
   }
 
   fn ex(&mut self, module: &RuntimeModule, instr: &Instr) -> Execute {
+    // println!("executing {:?} on {:?}", instr, self.data_stack);
     match *instr {
       Instr::PushConst(x) => {
         self.data_stack.push(module.consts[x].to_item());
@@ -153,6 +160,12 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
+      Instr::Returnable(ref body) => match self.ex_many(module, body) {
+        Ok(_) => {}
+        Err(ExecuteErrorKind::Return) => {}
+        x => return x,
+      },
+
       Instr::BinOp(ref op) => {
         // this should guarantee that we can pop/unwrap twice
         if self.data_stack.len() < 2 {
@@ -201,7 +214,25 @@ impl Engine {
             self.data_stack.push(Const::Null.to_item());
           }
         },
-        _ => {}
+        (Some(_), op) => return Err(ExecuteErrorKind::BadUnOp(op.clone())),
+        (None, _) => return Err(ExecuteErrorKind::EmptyStack),
+      },
+
+      Instr::LogicOp(ref op) => match (self.data_stack.pop(), op) {
+        (Some(val), &Token::And) => {
+          if !val.truth() {
+            self.data_stack.push(val);
+            return Err(ExecuteErrorKind::Return);
+          }
+        }
+        (Some(val), &Token::Or) => {
+          if val.truth() {
+            self.data_stack.push(val);
+            return Err(ExecuteErrorKind::Return);
+          }
+        }
+        (Some(_), op) => return Err(ExecuteErrorKind::BadLogicOp(op.clone())),
+        (None, _) => return Err(ExecuteErrorKind::EmptyStack),
       },
 
       _ => {

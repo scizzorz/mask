@@ -256,7 +256,8 @@ fn test_cmp_expr() {
           lhs: Box::new(Node::Int(2)),
           op: Token::Mul,
           rhs: Box::new(Node::Int(4)),
-        }],
+        },
+      ],
       ops: vec![lexer::Token::Gt],
     }),
   );

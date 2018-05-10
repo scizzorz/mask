@@ -120,6 +120,16 @@ impl Compiler {
         }
       }
 
+      Node::LogicExpr { ref nodes, ref ops } => {
+        let mut new_block = Vec::new();
+        self.compile_aux(&nodes[0], &mut new_block)?;
+        for (op, node) in ops.iter().zip(&nodes[1..]) {
+          new_block.push(Instr::LogicOp(op.clone()));
+          self.compile_aux(&node, &mut new_block)?;
+        }
+        block.push(Instr::Returnable(new_block));
+      }
+
       Node::BinExpr {
         ref lhs,
         ref op,

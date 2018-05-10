@@ -255,7 +255,10 @@ fn parse_logic_expr(it: &mut ParseIter) -> Parse {
         it.next();
         let new = parse_cmp_expr(it)?;
         match expr {
-          Node::LogicExpr{ref mut nodes, ref mut ops} => {
+          Node::LogicExpr {
+            ref mut nodes,
+            ref mut ops,
+          } => {
             nodes.push(new);
             ops.push(tok.node.clone());
           }
@@ -284,7 +287,10 @@ fn parse_cmp_expr(it: &mut ParseIter) -> Parse {
         it.next();
         let new = parse_bin_expr(it)?;
         match expr {
-          Node::CmpExpr{ref mut nodes, ref mut ops} => {
+          Node::CmpExpr {
+            ref mut nodes,
+            ref mut ops,
+          } => {
             nodes.push(new);
             ops.push(tok.node.clone());
           }

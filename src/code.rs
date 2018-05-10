@@ -17,4 +17,7 @@ pub enum Instr {
   Get,
   BinOp(Token),
   UnOp(Token),
+  CmpOp(Token),
+  LogicOp(Token),
+  Returnable(Vec<Instr>),
 }
