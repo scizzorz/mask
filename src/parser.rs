@@ -263,8 +263,11 @@ fn parse_logic_expr(it: &mut ParseIter) -> Parse {
           };
 
           break_left = true;
-        }
-        else if let Node::LogicExpr {ref mut nodes, ref mut ops } = expr {
+        } else if let Node::LogicExpr {
+          ref mut nodes,
+          ref mut ops,
+        } = expr
+        {
           nodes.push(new);
           ops.push(tok.node.clone());
         }
@@ -292,11 +295,11 @@ fn parse_cmp_expr(it: &mut ParseIter) -> Parse {
           };
 
           break_left = true;
-        }
-        else if let Node::CmpExpr {
+        } else if let Node::CmpExpr {
           ref mut nodes,
           ref mut ops,
-        } = expr {
+        } = expr
+        {
           nodes.push(new);
           ops.push(tok.node.clone());
         }

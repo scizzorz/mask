@@ -266,11 +266,7 @@ fn test_cmp_expr() {
     "1 < 2 < 3",
     &parse_cmp_expr,
     Ok(Node::CmpExpr {
-      nodes: vec![
-        Node::Int(1),
-        Node::Int(2),
-        Node::Int(3),
-      ],
+      nodes: vec![Node::Int(1), Node::Int(2), Node::Int(3)],
       ops: vec![lexer::Token::Lt, lexer::Token::Lt],
     }),
   );

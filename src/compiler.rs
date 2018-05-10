@@ -135,8 +135,7 @@ impl Compiler {
           self.compile_aux(&nodes[0], block)?;
           self.compile_aux(&nodes[1], block)?;
           block.push(Instr::CmpOp(ops[0].clone(), false));
-        }
-        else {
+        } else {
           let mut new_block = Vec::new();
           self.compile_aux(&nodes[0], &mut new_block)?;
           let end = ops.len() - 1;

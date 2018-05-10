@@ -255,21 +255,15 @@ impl Engine {
         let lhs = self.data_stack.pop().unwrap();
 
         let result = match (&lhs.val, &rhs.val) {
-          (&Data::Int(x), &Data::Int(y)) => {
-            Engine::ex_cmp_int(op, x, y)?
-          }
+          (&Data::Int(x), &Data::Int(y)) => Engine::ex_cmp_int(op, x, y)?,
           (&Data::Int(x), &Data::Float(y)) => {
             Engine::ex_cmp_float(op, float::from(x as float_base), y)?
           }
           (&Data::Float(x), &Data::Int(y)) => {
             Engine::ex_cmp_float(op, x, float::from(y as float_base))?
           }
-          (&Data::Float(x), &Data::Float(y)) => {
-            Engine::ex_cmp_float(op, x, y)?
-          }
-          (&Data::Bool(x), &Data::Bool(y)) => {
-            Engine::ex_cmp_bool(op, x, y)?
-          }
+          (&Data::Float(x), &Data::Float(y)) => Engine::ex_cmp_float(op, x, y)?,
+          (&Data::Bool(x), &Data::Bool(y)) => Engine::ex_cmp_bool(op, x, y)?,
           _ => return Err(ExecuteErrorKind::BadCmpOperands),
         };
 
