@@ -130,6 +130,23 @@ impl Compiler {
         block.push(Instr::Returnable(new_block));
       }
 
+      Node::CmpExpr { ref nodes, ref ops } => {
+        if nodes.len() == 2 {
+          self.compile_aux(&nodes[0], block)?;
+          self.compile_aux(&nodes[1], block)?;
+          block.push(Instr::CmpOp(ops[0].clone()));
+        }
+        else {
+          /* let mut new_block = Vec::new(); */
+          /* self.compile_aux(&nodes[0], &mut new_block)?; */
+          /* for (op, node) in ops.iter().zip(&nodes[1..]) { */
+          /*   self.compile_aux(&node, &mut new_block)?; */
+          /*   new_block.push(Instr::CmpOp(op.clone())); */
+          /* } */
+          /* block.push(Instr::Returnable(new_block)); */
+        }
+      }
+
       Node::BinExpr {
         ref lhs,
         ref op,

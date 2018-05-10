@@ -238,6 +238,36 @@ impl Engine {
         (None, _) => return Err(ExecuteErrorKind::EmptyStack),
       },
 
+      Instr::CmpOp(ref op) => {
+        // this should guarantee that we can pop/unwrap twice
+        if self.data_stack.len() < 2 {
+          return Err(ExecuteErrorKind::EmptyStack);
+        }
+
+        let rhs = self.data_stack.pop().unwrap();
+        let lhs = self.data_stack.pop().unwrap();
+
+        match (&lhs.val, &rhs.val) {
+          (&Data::Int(x), &Data::Int(y)) => {
+            let data = Engine::ex_cmp_int(op, x, y)?;
+            self.data_stack.push(Data::Bool(data).to_item());
+          }
+          (&Data::Int(x), &Data::Float(y)) => {
+            let data = Engine::ex_cmp_float(op, float::from(x as float_base), y)?;
+            self.data_stack.push(Data::Bool(data).to_item());
+          }
+          (&Data::Float(x), &Data::Int(y)) => {
+            let data = Engine::ex_cmp_float(op, x, float::from(y as float_base))?;
+            self.data_stack.push(Data::Bool(data).to_item());
+          }
+          (&Data::Float(x), &Data::Float(y)) => {
+            let data = Engine::ex_cmp_float(op, x, y)?;
+            self.data_stack.push(Data::Bool(data).to_item());
+          }
+          _ => return Err(ExecuteErrorKind::BadCmpOperands),
+        }
+      }
+
       _ => {
         println!("WARNING: Unable to use instruction: {:?}", instr);
       }
@@ -256,6 +286,18 @@ impl Engine {
     }
   }
 
+  fn ex_cmp_int(op: &Token, x: int, y: int) -> Result<bool, ExecuteErrorKind> {
+    match *op {
+      Token::Lt => Ok(x < y),
+      Token::Le => Ok(x <= y),
+      Token::Gt => Ok(x > y),
+      Token::Ge => Ok(x >= y),
+      Token::Eql => Ok(x == y),
+      Token::Ne => Ok(x != y),
+      _ => Err(ExecuteErrorKind::BadCmpOp(op.clone())),
+    }
+  }
+
   fn ex_bin_float(op: &Token, x: float, y: float) -> Result<float, ExecuteErrorKind> {
     let x = x.into_inner();
     let y = y.into_inner();
@@ -265,6 +307,18 @@ impl Engine {
       Token::Mul => Ok(float::from(x * y)),
       Token::Div => Ok(float::from(x / y)),
       _ => Err(ExecuteErrorKind::BadBinOp(op.clone())),
+    }
+  }
+
+  fn ex_cmp_float(op: &Token, x: float, y: float) -> Result<bool, ExecuteErrorKind> {
+    match *op {
+      Token::Lt => Ok(x < y),
+      Token::Le => Ok(x <= y),
+      Token::Gt => Ok(x > y),
+      Token::Ge => Ok(x >= y),
+      Token::Eql => Ok(x == y),
+      Token::Ne => Ok(x != y),
+      _ => Err(ExecuteErrorKind::BadCmpOp(op.clone())),
     }
   }
 }
