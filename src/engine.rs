@@ -247,25 +247,23 @@ impl Engine {
         let rhs = self.data_stack.pop().unwrap();
         let lhs = self.data_stack.pop().unwrap();
 
-        match (&lhs.val, &rhs.val) {
+        let result = match (&lhs.val, &rhs.val) {
           (&Data::Int(x), &Data::Int(y)) => {
-            let data = Engine::ex_cmp_int(op, x, y)?;
-            self.data_stack.push(Data::Bool(data).to_item());
+            Engine::ex_cmp_int(op, x, y)?
           }
           (&Data::Int(x), &Data::Float(y)) => {
-            let data = Engine::ex_cmp_float(op, float::from(x as float_base), y)?;
-            self.data_stack.push(Data::Bool(data).to_item());
+            Engine::ex_cmp_float(op, float::from(x as float_base), y)?
           }
           (&Data::Float(x), &Data::Int(y)) => {
-            let data = Engine::ex_cmp_float(op, x, float::from(y as float_base))?;
-            self.data_stack.push(Data::Bool(data).to_item());
+            Engine::ex_cmp_float(op, x, float::from(y as float_base))?
           }
           (&Data::Float(x), &Data::Float(y)) => {
-            let data = Engine::ex_cmp_float(op, x, y)?;
-            self.data_stack.push(Data::Bool(data).to_item());
+            Engine::ex_cmp_float(op, x, y)?
           }
           _ => return Err(ExecuteErrorKind::BadCmpOperands),
-        }
+        };
+
+        self.data_stack.push(Data::Bool(result).to_item());
       }
 
       _ => {
