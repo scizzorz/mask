@@ -198,9 +198,8 @@ fn test_logic_expr() {
     "1 and 2",
     &parse_logic_expr,
     Ok(Node::LogicExpr {
-      lhs: Box::new(Node::Int(1)),
-      op: lexer::Token::And,
-      rhs: Box::new(Node::Int(2)),
+      nodes: vec![Node::Int(1), Node::Int(2)],
+      ops: vec![lexer::Token::And],
     }),
   );
 
@@ -208,9 +207,8 @@ fn test_logic_expr() {
     "1 or 2",
     &parse_logic_expr,
     Ok(Node::LogicExpr {
-      lhs: Box::new(Node::Int(1)),
-      op: lexer::Token::Or,
-      rhs: Box::new(Node::Int(2)),
+      nodes: vec![Node::Int(1), Node::Int(2)],
+      ops: vec![lexer::Token::Or],
     }),
   );
 
@@ -218,13 +216,8 @@ fn test_logic_expr() {
     "1 and 2 or 3",
     &parse_logic_expr,
     Ok(Node::LogicExpr {
-      lhs: Box::new(Node::LogicExpr {
-        lhs: Box::new(Node::Int(1)),
-        op: lexer::Token::And,
-        rhs: Box::new(Node::Int(2)),
-      }),
-      op: lexer::Token::Or,
-      rhs: Box::new(Node::Int(3)),
+      nodes: vec![Node::Int(1), Node::Int(2), Node::Int(3)],
+      ops: vec![lexer::Token::And, lexer::Token::Or],
     }),
   );
 }
@@ -235,9 +228,8 @@ fn test_cmp_expr() {
     "1 < 2",
     &parse_cmp_expr,
     Ok(Node::CmpExpr {
-      lhs: Box::new(Node::Int(1)),
-      op: lexer::Token::Lt,
-      rhs: Box::new(Node::Int(2)),
+      nodes: vec![Node::Int(1), Node::Int(2)],
+      ops: vec![lexer::Token::Lt],
     }),
   );
 
@@ -245,9 +237,27 @@ fn test_cmp_expr() {
     "1 > 2",
     &parse_cmp_expr,
     Ok(Node::CmpExpr {
-      lhs: Box::new(Node::Int(1)),
-      op: lexer::Token::Gt,
-      rhs: Box::new(Node::Int(2)),
+      nodes: vec![Node::Int(1), Node::Int(2)],
+      ops: vec![lexer::Token::Gt],
+    }),
+  );
+
+  test_parse(
+    "1 + 2 > 2 * 4",
+    &parse_cmp_expr,
+    Ok(Node::CmpExpr {
+      nodes: vec![
+        Node::BinExpr {
+          lhs: Box::new(Node::Int(1)),
+          op: Token::Add,
+          rhs: Box::new(Node::Int(2)),
+        },
+        Node::BinExpr {
+          lhs: Box::new(Node::Int(2)),
+          op: Token::Mul,
+          rhs: Box::new(Node::Int(4)),
+        }],
+      ops: vec![lexer::Token::Gt],
     }),
   );
 }

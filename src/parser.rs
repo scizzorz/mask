@@ -112,15 +112,13 @@ pub enum Node {
   },
 
   CmpExpr {
-    lhs: Box<Node>,
-    op: Token,
-    rhs: Box<Node>,
+    nodes: Vec<Node>,
+    ops: Vec<Token>,
   },
 
   LogicExpr {
-    lhs: Box<Node>,
-    op: Token,
-    rhs: Box<Node>,
+    nodes: Vec<Node>,
+    ops: Vec<Token>,
   },
 
   UnExpr {
@@ -255,12 +253,20 @@ fn parse_logic_expr(it: &mut ParseIter) -> Parse {
     match tok.node {
       Token::And | Token::Or => {
         it.next();
-        let rhs = parse_cmp_expr(it)?;
-        expr = Node::LogicExpr {
-          lhs: Box::new(expr),
-          op: tok.node.clone(),
-          rhs: Box::new(rhs),
-        };
+        let new = parse_cmp_expr(it)?;
+        match expr {
+          Node::LogicExpr{ref mut nodes, ref mut ops} => {
+            nodes.push(new);
+            ops.push(tok.node.clone());
+          }
+
+          _ => {
+            expr = Node::LogicExpr {
+              nodes: vec![expr, new],
+              ops: vec![tok.node.clone()],
+            }
+          }
+        }
       }
       _ => break,
     }
@@ -276,12 +282,20 @@ fn parse_cmp_expr(it: &mut ParseIter) -> Parse {
     match tok.node {
       Token::Eql | Token::Ne | Token::Ge | Token::Gt | Token::Le | Token::Lt => {
         it.next();
-        let rhs = parse_bin_expr(it)?;
-        expr = Node::CmpExpr {
-          lhs: Box::new(expr),
-          op: tok.node.clone(),
-          rhs: Box::new(rhs),
-        };
+        let new = parse_bin_expr(it)?;
+        match expr {
+          Node::CmpExpr{ref mut nodes, ref mut ops} => {
+            nodes.push(new);
+            ops.push(tok.node.clone());
+          }
+
+          _ => {
+            expr = Node::CmpExpr {
+              nodes: vec![expr, new],
+              ops: vec![tok.node.clone()],
+            }
+          }
+        }
       }
       _ => break,
     }
