@@ -275,7 +275,12 @@ impl Engine {
 
         if *op == Token::Meta {
           let ret = Item {
-            meta: Some(Box::new(rhs)),
+            meta: match rhs.val {
+              Data::Null => {
+                None
+              },
+              _ => Some(Box::new(rhs)),
+            },
             val: lhs.val.clone(),
           };
           self.data_stack.push(ret);
