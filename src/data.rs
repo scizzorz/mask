@@ -78,7 +78,14 @@ impl Data {
     }
   }
 
-  pub fn to_item(self) -> Item {
+  pub fn to_item(&self) -> Item {
+    Item {
+      val: self.clone(),
+      meta: None,
+    }
+  }
+
+  pub fn into_item(self) -> Item {
     Item {
       val: self,
       meta: None,
@@ -125,6 +132,16 @@ pub enum Const {
 }
 
 impl Const {
+  pub fn into_data(self) -> Data {
+    match self {
+      Const::Null => Data::Null,
+      Const::Int(x) => Data::Int(x),
+      Const::Float(x) => Data::Float(x),
+      Const::Bool(x) => Data::Bool(x),
+      Const::Str(x) => Data::Str(x),
+    }
+  }
+
   pub fn to_data(&self) -> Data {
     match *self {
       Const::Null => Data::Null,
@@ -136,7 +153,11 @@ impl Const {
   }
 
   pub fn to_item(&self) -> Item {
-    self.to_data().to_item()
+    self.to_data().into_item()
+  }
+
+  pub fn into_item(self) -> Item {
+    self.into_data().into_item()
   }
 }
 

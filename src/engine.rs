@@ -211,7 +211,7 @@ impl Engine {
 
       Instr::Truth => match self.data_stack.pop() {
         Some(x) => {
-          self.data_stack.push(Data::Bool(x.truth()).to_item());
+          self.data_stack.push(Data::Bool(x.truth()).into_item());
         }
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
@@ -280,19 +280,19 @@ impl Engine {
         match (&lhs.val, &rhs.val) {
           (&Data::Int(x), &Data::Int(y)) => {
             let data = Engine::ex_bin_int(op, x, y)?;
-            self.data_stack.push(Data::Int(data).to_item());
+            self.data_stack.push(Data::Int(data).into_item());
           }
           (&Data::Int(x), &Data::Float(y)) => {
             let data = Engine::ex_bin_float(op, float::from(x as float_base), y)?;
-            self.data_stack.push(Data::Float(data).to_item());
+            self.data_stack.push(Data::Float(data).into_item());
           }
           (&Data::Float(x), &Data::Int(y)) => {
             let data = Engine::ex_bin_float(op, x, float::from(y as float_base))?;
-            self.data_stack.push(Data::Float(data).to_item());
+            self.data_stack.push(Data::Float(data).into_item());
           }
           (&Data::Float(x), &Data::Float(y)) => {
             let data = Engine::ex_bin_float(op, x, y)?;
-            self.data_stack.push(Data::Float(data).to_item());
+            self.data_stack.push(Data::Float(data).into_item());
           }
           _ => return Err(ExecuteErrorKind::BadBinOperands),
         }
@@ -364,14 +364,14 @@ impl Engine {
 
         match (chain, result) {
           (true, false) => {
-            self.data_stack.push(Data::Bool(result).to_item());
+            self.data_stack.push(Data::Bool(result).into_item());
             return Err(ExecuteErrorKind::Return);
           }
           (true, true) => {
             self.data_stack.push(rhs);
           }
           (false, _) => {
-            self.data_stack.push(Data::Bool(result).to_item());
+            self.data_stack.push(Data::Bool(result).into_item());
           }
         }
       }
