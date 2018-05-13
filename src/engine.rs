@@ -40,15 +40,17 @@ pub struct Engine {
 #[derive(Debug)]
 pub enum ExecuteErrorKind {
   BadBinOp(Token),
+  BadBinOperands,
   BadCmpOp(Token),
+  BadCmpOperands,
   BadLogicOp(Token),
   BadUnOp(Token),
   BadUnOperand,
-  BadBinOperands,
-  BadCmpOperands,
+  Break,
+  Continue,
   EmptyStack,
-  NotCallable,
   Exception,
+  NotCallable,
   Return,
 }
 
@@ -300,6 +302,14 @@ impl Engine {
 
       Instr::Return => {
         return Err(ExecuteErrorKind::Return);
+      }
+
+      Instr::Break => {
+        return Err(ExecuteErrorKind::Break);
+      }
+
+      Instr::Continue => {
+        return Err(ExecuteErrorKind::Continue);
       }
 
       Instr::CmpOp(ref op, chain) => {

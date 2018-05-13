@@ -4,8 +4,10 @@ use lexer::Token;
 pub enum Instr {
   BinOp(Token),
   Block(Vec<Instr>),
+  Break,
   Call,
   CmpOp(Token, bool),
+  Continue,
   Dup,
   FuncDef(Vec<Instr>),
   Get,

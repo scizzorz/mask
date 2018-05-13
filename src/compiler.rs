@@ -162,6 +162,17 @@ impl Compiler {
         block.push(Instr::UnOp(op.clone()));
       }
 
+      Node::Break => {
+        block.push(Instr::Break);
+      }
+
+      Node::Continue => {
+        block.push(Instr::Continue);
+      }
+
+      Node::Pass => {}
+
+
       Node::If {
         ref cond,
         ref body,
