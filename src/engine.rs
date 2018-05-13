@@ -265,6 +265,7 @@ impl Engine {
         let rhs = self.data_stack.pop().unwrap();
         let lhs = self.data_stack.pop().unwrap();
 
+        // meta table assignment
         if *op == Token::Meta {
           let ret = Item {
             meta: match rhs.val {
@@ -273,6 +274,15 @@ impl Engine {
             },
             val: lhs.val.clone(),
           };
+          self.data_stack.push(ret);
+          return Ok(());
+        }
+
+        // string concatenation
+        if *op == Token::Dol {
+          let mut ret = lhs.to_string();
+          ret.push_str(&rhs.to_string());
+          let ret = Data::Str(ret).into_item();
           self.data_stack.push(ret);
           return Ok(());
         }

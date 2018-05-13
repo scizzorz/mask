@@ -190,10 +190,11 @@ fn require_token(it: &mut ParseIter, kind: Token) -> Result<Span, ParseErrorKind
 
 fn op_precedence(op: &Token) -> Op {
   match *op {
-    Token::Add | Token::Sub => Op::Left(10),
-    Token::Div | Token::Mul => Op::Left(20),
-    Token::Car => Op::Right(30),
-    Token::Meta => Op::Right(40),
+    Token::Dol => Op::Left(10),
+    Token::Add | Token::Sub => Op::Left(20),
+    Token::Div | Token::Mul => Op::Left(30),
+    Token::Car => Op::Right(40),
+    Token::Meta => Op::Right(50),
     _ => Op::None,
   }
 }
