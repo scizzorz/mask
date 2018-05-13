@@ -172,19 +172,14 @@ impl Compiler {
 
       Node::Pass => {}
 
-      Node::While {
-        ref expr,
-        ref body,
-      } => {
+      Node::While { ref expr, ref body } => {
         let mut expr_block = Vec::new();
         self.compile_aux(expr, &mut expr_block)?;
         let body_block = self.compile_block(body)?;
         block.push(Instr::While(expr_block, body_block));
       }
 
-      Node::Loop {
-        ref body,
-      } => {
+      Node::Loop { ref body } => {
         let body_block = self.compile_block(body)?;
         block.push(Instr::Loop(body_block));
       }

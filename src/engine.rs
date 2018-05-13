@@ -225,36 +225,28 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
-      Instr::While(ref expr, ref body) => {
-        loop {
-          self.ex_many(module, runtime, expr)?;
-          match self.data_stack.pop() {
-            Some(x) => {
-              match x.truth() {
-                true => {
-                  match self.ex_many(module, runtime, body) {
-                    Ok(_) => {}
-                    Err(ExecuteErrorKind::Break) => break,
-                    Err(ExecuteErrorKind::Continue) => continue,
-                    err => return err,
-                  }
-                }
-                false => break,
-              }
-            }
-            None => return Err(ExecuteErrorKind::EmptyStack),
-          }
+      Instr::While(ref expr, ref body) => loop {
+        self.ex_many(module, runtime, expr)?;
+        match self.data_stack.pop() {
+          Some(x) => match x.truth() {
+            true => match self.ex_many(module, runtime, body) {
+              Ok(_) => {}
+              Err(ExecuteErrorKind::Break) => break,
+              Err(ExecuteErrorKind::Continue) => continue,
+              err => return err,
+            },
+            false => break,
+          },
+          None => return Err(ExecuteErrorKind::EmptyStack),
         }
       },
 
-      Instr::Loop(ref body) => {
-        loop {
-          match self.ex_many(module, runtime, body) {
-            Ok(_) => {}
-            Err(ExecuteErrorKind::Break) => break,
-            Err(ExecuteErrorKind::Continue) => continue,
-            err => return err,
-          }
+      Instr::Loop(ref body) => loop {
+        match self.ex_many(module, runtime, body) {
+          Ok(_) => {}
+          Err(ExecuteErrorKind::Break) => break,
+          Err(ExecuteErrorKind::Continue) => continue,
+          err => return err,
         }
       },
 
@@ -276,9 +268,7 @@ impl Engine {
         if *op == Token::Meta {
           let ret = Item {
             meta: match rhs.val {
-              Data::Null => {
-                None
-              },
+              Data::Null => None,
               _ => Some(Box::new(rhs)),
             },
             val: lhs.val.clone(),
