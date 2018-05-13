@@ -194,7 +194,30 @@ impl Compiler {
         }
         self.compile_aux(body, &mut new_block)?;
 
+        let const_id = self.get_const(Const::Null);
+        new_block.push(Instr::PushConst(const_id));
         block.push(Instr::FuncDef(new_block));
+      }
+
+      Node::Return(ref val) => {
+        match *val {
+          None => {
+            let const_id = self.get_const(Const::Null);
+            block.push(Instr::PushConst(const_id));
+          }
+          Some(ref x) => {
+            self.compile_aux(x, block)?;
+          }
+        }
+        block.push(Instr::Return);
+      }
+
+      Node::FuncCall { ref func, ref args } => {
+        for arg in args {
+          self.compile_aux(arg, block)?;
+        }
+        self.compile_aux(func, block)?;
+        block.push(Instr::Call);
       }
 
       _ => {

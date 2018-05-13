@@ -12,14 +12,12 @@ use module::ModuleErrorKind;
 use serde_yaml;
 
 struct RuntimeModule {
-  pub funcs: Vec<Instr>,
   pub scope: Item,
 }
 
 impl RuntimeModule {
   fn new() -> RuntimeModule {
     RuntimeModule {
-      funcs: Vec::new(),
       scope: Item {
         val: Data::new_table(),
         meta: None,
@@ -48,6 +46,7 @@ pub enum ExecuteErrorKind {
   BadBinOperands,
   BadCmpOperands,
   EmptyStack,
+  NotCallable,
   Exception,
   Return,
 }
@@ -116,6 +115,7 @@ impl Engine {
       Instr::FuncDef(ref body) => {
         // FIXME someway to prevent pushing the same function twice
         // eg functions inside functions
+        // FIXME update scoping! the function keeps using global!
         self.funcs.push(Instr::Returnable(body.clone()));
         self.data_stack.push(Item {
           val: Data::Func(self.funcs.len() - 1),
@@ -125,6 +125,22 @@ impl Engine {
           })),
         });
       }
+
+      Instr::Call => match self.data_stack.pop() {
+        None => return Err(ExecuteErrorKind::EmptyStack),
+        Some(func) => {
+          match func.val {
+            Data::Func(x) => {
+              // FIXME cloning this func can't be write, but how
+              // else can self be mutable to add more funcs while
+              // self.funcs[x] is immutable?
+              let func = self.funcs[x].clone();
+              self.ex(module, runtime, &func)?;
+            }
+            _ => return Err(ExecuteErrorKind::NotCallable),
+          }
+        }
+      },
 
       Instr::NewTable => {
         self.data_stack.push(Item {
@@ -267,6 +283,10 @@ impl Engine {
         (Some(_), op) => return Err(ExecuteErrorKind::BadLogicOp(op.clone())),
         (None, _) => return Err(ExecuteErrorKind::EmptyStack),
       },
+
+      Instr::Return => {
+        return Err(ExecuteErrorKind::Return);
+      }
 
       Instr::CmpOp(ref op, chain) => {
         // this should guarantee that we can pop/unwrap twice
