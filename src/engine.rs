@@ -10,6 +10,7 @@ use lexer::Token;
 use module::Module;
 use module::ModuleErrorKind;
 use serde_yaml;
+use std::mem;
 
 struct RuntimeModule {
   pub scope: Item,
@@ -115,7 +116,6 @@ impl Engine {
       Instr::FuncDef(ref body) => {
         // FIXME someway to prevent pushing the same function twice
         // eg functions inside functions
-        // FIXME update scoping! the function keeps using global!
         self.funcs.push(Instr::Returnable(body.clone()));
         self.data_stack.push(Item {
           val: Data::Func(self.funcs.len() - 1),
@@ -126,20 +126,34 @@ impl Engine {
         });
       }
 
+      // FIXME cloning this func can't be right, but how
+      // else can self be mutable to add more funcs while
+      // self.funcs[x] is immutable?
       Instr::Call => match self.data_stack.pop() {
         None => return Err(ExecuteErrorKind::EmptyStack),
-        Some(func) => {
-          match func.val {
-            Data::Func(x) => {
-              // FIXME cloning this func can't be write, but how
-              // else can self be mutable to add more funcs while
-              // self.funcs[x] is immutable?
-              let func = self.funcs[x].clone();
-              self.ex(module, runtime, &func)?;
-            }
-            _ => return Err(ExecuteErrorKind::NotCallable),
+        Some(func) => match func {
+          Item {
+            val: Data::Func(val),
+            meta: Some(ref meta),
+          } => {
+            let mut new_scope = Item {
+              val: Data::new_table(),
+              meta: Some(meta.clone()),
+            };
+            mem::swap(&mut new_scope, &mut runtime.scope);
+            let func = self.funcs[val].clone();
+            self.ex(module, runtime, &func)?;
+            mem::swap(&mut new_scope, &mut runtime.scope);
           }
-        }
+          Item {
+            val: Data::Func(val),
+            meta: None,
+          } => {
+            let func = self.funcs[val].clone();
+            self.ex(module, runtime, &func)?;
+          }
+          _ => return Err(ExecuteErrorKind::NotCallable),
+        },
       },
 
       Instr::NewTable => {
