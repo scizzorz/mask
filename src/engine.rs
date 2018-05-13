@@ -225,10 +225,32 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
+      Instr::While(ref expr, ref body) => {
+        loop {
+          self.ex_many(module, runtime, expr)?;
+          match self.data_stack.pop() {
+            Some(x) => {
+              match x.truth() {
+                true => {
+                  match self.ex_many(module, runtime, body) {
+                    Ok(_) => {}
+                    Err(ExecuteErrorKind::Break) => break,
+                    Err(ExecuteErrorKind::Continue) => continue,
+                    err => return err,
+                  }
+                }
+                false => break,
+              }
+            }
+            None => return Err(ExecuteErrorKind::EmptyStack),
+          }
+        }
+      },
+
       Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
         Ok(_) => {}
         Err(ExecuteErrorKind::Return) => {}
-        x => return x,
+        err => return err,
       },
 
       Instr::BinOp(ref op) => {
