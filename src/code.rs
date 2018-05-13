@@ -28,4 +28,5 @@ pub enum Instr {
   Truth,
   UnOp(Token),
   While(Vec<Instr>, Vec<Instr>),
+  Loop(Vec<Instr>),
 }

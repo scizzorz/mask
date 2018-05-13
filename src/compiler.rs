@@ -182,6 +182,13 @@ impl Compiler {
         block.push(Instr::While(expr_block, body_block));
       }
 
+      Node::Loop {
+        ref body,
+      } => {
+        let body_block = self.compile_block(body)?;
+        block.push(Instr::Loop(body_block));
+      }
+
       Node::If {
         ref cond,
         ref body,

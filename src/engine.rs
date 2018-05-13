@@ -247,6 +247,17 @@ impl Engine {
         }
       },
 
+      Instr::Loop(ref body) => {
+        loop {
+          match self.ex_many(module, runtime, body) {
+            Ok(_) => {}
+            Err(ExecuteErrorKind::Break) => break,
+            Err(ExecuteErrorKind::Continue) => continue,
+            err => return err,
+          }
+        }
+      },
+
       Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
         Ok(_) => {}
         Err(ExecuteErrorKind::Return) => {}
