@@ -2,22 +2,25 @@ cls = table
 cls.type = 'Person'
 
 person = table :: cls
-person.name = 'John'
 
-print 'cls:'
-print cls
 print cls.type
-print cls.name
-
-print ''
-print 'person:'
-print person
 print person.type
-print person.name
+print '---'
 
-print ''
-print 'deref:'
-print *cls
-print *person
-print (*person).type
-print (*person).name
+cls.type = 'Imaginary Person'
+
+print cls.type
+print person.type
+print '---'
+
+person.type = 'Concrete Person'
+
+print cls.type
+print person.type
+print '---'
+
+(*person).type = 'Abstract Person'
+
+print cls.type
+print person.type
+print '---'

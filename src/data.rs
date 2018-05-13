@@ -15,7 +15,7 @@ pub enum Data {
   Float(#[unsafe_ignore_trace] float),
   Bool(bool),
   Str(String),
-  Func, // FIXME
+  Func(usize), // FIXME
   Table(Table),
 }
 
@@ -73,7 +73,7 @@ impl Data {
       Data::Float(x) => format!("{}", x),
       Data::Bool(x) => format!("{}", x),
       Data::Str(ref x) => x.clone(),
-      Data::Func => String::from("func"),
+      Data::Func(x) => format!("func[{}]", x),
       Data::Table(_) => String::from("table"),
     }
   }

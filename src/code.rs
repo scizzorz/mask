@@ -21,4 +21,5 @@ pub enum Instr {
   LogicOp(Token),
   Returnable(Vec<Instr>),
   Truth,
+  FuncDef(Vec<Instr>),
 }

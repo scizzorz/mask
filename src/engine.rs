@@ -9,18 +9,17 @@ use int;
 use lexer::Token;
 use module::Module;
 use module::ModuleErrorKind;
+use serde_yaml;
 
 struct RuntimeModule {
-  pub code: Vec<Instr>,
-  pub consts: Vec<Const>,
+  pub funcs: Vec<Instr>,
   pub scope: Item,
 }
 
 impl RuntimeModule {
-  fn from_static(module: Module) -> RuntimeModule {
+  fn new() -> RuntimeModule {
     RuntimeModule {
-      code: module.code,
-      consts: module.consts,
+      funcs: Vec::new(),
       scope: Item {
         val: Data::new_table(),
         meta: None,
@@ -32,6 +31,7 @@ impl RuntimeModule {
 pub struct Engine {
   pub map: CodeMap,
   mods: Vec<RuntimeModule>,
+  funcs: Vec<Instr>,
   data_stack: Vec<Item>,
 }
 
@@ -64,6 +64,7 @@ impl Engine {
   pub fn new() -> Engine {
     Engine {
       map: CodeMap::new(),
+      funcs: Vec::new(),
       mods: Vec::new(),
       data_stack: Vec::new(),
     }
@@ -72,27 +73,36 @@ impl Engine {
   pub fn import(&mut self, filename: &str) -> Result<(()), EngineErrorKind> {
     let module = match Module::from_file(&mut self.map, filename) {
       Err(why) => return Err(EngineErrorKind::ModuleError(why)),
-      Ok(module) => RuntimeModule::from_static(module),
+      Ok(module) => module,
     };
 
-    match self.ex_many(&module, &module.code) {
+    let mut runtime = RuntimeModule::new();
+
+    println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
+
+    match self.ex_many(&module, &mut runtime, &module.code) {
       Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
       Ok(_) => {}
     }
 
-    self.mods.push(module);
+    //self.mods.push(module);
 
     Ok(())
   }
 
-  fn ex_many(&mut self, module: &RuntimeModule, instrs: &Vec<Instr>) -> Execute {
+  fn ex_many(
+    &mut self,
+    module: &Module,
+    runtime: &mut RuntimeModule,
+    instrs: &Vec<Instr>,
+  ) -> Execute {
     for instr in instrs {
-      self.ex(module, instr)?;
+      self.ex(module, runtime, instr)?;
     }
     Ok(())
   }
 
-  fn ex(&mut self, module: &RuntimeModule, instr: &Instr) -> Execute {
+  fn ex(&mut self, module: &Module, runtime: &mut RuntimeModule, instr: &Instr) -> Execute {
     // println!("executing {:?} on {:?}", instr, self.data_stack);
     match *instr {
       Instr::PushConst(x) => {
@@ -100,7 +110,20 @@ impl Engine {
       }
 
       Instr::PushScope => {
-        self.data_stack.push(module.scope.clone());
+        self.data_stack.push(runtime.scope.clone());
+      }
+
+      Instr::FuncDef(ref body) => {
+        // FIXME someway to prevent pushing the same function twice
+        // eg functions inside functions
+        self.funcs.push(Instr::Returnable(body.clone()));
+        self.data_stack.push(Item {
+          val: Data::Func(self.funcs.len() - 1),
+          meta: Some(Box::new(Item {
+            val: Data::new_table(),
+            meta: Some(Box::new(runtime.scope.clone())),
+          })),
+        });
       }
 
       Instr::NewTable => {
@@ -164,13 +187,13 @@ impl Engine {
       Instr::If(ref body) => match self.data_stack.pop() {
         Some(x) => {
           if x.truth() {
-            self.ex_many(module, body)?;
+            self.ex_many(module, runtime, body)?;
           }
         }
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
-      Instr::Returnable(ref body) => match self.ex_many(module, body) {
+      Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
         Ok(_) => {}
         Err(ExecuteErrorKind::Return) => {}
         x => return x,

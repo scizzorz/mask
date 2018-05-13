@@ -4,6 +4,7 @@ extern crate codemap;
 extern crate gc;
 extern crate ordered_float;
 extern crate serde;
+extern crate serde_yaml;
 
 #[macro_use]
 extern crate gc_derive;

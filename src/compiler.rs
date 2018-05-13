@@ -180,6 +180,23 @@ impl Compiler {
         }
       }
 
+      Node::FuncDef {
+        ref params,
+        ref body,
+      } => {
+        // value -> key -> table
+        let mut new_block = Vec::new();
+        for par in params.iter().rev() {
+          let const_id = self.get_const(Const::Str(par.clone()));
+          new_block.push(Instr::PushConst(const_id));
+          new_block.push(Instr::PushScope);
+          new_block.push(Instr::Set);
+        }
+        self.compile_aux(body, &mut new_block)?;
+
+        block.push(Instr::FuncDef(new_block));
+      }
+
       _ => {
         println!("WARNING: unable to compile node: {:?}", root);
       }
