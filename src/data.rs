@@ -41,6 +41,13 @@ impl Data {
     }
   }
 
+  pub fn can_set_key(&self) -> bool {
+    match *self {
+      Data::Table(ref map) => true,
+      _ => false,
+    }
+  }
+
   pub fn set_key(&mut self, key: Data, val: Item) {
     match *self {
       Data::Table(ref mut map) => {
@@ -173,7 +180,11 @@ impl Item {
   }
 
   pub fn set_key(&mut self, key: Data, val: Item) {
-    self.val.set_key(key, val);
+    if self.val.can_set_key() {
+      self.val.set_key(key, val);
+    } else if let Some(ref mut bx) = self.meta {
+      bx.set_key(key, val);
+    }
   }
 
   pub fn get_key(&self, key: &Data) -> Item {
