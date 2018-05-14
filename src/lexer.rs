@@ -52,11 +52,11 @@ pub enum Token {
   While,
 
   // Symbols
-  Arr,  // ->
-  Ass,  // =
-  Col,  // :
-  Com,  // ,
-  Dot,  // .
+  Arr, // ->
+  Ass, // =
+  Col, // :
+  Com, // ,
+  Dot, // .
   Sup, // ::
   Sem, // ;
 

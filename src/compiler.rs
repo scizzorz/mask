@@ -266,7 +266,11 @@ impl Compiler {
         block.push(Instr::Call);
       }
 
-      Node::MethodCall { ref owner, ref method, ref args } => {
+      Node::MethodCall {
+        ref owner,
+        ref method,
+        ref args,
+      } => {
         self.compile_aux(method, block)?;
         self.compile_aux(owner, block)?;
         block.push(Instr::MethodGet);
