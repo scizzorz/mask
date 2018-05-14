@@ -84,11 +84,6 @@ pub enum Node {
     body: Box<Node>,
   },
 
-  Lambda {
-    params: Vec<String>,
-    expr: Box<Node>,
-  },
-
   Index {
     lhs: Box<Node>,
     rhs: Box<Node>,
@@ -235,9 +230,9 @@ fn parse_il_expr(it: &mut ParseIter) -> Parse {
         let params = parse_fn_params(it)?;
         require_token(it, Token::Pipe)?;
         let expr = parse_il_expr(it)?;
-        Ok(Node::Lambda {
+        Ok(Node::FuncDef {
           params: params,
-          expr: Box::new(expr),
+          body: Box::new(Node::Return(Some(Box::new(expr)))),
         })
       }
       _ => parse_logic_expr(it),

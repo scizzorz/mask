@@ -17,6 +17,7 @@ pub enum Instr {
   Instr,
   Jump(isize),
   LogicOp(Token),
+  MethodGet,
   NewTable,
   Nop,
   Pop,

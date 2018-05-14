@@ -189,6 +189,23 @@ impl Engine {
         self.data_stack.push(val);
       }
 
+      Instr::MethodGet => {
+        // MethodGet differs from regular Get by pushing the scope
+        // back onto the stack. this is so method calls can
+        // only evaluate the owner a single time.
+
+        // this should guarantee that we can pop/unwrap twice
+        if self.data_stack.len() < 2 {
+          return Err(ExecuteErrorKind::EmptyStack);
+        }
+
+        let scope = self.data_stack.pop().unwrap();
+        let key = self.data_stack.pop().unwrap();
+        let val = scope.get_key(&key.val);
+        self.data_stack.push(scope);
+        self.data_stack.push(val);
+      }
+
       Instr::Pop => match self.data_stack.pop() {
         Some(_) => {}
         None => return Err(ExecuteErrorKind::EmptyStack),

@@ -240,7 +240,6 @@ impl Compiler {
           new_block.push(Instr::Set);
         }
         self.compile_aux(body, &mut new_block)?;
-
         let const_id = self.get_const(Const::Null);
         new_block.push(Instr::PushConst(const_id));
         block.push(Instr::FuncDef(new_block));
@@ -264,6 +263,16 @@ impl Compiler {
           self.compile_aux(arg, block)?;
         }
         self.compile_aux(func, block)?;
+        block.push(Instr::Call);
+      }
+
+      Node::MethodCall { ref owner, ref method, ref args } => {
+        self.compile_aux(method, block)?;
+        self.compile_aux(owner, block)?;
+        block.push(Instr::MethodGet);
+        for arg in args {
+          self.compile_aux(arg, block)?;
+        }
         block.push(Instr::Call);
       }
 
