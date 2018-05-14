@@ -9,6 +9,8 @@ pub enum Instr {
   CmpOp(Token, bool),
   Continue,
   Dup,
+  For(Vec<Instr>, Vec<Instr>),
+  ForBreak,
   FuncDef(Vec<Instr>),
   Get,
   If(Vec<Instr>),

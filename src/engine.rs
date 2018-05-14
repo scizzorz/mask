@@ -80,7 +80,7 @@ impl Engine {
 
     let mut runtime = RuntimeModule::new();
 
-    println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
+    // println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
 
     match self.ex_many(&module, &mut runtime, &module.code) {
       Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
@@ -225,6 +225,15 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
+      Instr::Loop(ref body) => loop {
+        match self.ex_many(module, runtime, body) {
+          Ok(_) => {}
+          Err(ExecuteErrorKind::Break) => break,
+          Err(ExecuteErrorKind::Continue) => continue,
+          err => return err,
+        }
+      },
+
       Instr::While(ref expr, ref body) => loop {
         self.ex_many(module, runtime, expr)?;
         match self.data_stack.pop() {
@@ -241,14 +250,7 @@ impl Engine {
         }
       },
 
-      Instr::Loop(ref body) => loop {
-        match self.ex_many(module, runtime, body) {
-          Ok(_) => {}
-          Err(ExecuteErrorKind::Break) => break,
-          Err(ExecuteErrorKind::Continue) => continue,
-          err => return err,
-        }
-      },
+      Instr::For(ref expr, ref body) => {}
 
       Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
         Ok(_) => {}
@@ -349,6 +351,19 @@ impl Engine {
       Instr::Continue => {
         return Err(ExecuteErrorKind::Continue);
       }
+
+      Instr::ForBreak => match self.data_stack.pop() {
+        Some(Item {
+          val: Data::Null,
+          meta: _,
+        }) => {
+          return Err(ExecuteErrorKind::Break);
+        }
+        Some(x) => {
+          self.data_stack.push(x);
+        }
+        _ => {}
+      },
 
       Instr::CmpOp(ref op, chain) => {
         // this should guarantee that we can pop/unwrap twice

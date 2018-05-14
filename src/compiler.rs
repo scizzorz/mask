@@ -1,8 +1,8 @@
 use data::Const;
-use data::Data;
 use code::Instr;
 use parser::Node;
 use parser::Place;
+use parser::Var;
 
 type Compile = Result<(), CompileErrorKind>;
 
@@ -172,6 +172,11 @@ impl Compiler {
 
       Node::Pass => {}
 
+      Node::Loop { ref body } => {
+        let body_block = self.compile_block(body)?;
+        block.push(Instr::Loop(body_block));
+      }
+
       Node::While { ref expr, ref body } => {
         let mut expr_block = Vec::new();
         self.compile_aux(expr, &mut expr_block)?;
@@ -179,9 +184,28 @@ impl Compiler {
         block.push(Instr::While(expr_block, body_block));
       }
 
-      Node::Loop { ref body } => {
-        let body_block = self.compile_block(body)?;
-        block.push(Instr::Loop(body_block));
+      Node::For {
+        ref decl,
+        ref expr,
+        ref body,
+      } => {
+        self.compile_aux(expr, block)?;
+        let mut iter_block = Vec::new();
+        iter_block.push(Instr::Dup);
+        iter_block.push(Instr::Call);
+        iter_block.push(Instr::ForBreak);
+        if let Var::Single(ref decl) = *decl {
+          let const_id = self.get_const(Const::Str(decl.clone()));
+          iter_block.push(Instr::PushConst(const_id));
+          iter_block.push(Instr::PushScope);
+          iter_block.push(Instr::Set);
+        } else {
+          panic!("can't use multi decls");
+        }
+
+        self.compile_aux(body, &mut iter_block)?;
+        block.push(Instr::Loop(iter_block));
+        block.push(Instr::Pop);
       }
 
       Node::If {

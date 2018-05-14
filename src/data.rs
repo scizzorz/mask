@@ -43,7 +43,7 @@ impl Data {
 
   pub fn can_set_key(&self) -> bool {
     match *self {
-      Data::Table(ref map) => true,
+      Data::Table(_) => true,
       _ => false,
     }
   }
