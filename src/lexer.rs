@@ -57,8 +57,8 @@ pub enum Token {
   Col,  // :
   Com,  // ,
   Dot,  // .
-  Meta, // ::
-  Semi, // ;
+  Sup, // ::
+  Sem, // ;
 
   // Braces
   Cul, // {
@@ -311,7 +311,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
         '>' => lex_pair('=', Gt, Ge, &mut it),
         '=' => lex_pair('=', Ass, Eql, &mut it),
         '!' => lex_pair('=', Not, Ne, &mut it),
-        ':' => lex_pair(':', Col, Meta, &mut it),
+        ':' => lex_pair(':', Col, Sup, &mut it),
 
         // Symbols
         // -> Arr
@@ -325,10 +325,9 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
           it.next();
           Dot
         }
-        // :: Meta
         ';' => {
           it.next();
-          Semi
+          Sem
         }
 
         // Braces

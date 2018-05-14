@@ -189,7 +189,7 @@ fn op_precedence(op: &Token) -> Op {
     Token::Add | Token::Sub => Op::Left(20),
     Token::Div | Token::Mul => Op::Left(30),
     Token::Car => Op::Right(40),
-    Token::Meta => Op::Right(50),
+    Token::Sup => Op::Right(50),
     _ => Op::None,
   }
 }

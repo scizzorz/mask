@@ -21,7 +21,7 @@ impl RuntimeModule {
     RuntimeModule {
       scope: Item {
         val: Data::new_table(),
-        meta: None,
+        sup: None,
       },
     }
   }
@@ -121,9 +121,9 @@ impl Engine {
         self.funcs.push(Instr::Returnable(body.clone()));
         self.data_stack.push(Item {
           val: Data::Func(self.funcs.len() - 1),
-          meta: Some(Box::new(Item {
+          sup: Some(Box::new(Item {
             val: Data::new_table(),
-            meta: Some(Box::new(runtime.scope.clone())),
+            sup: Some(Box::new(runtime.scope.clone())),
           })),
         });
       }
@@ -136,11 +136,11 @@ impl Engine {
         Some(func) => match func {
           Item {
             val: Data::Func(val),
-            meta: Some(ref meta),
+            sup: Some(ref sup),
           } => {
             let mut new_scope = Item {
               val: Data::new_table(),
-              meta: Some(meta.clone()),
+              sup: Some(sup.clone()),
             };
             mem::swap(&mut new_scope, &mut runtime.scope);
             let func = self.funcs[val].clone();
@@ -149,7 +149,7 @@ impl Engine {
           }
           Item {
             val: Data::Func(val),
-            meta: None,
+            sup: None,
           } => {
             let func = self.funcs[val].clone();
             self.ex(module, runtime, &func)?;
@@ -161,7 +161,7 @@ impl Engine {
       Instr::NewTable => {
         self.data_stack.push(Item {
           val: Data::new_table(),
-          meta: None,
+          sup: None,
         });
       }
 
@@ -281,10 +281,10 @@ impl Engine {
         let rhs = self.data_stack.pop().unwrap();
         let lhs = self.data_stack.pop().unwrap();
 
-        // meta table assignment
-        if *op == Token::Meta {
+        // supertable assignment
+        if *op == Token::Sup {
           let ret = Item {
-            meta: match rhs.val {
+            sup: match rhs.val {
               Data::Null => None,
               _ => Some(Box::new(rhs)),
             },
@@ -325,9 +325,9 @@ impl Engine {
       }
 
       Instr::UnOp(ref op) => match (self.data_stack.pop(), op) {
-        (Some(val), &Token::Mul) => match val.meta {
-          Some(ref meta) => {
-            self.data_stack.push(*meta.clone());
+        (Some(val), &Token::Mul) => match val.sup {
+          Some(ref sup) => {
+            self.data_stack.push(*sup.clone());
           }
           None => {
             self.data_stack.push(Const::Null.to_item());

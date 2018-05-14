@@ -95,14 +95,14 @@ impl Data {
   pub fn to_item(&self) -> Item {
     Item {
       val: self.clone(),
-      meta: None,
+      sup: None,
     }
   }
 
   pub fn into_item(self) -> Item {
     Item {
       val: self,
-      meta: None,
+      sup: None,
     }
   }
 }
@@ -178,7 +178,7 @@ impl Const {
 #[derive(Debug, PartialEq, Eq, Clone, Trace, Finalize)]
 pub struct Item {
   pub val: Data,
-  pub meta: Option<Box<Item>>,
+  pub sup: Option<Box<Item>>,
 }
 
 impl Item {
@@ -193,7 +193,7 @@ impl Item {
   pub fn set_key(&mut self, key: Data, val: Item) {
     if self.val.can_set_key() {
       self.val.set_key(key, val);
-    } else if let Some(ref mut bx) = self.meta {
+    } else if let Some(ref mut bx) = self.sup {
       bx.set_key(key, val);
     }
   }
@@ -203,7 +203,7 @@ impl Item {
       return self.val.get_key(key);
     }
 
-    if let Some(ref bx) = self.meta {
+    if let Some(ref bx) = self.sup {
       return bx.get_key(key);
     }
 

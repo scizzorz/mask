@@ -92,8 +92,8 @@ fn lex_symbols() {
   assert_eq!(tokens[3].node, Col);
   assert_eq!(tokens[4].node, Com);
   assert_eq!(tokens[5].node, Dot);
-  assert_eq!(tokens[6].node, Meta);
-  assert_eq!(tokens[7].node, Semi);
+  assert_eq!(tokens[6].node, Sup);
+  assert_eq!(tokens[7].node, Sem);
 
   assert_eq!(tokens[8].node, Cul);
   assert_eq!(tokens[9].node, Cur);
