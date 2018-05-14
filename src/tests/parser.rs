@@ -328,36 +328,36 @@ fn test_fn_expr() {
   test_parse(
     "|| 5",
     &parse_il_expr,
-    Ok(Node::Lambda {
+    Ok(Node::FuncDef {
       params: Vec::new(),
-      expr: Box::new(Node::Int(5)),
+      body: Box::new(Node::Return(Some(Box::new(Node::Int(5))))),
     }),
   );
 
   test_parse(
     "|x| 5",
     &parse_il_expr,
-    Ok(Node::Lambda {
+    Ok(Node::FuncDef {
       params: vec![String::from("x")],
-      expr: Box::new(Node::Int(5)),
+      body: Box::new(Node::Return(Some(Box::new(Node::Int(5))))),
     }),
   );
 
   test_parse(
     "|x,| 5",
     &parse_il_expr,
-    Ok(Node::Lambda {
+    Ok(Node::FuncDef {
       params: vec![String::from("x")],
-      expr: Box::new(Node::Int(5)),
+      body: Box::new(Node::Return(Some(Box::new(Node::Int(5))))),
     }),
   );
 
   test_parse(
     "|x,y| 5",
     &parse_il_expr,
-    Ok(Node::Lambda {
+    Ok(Node::FuncDef {
       params: vec![String::from("x"), String::from("y")],
-      expr: Box::new(Node::Int(5)),
+      body: Box::new(Node::Return(Some(Box::new(Node::Int(5))))),
     }),
   );
 }
