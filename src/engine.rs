@@ -80,7 +80,7 @@ impl Engine {
 
     let mut runtime = RuntimeModule::new();
 
-    // println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
+    println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
 
     match self.ex_many(&module, &mut runtime, &module.code) {
       Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
@@ -209,9 +209,16 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
-      Instr::Truth => match self.data_stack.pop() {
+      Instr::Truthy => match self.data_stack.pop() {
         Some(x) => {
           self.data_stack.push(Data::Bool(x.truth()).into_item());
+        }
+        None => return Err(ExecuteErrorKind::EmptyStack),
+      },
+
+      Instr::Nully => match self.data_stack.pop() {
+        Some(x) => {
+          self.data_stack.push(Data::Bool(x.null()).into_item());
         }
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
@@ -225,6 +232,14 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
+      Instr::IfElse(ref body, ref els) => match self.data_stack.pop() {
+        Some(x) => match x.truth() {
+          true => self.ex_many(module, runtime, body)?,
+          false => self.ex_many(module, runtime, els)?,
+        },
+        None => return Err(ExecuteErrorKind::EmptyStack),
+      },
+
       Instr::Loop(ref body) => loop {
         match self.ex_many(module, runtime, body) {
           Ok(_) => {}
@@ -233,24 +248,6 @@ impl Engine {
           err => return err,
         }
       },
-
-      Instr::While(ref expr, ref body) => loop {
-        self.ex_many(module, runtime, expr)?;
-        match self.data_stack.pop() {
-          Some(x) => match x.truth() {
-            true => match self.ex_many(module, runtime, body) {
-              Ok(_) => {}
-              Err(ExecuteErrorKind::Break) => break,
-              Err(ExecuteErrorKind::Continue) => continue,
-              err => return err,
-            },
-            false => break,
-          },
-          None => return Err(ExecuteErrorKind::EmptyStack),
-        }
-      },
-
-      Instr::For(ref expr, ref body) => {}
 
       Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
         Ok(_) => {}
@@ -353,13 +350,10 @@ impl Engine {
       }
 
       Instr::ForBreak => match self.data_stack.pop() {
-        Some(Item {
-          val: Data::Null,
-          meta: _,
-        }) => {
-          return Err(ExecuteErrorKind::Break);
-        }
         Some(x) => {
+          if x.null() {
+            return Err(ExecuteErrorKind::Break);
+          }
           self.data_stack.push(x);
         }
         _ => {}

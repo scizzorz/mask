@@ -9,7 +9,6 @@ pub enum Instr {
   CmpOp(Token, bool),
   Continue,
   Dup,
-  For(Vec<Instr>, Vec<Instr>),
   ForBreak,
   FuncDef(Vec<Instr>),
   Get,
@@ -27,8 +26,8 @@ pub enum Instr {
   Return,
   Returnable(Vec<Instr>),
   Set,
-  Truth,
+  Truthy,
+  Nully,
   UnOp(Token),
-  While(Vec<Instr>, Vec<Instr>),
   Loop(Vec<Instr>),
 }

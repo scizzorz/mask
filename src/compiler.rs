@@ -181,7 +181,8 @@ impl Compiler {
         let mut expr_block = Vec::new();
         self.compile_aux(expr, &mut expr_block)?;
         let body_block = self.compile_block(body)?;
-        block.push(Instr::While(expr_block, body_block));
+        expr_block.push(Instr::IfElse(body_block, vec![Instr::Break]));
+        block.push(Instr::Loop(expr_block));
       }
 
       Node::For {

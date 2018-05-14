@@ -31,6 +31,13 @@ impl Data {
     }
   }
 
+  pub fn null(&self) -> bool {
+    match *self {
+      Data::Null => true,
+      _ => false,
+    }
+  }
+
   pub fn to_const(&self) -> Const {
     match *self {
       Data::Int(x) => Const::Int(x),
@@ -177,6 +184,10 @@ pub struct Item {
 impl Item {
   pub fn truth(&self) -> bool {
     self.val.truth()
+  }
+
+  pub fn null(&self) -> bool {
+    self.val.null()
   }
 
   pub fn set_key(&mut self, key: Data, val: Item) {
