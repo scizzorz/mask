@@ -117,8 +117,15 @@ impl Compiler {
       },
 
       Node::Catch { ref body } => {
-        let new_block = self.compile_block(body)?;
-        block.push(Instr::Block(new_block));
+        let mut new_block = self.compile_block(body)?;
+        let const_id = self.get_const(Const::Null);
+        new_block.push(Instr::PushConst(const_id));
+        block.push(Instr::Catch(new_block));
+      }
+
+      Node::Panic { ref expr } => {
+        self.compile_aux(expr, block)?;
+        block.push(Instr::Panic);
       }
 
       Node::Print { ref expr } => {

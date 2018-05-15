@@ -226,6 +226,7 @@ impl Engine {
         Some(x) => println!("{}", x.to_string()),
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
+      Instr::Panic => return Err(ExecuteErrorKind::Exception),
 
       Instr::Truthy => match self.data_stack.pop() {
         Some(x) => {
@@ -270,6 +271,12 @@ impl Engine {
       Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
         Ok(_) => {}
         Err(ExecuteErrorKind::Return) => {}
+        err => return err,
+      },
+
+      Instr::Catch(ref body) => match self.ex_many(module, runtime, body) {
+        Ok(_) => {}
+        Err(ExecuteErrorKind::Exception) => {}
         err => return err,
       },
 
