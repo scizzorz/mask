@@ -115,6 +115,13 @@ fn test_simple() {
 }
 
 #[test]
+fn test_super() {
+  test_parse("foo", &parse_super, Ok(Node::Name(String::from("foo"))));
+  test_parse(".foo", &parse_super, Ok(Node::Super(1, Box::new(Node::Str(String::from("foo"))))));
+  test_parse("..foo", &parse_super, Ok(Node::Super(2, Box::new(Node::Str(String::from("foo"))))));
+}
+
+#[test]
 fn test_fn_args() {
   test_parse("()", &parse_fn_args, Ok(Vec::new()));
   test_parse(

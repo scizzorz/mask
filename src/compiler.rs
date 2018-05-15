@@ -87,7 +87,7 @@ impl Compiler {
       Node::Super(count, ref x) => {
         self.compile_aux(x, block)?;
         block.push(Instr::PushScope);
-        for _ in 0..(count + 1) {
+        for _ in 0..count {
           block.push(Instr::UnOp(Token::Mul));
         }
         block.push(Instr::Get);
@@ -323,7 +323,7 @@ impl Compiler {
       Node::Super(count, ref rhs) => {
         self.compile_aux(rhs, block)?;
         block.push(Instr::PushScope);
-        for _ in 0..(count + 1) {
+        for _ in 0..count {
           block.push(Instr::UnOp(Token::Mul));
         }
       }

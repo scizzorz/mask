@@ -413,7 +413,6 @@ fn parse_super(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
       Token::Dot => {
-        it.next();
         let mut count: usize = 0;
         while use_token(it, Token::Dot) {
           count += 1;
