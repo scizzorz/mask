@@ -31,6 +31,10 @@ impl SemChecker {
         self.check(bx)?;
       }
 
+      Node::FuncDef{ref mut body, params: _} => {
+        self.check(body)?;
+      },
+
       Node::Block(ref mut ls) => for mut n in ls {
         self.check(&mut n)?;
       },
@@ -47,8 +51,9 @@ impl SemChecker {
 
       Node::While {
         ref mut body,
-        expr: _,
+        ref mut expr,
       } => {
+        self.check(expr)?;
         self.in_loop = true;
         self.check(body)?;
         self.in_loop = false;
@@ -64,14 +69,24 @@ impl SemChecker {
         self.in_loop = false;
       }
 
+      Node::If {
+        ref mut cond,
+        ref mut body,
+        els: _,
+      } => {
+        self.check(cond)?;
+        self.check(body)?;
+      }
+
       Node::Break | Node::Continue => {
         if !self.in_loop {
           return Err(CheckErrorKind::NotInLoop);
         }
       }
 
-      Node::Assn { rhs: _, ref lhs } => {
+      Node::Assn { ref lhs, ref mut rhs } => {
         self.check_place(lhs)?;
+        self.check(rhs)?;
       }
 
       // TODO add if-elif-else checks
