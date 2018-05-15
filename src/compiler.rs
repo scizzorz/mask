@@ -320,6 +320,13 @@ impl Compiler {
         self.compile_aux(rhs, block)?;
         self.compile_aux(lhs, block)?;
       }
+      Node::Super(count, ref rhs) => {
+        self.compile_aux(rhs, block)?;
+        block.push(Instr::PushScope);
+        for _ in 0..(count + 1) {
+          block.push(Instr::UnOp(Token::Mul));
+        }
+      }
       _ => {}
     }
     Ok(())

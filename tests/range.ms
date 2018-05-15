@@ -4,7 +4,7 @@ range = fn(max)
   f = fn()
     tmp = cur
     if cur < max
-      (*local).cur = cur + 1
+      .cur = cur + 1
       return tmp
 
   return f

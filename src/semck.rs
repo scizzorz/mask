@@ -111,7 +111,7 @@ impl SemChecker {
 
   fn is_place(&self, node: &Node) -> Check {
     match *node {
-      Node::Name(_) | Node::Index { lhs: _, rhs: _ } => Ok(()),
+      Node::Name(_) | Node::Index { lhs: _, rhs: _ } | Node::Super(_, _) => Ok(()),
       _ => Err(CheckErrorKind::NotPlace),
     }
   }
