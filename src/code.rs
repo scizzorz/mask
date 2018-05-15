@@ -23,6 +23,7 @@ pub enum Instr {
   Pop,
   Print,
   PushConst(usize),
+  PushFunc(usize),
   PushScope,
   Return,
   Returnable(Vec<Instr>),

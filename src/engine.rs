@@ -1,8 +1,8 @@
+use code::Instr;
+use codemap::CodeMap;
 use data::Const;
 use data::Data;
-use code::Instr;
 use data::Item;
-use codemap::CodeMap;
 use float;
 use float_base;
 use int;
@@ -11,9 +11,11 @@ use module::Module;
 use module::ModuleErrorKind;
 use serde_yaml;
 use std::mem;
+use std::rc::Rc;
 
 struct RuntimeModule {
   pub scope: Item,
+  pub func_offset: usize,
 }
 
 impl RuntimeModule {
@@ -23,6 +25,7 @@ impl RuntimeModule {
         val: Data::new_table(),
         sup: None,
       },
+      func_offset: 0,
     }
   }
 }
@@ -30,7 +33,7 @@ impl RuntimeModule {
 pub struct Engine {
   pub map: CodeMap,
   mods: Vec<RuntimeModule>,
-  funcs: Vec<Instr>,
+  funcs: Vec<Rc<Instr>>,
   data_stack: Vec<Item>,
 }
 
@@ -79,6 +82,10 @@ impl Engine {
     };
 
     let mut runtime = RuntimeModule::new();
+    runtime.func_offset = self.funcs.len();
+    for x in &module.funcs {
+      self.funcs.push(Rc::new(x.clone()));
+    }
 
     println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
 
@@ -115,12 +122,9 @@ impl Engine {
         self.data_stack.push(runtime.scope.clone());
       }
 
-      Instr::FuncDef(ref body) => {
-        // FIXME someway to prevent pushing the same function twice
-        // eg functions inside functions
-        self.funcs.push(Instr::Returnable(body.clone()));
+      Instr::PushFunc(x) => {
         self.data_stack.push(Item {
-          val: Data::Func(self.funcs.len() - 1),
+          val: Data::Func(runtime.func_offset + x),
           sup: Some(Box::new(Item {
             val: Data::new_table(),
             sup: Some(Box::new(runtime.scope.clone())),
@@ -128,9 +132,6 @@ impl Engine {
         });
       }
 
-      // FIXME cloning this func can't be right, but how
-      // else can self be mutable to add more funcs while
-      // self.funcs[x] is immutable?
       Instr::Call => match self.data_stack.pop() {
         None => return Err(ExecuteErrorKind::EmptyStack),
         Some(func) => match func {

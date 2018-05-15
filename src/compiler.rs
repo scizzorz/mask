@@ -15,6 +15,7 @@ pub enum CompileErrorKind {
 pub struct Compiler {
   pub block: Vec<Instr>,
   pub consts: Vec<Const>,
+  pub funcs: Vec<Instr>,
 }
 
 impl Compiler {
@@ -22,6 +23,7 @@ impl Compiler {
     Compiler {
       block: Vec::new(),
       consts: Vec::new(),
+      funcs: Vec::new(),
     }
   }
 
@@ -242,7 +244,8 @@ impl Compiler {
         self.compile_aux(body, &mut new_block)?;
         let const_id = self.get_const(Const::Null);
         new_block.push(Instr::PushConst(const_id));
-        block.push(Instr::FuncDef(new_block));
+        self.funcs.push(Instr::Returnable(new_block));
+        block.push(Instr::PushFunc(self.funcs.len() - 1));
       }
 
       Node::Return(ref val) => {

@@ -49,6 +49,7 @@ pub struct Module {
   ast_hash: [u8; 8],
   pub code: Vec<Instr>,
   pub consts: Vec<Const>,
+  pub funcs: Vec<Instr>,
 }
 
 impl Module {
@@ -199,6 +200,7 @@ impl Module {
       ast_hash,
       code: compiler.block,
       consts: compiler.consts,
+      funcs: compiler.funcs,
     };
 
     if use_cache {
