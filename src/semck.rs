@@ -1,5 +1,6 @@
 use parser::Node;
 use parser::Place;
+use lexer::Token;
 
 type Check = Result<(), CheckErrorKind>;
 

@@ -120,6 +120,7 @@ pub enum Node {
     val: Box<Node>,
     op: Token,
   },
+  Super(usize, Box<Node>),
 
   // Literals
   Null,
@@ -401,11 +402,31 @@ fn parse_un_expr(it: &mut ParseIter) -> Parse {
           val: Box::new(val),
         })
       }
+      _ => parse_super(it),
+    };
+  }
+
+  Err(UnexpectedEOF)
+}
+
+fn parse_super(it: &mut ParseIter) -> Parse {
+  if let Some(&tok) = it.peek() {
+    return match tok.node {
+      Token::Dot => {
+        it.next();
+        let mut count: usize = 0;
+        while use_token(it, Token::Dot) {
+          count += 1;
+        }
+        let idx = parse_name_as_str(it)?;
+        Ok(Node::Super(count, Box::new(idx)))
+      }
       _ => parse_simple(it),
     };
   }
 
   Err(UnexpectedEOF)
+
 }
 
 /* unused, here for reference

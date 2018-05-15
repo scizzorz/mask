@@ -1,5 +1,6 @@
-use data::Const;
 use code::Instr;
+use data::Const;
+use lexer::Token;
 use parser::Node;
 use parser::Place;
 use parser::Var;
@@ -80,6 +81,15 @@ impl Compiler {
         let const_id = self.get_const(Const::Str(x.clone()));
         block.push(Instr::PushConst(const_id));
         block.push(Instr::PushScope);
+        block.push(Instr::Get);
+      }
+
+      Node::Super(count, ref x) => {
+        self.compile_aux(x, block)?;
+        block.push(Instr::PushScope);
+        for _ in 0..(count + 1) {
+          block.push(Instr::UnOp(Token::Mul));
+        }
         block.push(Instr::Get);
       }
 
