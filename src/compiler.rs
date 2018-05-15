@@ -93,6 +93,10 @@ impl Compiler {
         block.push(Instr::NewTable);
       }
 
+      Node::Local => {
+        block.push(Instr::PushScope);
+      }
+
       Node::Expr(ref bx) => {
         self.compile_aux(bx, block)?;
         block.push(Instr::Pop);

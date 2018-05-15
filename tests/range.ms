@@ -1,11 +1,12 @@
 range = fn(max)
   cur = 0
+
   f = fn()
     tmp = cur
-    if cur >= max
-      return
-    f.cur = cur + 1
-    return tmp
+    if cur < max
+      (*local).cur = cur + 1
+      return tmp
+
   return f
 
 r = range(5)

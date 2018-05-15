@@ -130,6 +130,7 @@ pub enum Node {
   Str(String),
   Name(String),
   Table,
+  Local,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -586,6 +587,10 @@ fn parse_quark(it: &mut ParseIter) -> Parse {
       Token::Table => {
         it.next();
         Ok(Node::Table)
+      }
+      Token::Local => {
+        it.next();
+        Ok(Node::Local)
       }
       ref x => Err(UnexpectedToken(x.clone())),
     };
