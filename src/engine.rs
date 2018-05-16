@@ -241,7 +241,7 @@ impl Engine {
           }
         }
         None => return Err(ExecuteErrorKind::EmptyStack),
-      }
+      },
 
       Instr::Truthy => match self.data_stack.pop() {
         Some(x) => {

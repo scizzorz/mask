@@ -433,7 +433,6 @@ fn parse_super(it: &mut ParseIter) -> Parse {
   }
 
   Err(UnexpectedEOF)
-
 }
 
 /* unused, here for reference

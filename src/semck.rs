@@ -31,9 +31,12 @@ impl SemChecker {
         self.check(bx)?;
       }
 
-      Node::FuncDef{ref mut body, params: _} => {
+      Node::FuncDef {
+        ref mut body,
+        params: _,
+      } => {
         self.check(body)?;
-      },
+      }
 
       Node::Block(ref mut ls) => for mut n in ls {
         self.check(&mut n)?;
@@ -84,7 +87,10 @@ impl SemChecker {
         }
       }
 
-      Node::Assn { ref lhs, ref mut rhs } => {
+      Node::Assn {
+        ref lhs,
+        ref mut rhs,
+      } => {
         self.check_place(lhs)?;
         self.check(rhs)?;
       }
