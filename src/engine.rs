@@ -19,22 +19,15 @@ struct RuntimeModule {
 }
 
 impl RuntimeModule {
-  fn new() -> RuntimeModule {
+  fn new(engine: &Engine) -> RuntimeModule {
     RuntimeModule {
       scope: Item {
         val: Data::new_table(),
-        sup: None,
+        sup: Some(Box::new(engine.scope.clone())),
       },
       func_offset: 0,
     }
   }
-}
-
-pub struct Engine {
-  pub map: CodeMap,
-  mods: Vec<RuntimeModule>,
-  funcs: Vec<Rc<Instr>>,
-  data_stack: Vec<Item>,
 }
 
 // this is used as a bit of a control flow hack - `Return` and `Exception`
@@ -66,6 +59,14 @@ pub enum EngineErrorKind {
 
 type Execute = Result<(), ExecuteErrorKind>;
 
+pub struct Engine {
+  pub map: CodeMap,
+  mods: Vec<RuntimeModule>,
+  funcs: Vec<Rc<Instr>>,
+  data_stack: Vec<Item>,
+  scope: Item,
+}
+
 impl Engine {
   pub fn new() -> Engine {
     Engine {
@@ -73,6 +74,10 @@ impl Engine {
       funcs: Vec::new(),
       mods: Vec::new(),
       data_stack: Vec::new(),
+      scope: Item {
+        val: Data::new_table(),
+        sup: None,
+      },
     }
   }
 
@@ -82,7 +87,7 @@ impl Engine {
       Ok(module) => module,
     };
 
-    let mut runtime = RuntimeModule::new();
+    let mut runtime = RuntimeModule::new(self);
     runtime.func_offset = self.funcs.len();
     for x in &module.funcs {
       self.funcs.push(Rc::new(x.clone()));
