@@ -128,6 +128,11 @@ impl Compiler {
         block.push(Instr::Panic);
       }
 
+      Node::Assert { ref expr } => {
+        self.compile_aux(expr, block)?;
+        block.push(Instr::Assert);
+      }
+
       Node::Print { ref expr } => {
         self.compile_aux(expr, block)?;
         block.push(Instr::Print);

@@ -65,6 +65,10 @@ pub enum Node {
     body: Box<Node>,
   },
 
+  Assert {
+    expr: Box<Node>,
+  },
+
   Panic {
     expr: Box<Node>,
   },
@@ -759,6 +763,14 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         it.next();
         let expr = parse_il_expr(it)?;
         Ok(Node::Panic {
+          expr: Box::new(expr),
+        })
+      }
+
+      Token::Assert => {
+        it.next();
+        let expr = parse_il_expr(it)?;
+        Ok(Node::Assert {
           expr: Box::new(expr),
         })
       }

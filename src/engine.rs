@@ -42,6 +42,7 @@ pub struct Engine {
 // to skip a lot of boiler plate code later
 #[derive(Debug)]
 pub enum ExecuteErrorKind {
+  AssertionFailure,
   BadBinOp(Token),
   BadBinOperands,
   BadCmpOp(Token),
@@ -227,6 +228,15 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
       Instr::Panic => return Err(ExecuteErrorKind::Exception),
+
+      Instr::Assert => match self.data_stack.pop() {
+        Some(x) => {
+          if !x.truth() {
+            return Err(ExecuteErrorKind::AssertionFailure);
+          }
+        }
+        None => return Err(ExecuteErrorKind::EmptyStack),
+      }
 
       Instr::Truthy => match self.data_stack.pop() {
         Some(x) => {
