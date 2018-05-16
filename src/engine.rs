@@ -498,3 +498,7 @@ impl Engine {
     }
   }
 }
+
+#[cfg(test)]
+#[path = "./tests/engine.rs"]
+mod tests;
