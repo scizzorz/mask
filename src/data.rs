@@ -14,7 +14,7 @@ pub enum Data {
   Int(int),
   Float(#[unsafe_ignore_trace] float),
   Bool(bool),
-  Str(String),
+  Str(Gc<String>),
   Func(usize), // FIXME
   Table(Table),
 }
@@ -43,7 +43,7 @@ impl Data {
       Data::Int(x) => Const::Int(x),
       Data::Float(x) => Const::Float(x),
       Data::Bool(x) => Const::Bool(x),
-      Data::Str(ref x) => Const::Str(x.clone()),
+      Data::Str(ref x) => Const::Str((**x).clone()),
       _ => Const::Null,
     }
   }
@@ -86,7 +86,7 @@ impl Data {
       Data::Int(x) => format!("{}", x),
       Data::Float(x) => format!("{}", x),
       Data::Bool(x) => format!("{}", x),
-      Data::Str(ref x) => x.clone(),
+      Data::Str(ref x) => (**x).clone(),
       Data::Func(x) => format!("func[{}]", x),
       Data::Table(_) => String::from("table"),
     }
@@ -152,7 +152,7 @@ impl Const {
       Const::Int(x) => Data::Int(x),
       Const::Float(x) => Data::Float(x),
       Const::Bool(x) => Data::Bool(x),
-      Const::Str(x) => Data::Str(x),
+      Const::Str(x) => Data::Str(Gc::new(x)),
     }
   }
 
@@ -162,7 +162,7 @@ impl Const {
       Const::Int(x) => Data::Int(x),
       Const::Float(x) => Data::Float(x),
       Const::Bool(x) => Data::Bool(x),
-      Const::Str(ref x) => Data::Str(x.clone()),
+      Const::Str(ref x) => Data::Str(Gc::new(x.clone())),
     }
   }
 

@@ -321,7 +321,7 @@ impl Engine {
         if *op == Token::Dol {
           let mut ret = lhs.to_string();
           ret.push_str(&rhs.to_string());
-          let ret = Data::Str(ret).into_item();
+          let ret = Const::Str(ret).into_item();
           self.data_stack.push(ret);
           return Ok(());
         }
