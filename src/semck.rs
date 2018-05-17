@@ -99,6 +99,35 @@ impl SemChecker {
       _ => {}
     }
 
+    match *node {
+      Node::If {
+        cond: _,
+        body: _,
+        els: _,
+      } => {
+        self.has_if = true;
+      }
+      Node::ElseIf {
+        cond: _,
+        body: _,
+      } => {
+        if !self.has_if {
+          return Err(CheckErrorKind::MissingIf);
+        }
+      }
+      Node::Else {
+        body: _,
+      } => {
+        if !self.has_if {
+          return Err(CheckErrorKind::MissingIf);
+        }
+      }
+      _ => {
+        self.has_if = false;
+      }
+    }
+
+
     Ok(())
   }
 
