@@ -255,6 +255,23 @@ impl Compiler {
         }
       }
 
+      Node::Else {
+        ref body,
+      } => {
+        let else_block = self.compile_block(body)?;
+        match block.pop() {
+          Some(instr) => {
+            match instr {
+              Instr::If(if_block) => {
+                block.push(Instr::IfElse(if_block, else_block));
+              }
+              x => block.push(x),
+            }
+          }
+          None => return Err(CompileErrorKind::MissingCurrentBlock),
+        }
+      }
+
       Node::FuncDef {
         ref params,
         ref body,
