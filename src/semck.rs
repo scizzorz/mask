@@ -1,6 +1,5 @@
 use parser::Node;
 use parser::Place;
-use lexer::Token;
 
 type Check = Result<(), CheckErrorKind>;
 
@@ -14,14 +13,12 @@ pub enum CheckErrorKind {
 #[derive(Debug, Clone)]
 pub struct SemChecker {
   in_loop: bool,
-  has_if: bool,
 }
 
 impl SemChecker {
   pub fn new() -> SemChecker {
     SemChecker {
       in_loop: false,
-      has_if: false,
     }
   }
 
@@ -38,8 +35,12 @@ impl SemChecker {
         self.check(body)?;
       }
 
-      Node::Block(ref mut ls) => for mut n in ls {
-        self.check(&mut n)?;
+      Node::Block(ref mut ls) => {
+        self.check_ifs(ls)?;
+
+        for mut n in ls {
+          self.check(&mut n)?;
+        }
       },
 
       Node::Catch { ref mut body } => {
@@ -99,34 +100,42 @@ impl SemChecker {
       _ => {}
     }
 
-    match *node {
-      Node::If {
-        cond: _,
-        body: _,
-        els: _,
-      } => {
-        self.has_if = true;
-      }
-      Node::ElseIf {
-        cond: _,
-        body: _,
-      } => {
-        if !self.has_if {
-          return Err(CheckErrorKind::MissingIf);
+
+    Ok(())
+  }
+
+  fn check_ifs(&self, body: &Vec<Node>) -> Check {
+    let mut has_if = false;
+
+    for n in body {
+      match *n {
+        Node::If {
+          cond: _,
+          body: _,
+          els: _,
+        } => {
+          has_if = true;
         }
-      }
-      Node::Else {
-        body: _,
-      } => {
-        if !self.has_if {
-          return Err(CheckErrorKind::MissingIf);
+        Node::ElseIf {
+          cond: _,
+          body: _,
+        } => {
+          if !has_if {
+            return Err(CheckErrorKind::MissingIf);
+          }
         }
-      }
-      _ => {
-        self.has_if = false;
+        Node::Else {
+          body: _,
+        } => {
+          if !has_if {
+            return Err(CheckErrorKind::MissingIf);
+          }
+        }
+        _ => {
+          has_if = false;
+        }
       }
     }
-
 
     Ok(())
   }
