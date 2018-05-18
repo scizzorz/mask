@@ -147,11 +147,23 @@ impl Data {
 impl Hash for Data {
   fn hash<H: Hasher>(&self, state: &mut H) {
     match *self {
-      Data::Table(ref _x) => {
-        (0).hash(state); // FIXME LOOOOOL
+      Data::Table(ref x) => {
+        let addr = unsafe {
+          mem::transmute::<_, u64>(x)
+        };
+        addr.hash(state);
+      }
+      Data::Func(x) => {
+        ((x + 0x6d) * 0x61736b).hash(state);
+      }
+      Data::Rust(ref x) => {
+        let addr = unsafe {
+          mem::transmute::<_, u128>(x.0)
+        };
+        addr.hash(state);
       }
       Data::Null => {
-        (0).hash(state); // FIXME
+        (0).hash(state); // FIXME?
       }
       Data::Int(x) => {
         x.hash(state);
@@ -164,9 +176,6 @@ impl Hash for Data {
       }
       Data::Str(ref x) => {
         x.hash(state);
-      }
-      _ => {
-        (0).hash(state); // FIXME
       }
     }
   }
