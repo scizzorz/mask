@@ -8,6 +8,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::hash::Hash;
 use std::hash::Hasher;
+use std::mem;
 
 type Table = Gc<GcCell<HashMap<Data, Item>>>;
 
@@ -16,13 +17,22 @@ pub struct RustFunc(pub &'static Fn(&mut Engine) -> Execute);
 
 impl fmt::Debug for RustFunc {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    write!(f, "rustfunc")
+    let addr = unsafe {
+      mem::transmute::<_, u128>(self.0)
+    };
+    write!(f, "{:x}", addr)
   }
 }
 
 impl PartialEq for RustFunc {
   fn eq(&self, other: &RustFunc) -> bool {
-    false // FIXME
+    let (self_addr, other_addr) = unsafe {
+      (
+        mem::transmute::<_, u128>(self.0),
+        mem::transmute::<_, u128>(other.0),
+        )
+    };
+    self_addr == other_addr
   }
 }
 
@@ -109,8 +119,13 @@ impl Data {
       Data::Bool(x) => format!("{}", x),
       Data::Str(ref x) => (**x).clone(),
       Data::Func(x) => format!("func[{}]", x),
-      Data::Table(_) => String::from("table"),
-      Data::Rust(_) => String::from("rust"),
+      Data::Table(ref x) => {
+        let addr = unsafe {
+          mem::transmute::<_, u64>(x)
+        };
+        format!("table[{:x}]", addr)
+      },
+      Data::Rust(ref x) => format!("rustfunc[{:?}]", x),
     }
   }
 
