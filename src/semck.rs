@@ -1,5 +1,6 @@
 use parser::Node;
 use parser::Place;
+use std::mem;
 
 type Check = Result<(), CheckErrorKind>;
 
@@ -110,40 +111,96 @@ impl SemChecker {
       _ => {}
     }
 
-
     Ok(())
   }
 
-  fn check_ifs(&self, body: &Vec<Node>) -> Check {
+  fn insert_else(&self, node: &mut Node, new_else: Node) {
+    if let Node::If {
+      cond: _,
+      body: _,
+      ref mut els,
+    } = node
+    {
+      if els.is_none() {
+        *els = Some(Box::new(new_else));
+      } else {
+        self.insert_else(els.as_mut().unwrap(), new_else);
+      }
+    }
+  }
+
+  fn check_ifs(&self, block: &mut Vec<Node>) -> Check {
+    let mut old_block = Vec::new();
+    mem::swap(&mut old_block, block);
+
     let mut has_if = false;
 
-    for n in body {
-      match *n {
+    for n in old_block {
+      match n {
         Node::If {
           cond: _,
           body: _,
           els: _,
         } => {
           has_if = true;
+          block.push(n);
         }
-        Node::ElseIf {
-          cond: _,
-          body: _,
-        } => {
+
+        Node::ElseIf { ref cond, ref body } => {
           if !has_if {
+            println!("panicking because has_if false in else_if");
             return Err(CheckErrorKind::MissingIf);
           }
-        }
-        Node::Else {
-          body: _,
-        } => {
-          if !has_if {
-            return Err(CheckErrorKind::MissingIf);
+
+          let mut popped = block.pop();
+          match popped {
+            Some(Node::If {
+              cond: _,
+              body: _,
+              els: _,
+            }) => {
+              let mut unwrapped = popped.unwrap();
+
+              self.insert_else(
+                &mut unwrapped,
+                Node::If {
+                  cond: cond.clone(),
+                  body: body.clone(),
+                  els: None,
+                },
+              );
+
+              block.push(unwrapped);
+            }
+            _ => return Err(CheckErrorKind::MissingIf),
           }
         }
-        _ => {
+
+        Node::Else { ref body } => {
+          if !has_if {
+            println!("panicking because has_if false in else");
+            return Err(CheckErrorKind::MissingIf);
+          }
+
           has_if = false;
+
+          let mut popped = block.pop();
+          match popped {
+            Some(Node::If {
+              cond: _,
+              body: _,
+              els: _,
+            }) => {
+              let mut unwrapped = popped.unwrap();
+
+              self.insert_else(&mut unwrapped, (**body).clone());
+
+              block.push(unwrapped);
+            }
+            _ => return Err(CheckErrorKind::MissingIf),
+          }
         }
+        x => block.push(x),
       }
     }
 
