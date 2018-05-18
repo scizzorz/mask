@@ -10,15 +10,10 @@ use int;
 use lexer::Token;
 use module::Module;
 use module::ModuleErrorKind;
+use prelude;
 use serde_yaml;
 use std::mem;
 use std::rc::Rc;
-
-pub fn std_print_func(engine: &mut Engine) -> Execute {
-  println!(":)");
-  engine.data_stack.push(Const::Null.into_item());
-  Ok(())
-}
 
 struct RuntimeModule {
   pub scope: Item,
@@ -70,13 +65,13 @@ pub struct Engine {
   pub map: CodeMap,
   mods: Vec<RuntimeModule>,
   funcs: Vec<Rc<Instr>>,
-  data_stack: Vec<Item>,
+  pub data_stack: Vec<Item>,
   scope: Item,
 }
 
 impl Engine {
   pub fn new() -> Engine {
-    Engine {
+    let mut ret = Engine {
       map: CodeMap::new(),
       funcs: Vec::new(),
       mods: Vec::new(),
@@ -85,7 +80,11 @@ impl Engine {
         val: Data::new_table(),
         sup: None,
       },
-    }
+    };
+
+    prelude::insert_prelude(&mut ret.scope);
+
+    ret
   }
 
   pub fn import(&mut self, filename: &str) -> Result<(()), EngineErrorKind> {
