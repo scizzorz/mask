@@ -1,12 +1,32 @@
+use engine::Engine;
+use engine::Execute;
 use float;
 use gc::Gc;
 use gc::GcCell;
 use int;
 use std::collections::HashMap;
+use std::fmt;
 use std::hash::Hash;
 use std::hash::Hasher;
 
 type Table = Gc<GcCell<HashMap<Data, Item>>>;
+
+#[derive(Clone)]
+pub struct RustFunc(pub &'static Fn(&mut Engine) -> Execute);
+
+impl fmt::Debug for RustFunc {
+  fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    write!(f, "rustfunc")
+  }
+}
+
+impl PartialEq for RustFunc {
+  fn eq(&self, other: &RustFunc) -> bool {
+    false // FIXME
+  }
+}
+
+impl Eq for RustFunc {}
 
 #[derive(Debug, PartialEq, Eq, Clone, Trace, Finalize)]
 pub enum Data {
@@ -15,7 +35,8 @@ pub enum Data {
   Float(#[unsafe_ignore_trace] float),
   Bool(bool),
   Str(Gc<String>),
-  Func(usize), // FIXME
+  Func(usize),
+  Rust(#[unsafe_ignore_trace] RustFunc),
   Table(Table),
 }
 
@@ -89,6 +110,7 @@ impl Data {
       Data::Str(ref x) => (**x).clone(),
       Data::Func(x) => format!("func[{}]", x),
       Data::Table(_) => String::from("table"),
+      Data::Rust(_) => String::from("rust"),
     }
   }
 

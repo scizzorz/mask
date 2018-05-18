@@ -3,6 +3,7 @@ use codemap::CodeMap;
 use data::Const;
 use data::Data;
 use data::Item;
+use data::RustFunc;
 use float;
 use float_base;
 use int;
@@ -12,6 +13,12 @@ use module::ModuleErrorKind;
 use serde_yaml;
 use std::mem;
 use std::rc::Rc;
+
+pub fn std_print_func(engine: &mut Engine) -> Execute {
+  println!(":)");
+  engine.data_stack.push(Const::Null.into_item());
+  Ok(())
+}
 
 struct RuntimeModule {
   pub scope: Item,
@@ -57,7 +64,7 @@ pub enum EngineErrorKind {
   ExecuteError(ExecuteErrorKind),
 }
 
-type Execute = Result<(), ExecuteErrorKind>;
+pub type Execute = Result<(), ExecuteErrorKind>;
 
 pub struct Engine {
   pub map: CodeMap,
@@ -94,6 +101,10 @@ impl Engine {
     }
 
     println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
+    let print_key = Const::Str(String::from("echo")).into_data();
+    let print_func = Data::Rust(RustFunc(&std_print_func)).into_item();
+
+    self.scope.set_key(print_key, print_func);
 
     match self.ex_many(&module, &mut runtime, &module.code) {
       Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
@@ -160,6 +171,12 @@ impl Engine {
           } => {
             let func = self.funcs[val].clone();
             self.ex(module, runtime, &func)?;
+          }
+          Item {
+            val: Data::Rust(ref callable),
+            sup: _,
+          } => {
+            callable.0(self)?;
           }
           _ => return Err(ExecuteErrorKind::NotCallable),
         },
