@@ -69,10 +69,6 @@ pub enum Node {
     expr: Box<Node>,
   },
 
-  Panic {
-    expr: Box<Node>,
-  },
-
   While {
     expr: Box<Node>,
     body: Box<Node>,
@@ -751,14 +747,6 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
           decl: decl,
           expr: Box::new(expr),
           body: Box::new(body),
-        })
-      }
-
-      Token::Panic => {
-        it.next();
-        let expr = parse_il_expr(it)?;
-        Ok(Node::Panic {
-          expr: Box::new(expr),
         })
       }
 

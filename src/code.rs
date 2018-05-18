@@ -24,7 +24,6 @@ pub enum Instr {
   NewTable,
   Nop,
   Nully,
-  Panic,
   Pop,
   PushConst(usize),
   PushFunc(usize),

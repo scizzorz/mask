@@ -17,9 +17,19 @@ pub fn print_func(engine: &mut Engine) -> Execute {
   Ok(())
 }
 
-pub fn insert_prelude(scope: &mut Item) {
-  let print_key = Const::Str(String::from("print")).into_data();
-  let print_func = Data::Rust(RustFunc(&print_func)).into_item();
+pub fn panic_func(_: &mut Engine) -> Execute {
+  return Err(ExecuteErrorKind::Exception);
+}
 
-  scope.set_key(print_key, print_func);
+fn insert_item(scope: &mut Item, key: &str, val: Item) {
+  scope.set_key(Const::Str(String::from(key)).into_data(), val);
+}
+
+fn insert_data(scope: &mut Item, key: &str, val: Data) {
+  insert_item(scope, key, val.into_item());
+}
+
+pub fn insert_prelude(scope: &mut Item) {
+  insert_data(scope, "print", Data::Rust(RustFunc(&print_func)));
+  insert_data(scope, "panic", Data::Rust(RustFunc(&panic_func)));
 }

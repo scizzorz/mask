@@ -123,11 +123,6 @@ impl Compiler {
         block.push(Instr::Catch(new_block));
       }
 
-      Node::Panic { ref expr } => {
-        self.compile_aux(expr, block)?;
-        block.push(Instr::Panic);
-      }
-
       Node::Assert { ref expr } => {
         self.compile_aux(expr, block)?;
         block.push(Instr::Assert);

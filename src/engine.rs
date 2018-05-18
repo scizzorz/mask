@@ -240,8 +240,6 @@ impl Engine {
 
       Instr::Nop => {}
 
-      Instr::Panic => return Err(ExecuteErrorKind::Exception),
-
       Instr::Assert => match self.data_stack.pop() {
         Some(x) => {
           if !x.truth() {
