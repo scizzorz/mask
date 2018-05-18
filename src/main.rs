@@ -6,14 +6,14 @@ extern crate serde_yaml;
 use clap::App;
 use clap::Arg;
 use mask::engine;
-use mask::lexer::Token;
 use mask::lexer;
+use mask::lexer::Token;
 use mask::module;
-use mask::parser::ParseErrorKind;
 use mask::parser;
+use mask::parser::ParseErrorKind;
+use std::io;
 use std::io::Write;
 use std::io::prelude::*;
-use std::io;
 
 fn print_module(module: &module::Module) {
   println!("YAML: {}", serde_yaml::to_string(&module).unwrap());

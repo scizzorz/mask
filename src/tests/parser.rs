@@ -1,9 +1,9 @@
-use super::*;
 use super::super::lexer;
+use super::*;
 use codemap::CodeMap;
 use codemap::Spanned;
-use std::fmt::Debug;
 use std::cmp::PartialEq;
+use std::fmt::Debug;
 
 fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   let mut map = CodeMap::new();

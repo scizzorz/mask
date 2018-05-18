@@ -1,6 +1,6 @@
 use super::*;
-use codemap::Spanned;
 use codemap::CodeMap;
+use codemap::Spanned;
 
 fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   let mut map = CodeMap::new();

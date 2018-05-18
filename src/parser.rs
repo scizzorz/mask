@@ -1,9 +1,9 @@
-use float;
-use int;
+use self::ParseErrorKind::*;
 use codemap::Span;
 use codemap::Spanned;
+use float;
+use int;
 use lexer::Token;
-use self::ParseErrorKind::*;
 use std::iter::Peekable;
 use std::slice::Iter;
 

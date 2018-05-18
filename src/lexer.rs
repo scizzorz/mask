@@ -1,8 +1,8 @@
-use float;
-use int;
+use self::Token::*;
 use codemap::File;
 use codemap::Spanned;
-use self::Token::*;
+use float;
+use int;
 use std::iter::Enumerate;
 use std::iter::Peekable;
 use std::str::Chars;

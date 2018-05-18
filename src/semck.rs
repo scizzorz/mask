@@ -17,9 +17,7 @@ pub struct SemChecker {
 
 impl SemChecker {
   pub fn new() -> SemChecker {
-    SemChecker {
-      in_loop: false,
-    }
+    SemChecker { in_loop: false }
   }
 
   pub fn check(&mut self, node: &mut Node) -> Check {
@@ -41,7 +39,7 @@ impl SemChecker {
         for mut n in ls {
           self.check(&mut n)?;
         }
-      },
+      }
 
       Node::Catch { ref mut body } => {
         self.check(body)?;
@@ -79,6 +77,18 @@ impl SemChecker {
         els: _,
       } => {
         self.check(cond)?;
+        self.check(body)?;
+      }
+
+      Node::ElseIf {
+        ref mut cond,
+        ref mut body,
+      } => {
+        self.check(cond)?;
+        self.check(body)?;
+      }
+
+      Node::Else { ref mut body } => {
         self.check(body)?;
       }
 
