@@ -26,7 +26,6 @@ pub enum Instr {
   Nully,
   Panic,
   Pop,
-  Print,
   PushConst(usize),
   PushFunc(usize),
   PushScope,

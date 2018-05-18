@@ -73,10 +73,6 @@ pub enum Node {
     expr: Box<Node>,
   },
 
-  Print {
-    expr: Box<Node>,
-  },
-
   While {
     expr: Box<Node>,
     body: Box<Node>,
@@ -770,14 +766,6 @@ fn parse_stmt(it: &mut ParseIter) -> Parse {
         it.next();
         let expr = parse_il_expr(it)?;
         Ok(Node::Assert {
-          expr: Box::new(expr),
-        })
-      }
-
-      Token::Print => {
-        it.next();
-        let expr = parse_il_expr(it)?;
-        Ok(Node::Print {
           expr: Box::new(expr),
         })
       }

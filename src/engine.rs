@@ -100,10 +100,6 @@ impl Engine {
     }
 
     println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
-    let print_key = Const::Str(String::from("echo")).into_data();
-    let print_func = Data::Rust(RustFunc(&std_print_func)).into_item();
-
-    self.scope.set_key(print_key, print_func);
 
     match self.ex_many(&module, &mut runtime, &module.code) {
       Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
@@ -244,10 +240,6 @@ impl Engine {
 
       Instr::Nop => {}
 
-      Instr::Print => match self.data_stack.pop() {
-        Some(x) => println!("{}", x.to_string()),
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
       Instr::Panic => return Err(ExecuteErrorKind::Exception),
 
       Instr::Assert => match self.data_stack.pop() {
