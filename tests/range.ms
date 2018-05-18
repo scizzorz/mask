@@ -12,10 +12,10 @@ range = fn(max)
 r = range(5)
 
 for x in r
-  print x
+  print(x)
 
 r.cur = 10
 r.max = 15
 
 for x in r
-  print x
+  print(x)

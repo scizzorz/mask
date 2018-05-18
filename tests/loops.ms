@@ -1,9 +1,9 @@
 i = 0
 while i < 10
-  print i
+  print(i)
   i = i + 1
 
-print '---'
+print('---')
 loop
   i = i + 1
 
@@ -14,5 +14,5 @@ loop
     break
 
   if i < 20 or 30 < i < 35
-    print i
+    print(i)
 

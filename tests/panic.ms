@@ -1,12 +1,12 @@
 f = fn()
-  panic 5
+  panic(5)
 
-print 'panic: expecting true'
+print('panic: expecting true')
 x = catch
-  panic true
-print x
+  panic(true)
+print(x)
 
-print 'panic: expecting 5'
+print('panic: expecting 5')
 x = catch
   f()
-print x
+print(x)
