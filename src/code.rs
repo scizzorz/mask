@@ -16,7 +16,6 @@ pub enum Instr {
   Get,
   If(Vec<Instr>),
   IfElse(Vec<Instr>, Vec<Instr>),
-  Instr,
   Jump(isize),
   LogicOp(Token),
   Loop(Vec<Instr>),

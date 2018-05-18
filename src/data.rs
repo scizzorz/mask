@@ -17,9 +17,7 @@ pub struct RustFunc(pub &'static Fn(&mut Engine) -> Execute);
 
 impl fmt::Debug for RustFunc {
   fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-    let addr = unsafe {
-      mem::transmute::<_, u128>(self.0)
-    };
+    let addr = unsafe { mem::transmute::<_, u128>(self.0) };
     write!(f, "{:x}", addr)
   }
 }
@@ -30,7 +28,7 @@ impl PartialEq for RustFunc {
       (
         mem::transmute::<_, u128>(self.0),
         mem::transmute::<_, u128>(other.0),
-        )
+      )
     };
     self_addr == other_addr
   }
@@ -120,11 +118,9 @@ impl Data {
       Data::Str(ref x) => (**x).clone(),
       Data::Func(x) => format!("func[{}]", x),
       Data::Table(ref x) => {
-        let addr = unsafe {
-          mem::transmute::<_, u64>(x.clone())
-        };
+        let addr = unsafe { mem::transmute::<_, u64>(x.clone()) };
         format!("table[{:x}]", addr)
-      },
+      }
       Data::Rust(ref x) => format!("rustfunc[{:?}]", x),
     }
   }
@@ -148,18 +144,14 @@ impl Hash for Data {
   fn hash<H: Hasher>(&self, state: &mut H) {
     match *self {
       Data::Table(ref x) => {
-        let addr = unsafe {
-          mem::transmute::<_, u64>(x.clone())
-        };
+        let addr = unsafe { mem::transmute::<_, u64>(x.clone()) };
         addr.hash(state);
       }
       Data::Func(x) => {
         ((x + 0x6d) * 0x61736b).hash(state);
       }
       Data::Rust(ref x) => {
-        let addr = unsafe {
-          mem::transmute::<_, u128>(x.0)
-        };
+        let addr = unsafe { mem::transmute::<_, u128>(x.0) };
         addr.hash(state);
       }
       Data::Null => {

@@ -1,10 +1,10 @@
-use engine::Engine;
-use engine::Execute;
-use engine::ExecuteErrorKind;
 use data::Const;
 use data::Data;
 use data::Item;
 use data::RustFunc;
+use engine::Engine;
+use engine::Execute;
+use engine::ExecuteErrorKind;
 
 pub fn print_func(engine: &mut Engine) -> Execute {
   match engine.data_stack.pop() {

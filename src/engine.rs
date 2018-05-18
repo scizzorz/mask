@@ -263,44 +263,6 @@ impl Engine {
         None => return Err(ExecuteErrorKind::EmptyStack),
       },
 
-      Instr::If(ref body) => match self.data_stack.pop() {
-        Some(x) => {
-          if x.truth() {
-            self.ex_many(module, runtime, body)?;
-          }
-        }
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
-
-      Instr::IfElse(ref body, ref els) => match self.data_stack.pop() {
-        Some(x) => match x.truth() {
-          true => self.ex_many(module, runtime, body)?,
-          false => self.ex_many(module, runtime, els)?,
-        },
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
-
-      Instr::Loop(ref body) => loop {
-        match self.ex_many(module, runtime, body) {
-          Ok(_) => {}
-          Err(ExecuteErrorKind::Break) => break,
-          Err(ExecuteErrorKind::Continue) => continue,
-          err => return err,
-        }
-      },
-
-      Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
-        Ok(_) => {}
-        Err(ExecuteErrorKind::Return) => {}
-        err => return err,
-      },
-
-      Instr::Catch(ref body) => match self.ex_many(module, runtime, body) {
-        Ok(_) => {}
-        Err(ExecuteErrorKind::Exception) => {}
-        err => return err,
-      },
-
       Instr::BinOp(ref op) => {
         // this should guarantee that we can pop/unwrap twice
         if self.data_stack.len() < 2 {
@@ -383,28 +345,6 @@ impl Engine {
         (None, _) => return Err(ExecuteErrorKind::EmptyStack),
       },
 
-      Instr::Return => {
-        return Err(ExecuteErrorKind::Return);
-      }
-
-      Instr::Break => {
-        return Err(ExecuteErrorKind::Break);
-      }
-
-      Instr::Continue => {
-        return Err(ExecuteErrorKind::Continue);
-      }
-
-      Instr::ForBreak => match self.data_stack.pop() {
-        Some(x) => {
-          if x.null() {
-            return Err(ExecuteErrorKind::Break);
-          }
-          self.data_stack.push(x);
-        }
-        _ => {}
-      },
-
       Instr::CmpOp(ref op, chain) => {
         // this should guarantee that we can pop/unwrap twice
         if self.data_stack.len() < 2 {
@@ -440,6 +380,66 @@ impl Engine {
           }
         }
       }
+
+      Instr::If(ref body) => match self.data_stack.pop() {
+        Some(x) => {
+          if x.truth() {
+            self.ex_many(module, runtime, body)?;
+          }
+        }
+        None => return Err(ExecuteErrorKind::EmptyStack),
+      },
+
+      Instr::IfElse(ref body, ref els) => match self.data_stack.pop() {
+        Some(x) => match x.truth() {
+          true => self.ex_many(module, runtime, body)?,
+          false => self.ex_many(module, runtime, els)?,
+        },
+        None => return Err(ExecuteErrorKind::EmptyStack),
+      },
+
+      Instr::Loop(ref body) => loop {
+        match self.ex_many(module, runtime, body) {
+          Ok(_) => {}
+          Err(ExecuteErrorKind::Break) => break,
+          Err(ExecuteErrorKind::Continue) => continue,
+          err => return err,
+        }
+      },
+
+      Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
+        Ok(_) => {}
+        Err(ExecuteErrorKind::Return) => {}
+        err => return err,
+      },
+
+      Instr::Catch(ref body) => match self.ex_many(module, runtime, body) {
+        Ok(_) => {}
+        Err(ExecuteErrorKind::Exception) => {}
+        err => return err,
+      },
+
+      Instr::Return => {
+        return Err(ExecuteErrorKind::Return);
+      }
+
+      Instr::Break => {
+        return Err(ExecuteErrorKind::Break);
+      }
+
+      Instr::Continue => {
+        return Err(ExecuteErrorKind::Continue);
+      }
+
+      Instr::ForBreak => match self.data_stack.pop() {
+        Some(x) => {
+          if x.null() {
+            return Err(ExecuteErrorKind::Break);
+          }
+          self.data_stack.push(x);
+        }
+        _ => {}
+      },
 
       _ => {
         println!("WARNING: Unable to use instruction: {:?}", instr);
