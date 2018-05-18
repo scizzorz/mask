@@ -148,7 +148,6 @@ impl SemChecker {
 
         Node::ElseIf { ref cond, ref body } => {
           if !has_if {
-            println!("panicking because has_if false in else_if");
             return Err(CheckErrorKind::MissingIf);
           }
 
@@ -178,7 +177,6 @@ impl SemChecker {
 
         Node::Else { ref body } => {
           if !has_if {
-            println!("panicking because has_if false in else");
             return Err(CheckErrorKind::MissingIf);
           }
 
