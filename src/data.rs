@@ -121,7 +121,7 @@ impl Data {
       Data::Func(x) => format!("func[{}]", x),
       Data::Table(ref x) => {
         let addr = unsafe {
-          mem::transmute::<_, u64>(x)
+          mem::transmute::<_, u64>(x.clone())
         };
         format!("table[{:x}]", addr)
       },
@@ -149,7 +149,7 @@ impl Hash for Data {
     match *self {
       Data::Table(ref x) => {
         let addr = unsafe {
-          mem::transmute::<_, u64>(x)
+          mem::transmute::<_, u64>(x.clone())
         };
         addr.hash(state);
       }
@@ -236,6 +236,7 @@ impl Item {
     self.val.null()
   }
 
+  // FIXME something goes wrong here when using a table as a key
   pub fn set_key(&mut self, key: Data, val: Item) {
     if self.val.can_set_key() {
       self.val.set_key(key, val);
