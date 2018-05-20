@@ -40,7 +40,9 @@ impl Compiler {
   }
 
   pub fn compile(&mut self, root: &Node) -> Compile {
+    let const_id = self.get_const(Const::Null);
     self.block = self.compile_block(root)?;
+    self.block.push(Instr::PushConst(const_id));
     Ok(())
   }
 

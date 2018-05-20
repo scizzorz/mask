@@ -38,6 +38,7 @@ impl RuntimeModule {
 #[derive(Debug)]
 pub enum ExecuteErrorKind {
   AssertionFailure,
+  BadArguments,
   BadBinOp(Token),
   BadBinOperands,
   BadCmpOp(Token),
@@ -51,6 +52,7 @@ pub enum ExecuteErrorKind {
   Exception,
   NotCallable,
   Return,
+  Other,
 }
 
 #[derive(Debug)]
@@ -99,11 +101,12 @@ impl Engine {
       self.funcs.push(Rc::new(x.clone()));
     }
 
-    println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
+    // println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
 
     match self.ex_many(&module, &mut runtime, &module.code) {
-      Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
       Ok(_) => {}
+      Err(ExecuteErrorKind::Return) => {}
+      Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
     }
 
     //self.mods.push(module);
@@ -124,7 +127,13 @@ impl Engine {
   }
 
   fn ex(&mut self, module: &Module, runtime: &mut RuntimeModule, instr: &Instr) -> Execute {
-    // println!("executing {:?} on {:?}", instr, self.data_stack);
+    /*
+    println!("EXECUTE {:?}", instr);
+    for item in self.data_stack.iter().rev() {
+      println!("  {}", item.to_string());
+    }
+    */
+
     match *instr {
       Instr::PushConst(x) => {
         self.data_stack.push(module.consts[x].to_item());
