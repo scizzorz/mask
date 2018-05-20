@@ -37,13 +37,8 @@ impl RuntimeModule {
 pub enum ExecuteErrorKind {
   AssertionFailure,
   BadArguments,
-  BadBinOp(Token),
-  BadBinOperands,
-  BadCmpOp(Token),
-  BadCmpOperands,
-  BadLogicOp(Token),
-  BadUnOp(Token),
-  BadUnOperand,
+  BadOperator(Token),
+  BadOperand,
   Break,
   Continue,
   EmptyStack,
@@ -303,7 +298,7 @@ impl Engine {
             let data = Engine::ex_bin_float(op, x, y)?;
             self.data_stack.push(Data::Float(data).into_item());
           }
-          _ => return Err(ExecuteErrorKind::BadBinOperands),
+          _ => return Err(ExecuteErrorKind::BadOperand),
         }
       }
 
@@ -316,7 +311,7 @@ impl Engine {
             self.data_stack.push(Const::Null.to_item());
           }
         },
-        (Some(_), op) => return Err(ExecuteErrorKind::BadUnOp(op.clone())),
+        (Some(_), op) => return Err(ExecuteErrorKind::BadOperator(op.clone())),
         (None, _) => return Err(ExecuteErrorKind::EmptyStack),
       },
 
@@ -333,7 +328,7 @@ impl Engine {
             return Err(ExecuteErrorKind::Return);
           }
         }
-        (Some(_), op) => return Err(ExecuteErrorKind::BadLogicOp(op.clone())),
+        (Some(_), op) => return Err(ExecuteErrorKind::BadOperator(op.clone())),
         (None, _) => return Err(ExecuteErrorKind::EmptyStack),
       },
 
@@ -356,7 +351,7 @@ impl Engine {
           }
           (&Data::Float(x), &Data::Float(y)) => Engine::ex_cmp_float(op, x, y)?,
           (&Data::Bool(x), &Data::Bool(y)) => Engine::ex_cmp_bool(op, x, y)?,
-          _ => return Err(ExecuteErrorKind::BadCmpOperands),
+          _ => return Err(ExecuteErrorKind::BadOperand),
         };
 
         match (chain, result) {
@@ -447,7 +442,7 @@ impl Engine {
       Token::Sub => Ok(x - y),
       Token::Mul => Ok(x * y),
       Token::Div => Ok(x / y),
-      _ => Err(ExecuteErrorKind::BadBinOp(op.clone())),
+      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
     }
   }
 
@@ -459,7 +454,7 @@ impl Engine {
       Token::Ge => Ok(x >= y),
       Token::Eql => Ok(x == y),
       Token::Ne => Ok(x != y),
-      _ => Err(ExecuteErrorKind::BadCmpOp(op.clone())),
+      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
     }
   }
 
@@ -471,7 +466,7 @@ impl Engine {
       Token::Sub => Ok(float::from(x - y)),
       Token::Mul => Ok(float::from(x * y)),
       Token::Div => Ok(float::from(x / y)),
-      _ => Err(ExecuteErrorKind::BadBinOp(op.clone())),
+      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
     }
   }
 
@@ -483,7 +478,7 @@ impl Engine {
       Token::Ge => Ok(x >= y),
       Token::Eql => Ok(x == y),
       Token::Ne => Ok(x != y),
-      _ => Err(ExecuteErrorKind::BadCmpOp(op.clone())),
+      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
     }
   }
 
@@ -491,8 +486,8 @@ impl Engine {
     match *op {
       Token::Eql => Ok(x == y),
       Token::Ne => Ok(x != y),
-      Token::Lt | Token::Le | Token::Gt | Token::Ge => Err(ExecuteErrorKind::BadCmpOperands),
-      _ => Err(ExecuteErrorKind::BadCmpOp(op.clone())),
+      Token::Lt | Token::Le | Token::Gt | Token::Ge => Err(ExecuteErrorKind::BadOperand),
+      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
     }
   }
 }
