@@ -40,7 +40,6 @@ fn test_quark() {
   test_parse("2", &parse_quark, Ok(Node::Int(2)));
   test_parse("3", &parse_quark, Ok(Node::Int(3)));
   test_parse("name", &parse_quark, Ok(Node::Name(String::from("name"))));
-  test_parse("table", &parse_quark, Ok(Node::Table));
 }
 
 #[test]

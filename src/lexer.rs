@@ -46,7 +46,6 @@ pub enum Token {
   Pass,
   Return,
   Save,
-  Table,
   Var,
   While,
 
@@ -126,7 +125,6 @@ fn lex_name(it: &mut LexIter) -> Token {
     "true" => Bool(true),
     "false" => Bool(false),
     "null" => Null,
-    "table" => Table,
 
     "and" => And,
     "break" => Break,

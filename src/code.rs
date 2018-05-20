@@ -19,7 +19,6 @@ pub enum Instr {
   LogicOp(Token),
   Loop(Vec<Instr>),
   MethodGet,
-  NewTable,
   Nop,
   Nully,
   Pop,

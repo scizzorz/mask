@@ -1,7 +1,7 @@
-cls = table
+cls = table()
 cls.type = 'Person'
 
-person = table :: cls
+person = table() :: cls
 
 print(cls.type)
 print(person.type)

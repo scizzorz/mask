@@ -186,13 +186,6 @@ impl Engine {
         },
       },
 
-      Instr::NewTable => {
-        self.data_stack.push(Item {
-          val: Data::new_table(),
-          sup: None,
-        });
-      }
-
       Instr::Set => {
         // this should guarantee that we can pop/unwrap thrice
         if self.data_stack.len() < 3 {

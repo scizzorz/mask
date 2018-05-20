@@ -7,6 +7,15 @@ use engine::EngineErrorKind;
 use engine::Execute;
 use engine::ExecuteErrorKind;
 
+pub fn table_func(engine: &mut Engine) -> Execute {
+  engine.data_stack.push(Item {
+    val: Data::new_table(),
+    sup: None,
+  });
+
+  Ok(())
+}
+
 pub fn print_func(engine: &mut Engine) -> Execute {
   match engine.data_stack.pop() {
     Some(x) => println!("{}", x.to_string()),
@@ -70,4 +79,5 @@ pub fn insert_prelude(scope: &mut Item) {
   insert_data(scope, "panic", Data::Rust(RustFunc(&panic_func)));
   insert_data(scope, "assert", Data::Rust(RustFunc(&assert_func)));
   insert_data(scope, "import", Data::Rust(RustFunc(&import_func)));
+  insert_data(scope, "table", Data::Rust(RustFunc(&table_func)));
 }

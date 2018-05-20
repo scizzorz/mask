@@ -1,4 +1,4 @@
-int_mt = table
+int_mt = table()
 int_mt.double = |x| x * 2
 
 six = 6 :: int_mt

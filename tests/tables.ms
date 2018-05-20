@@ -1,4 +1,4 @@
-x = table
+x = table()
 x['name'] = 'John'
 x.age = 25
 

@@ -126,7 +126,6 @@ pub enum Node {
   Int(int),
   Str(String),
   Name(String),
-  Table,
   Local,
 }
 
@@ -598,10 +597,6 @@ fn parse_quark(it: &mut ParseIter) -> Parse {
       Token::Name(ref x) => {
         it.next();
         Ok(Node::Name(x.clone()))
-      }
-      Token::Table => {
-        it.next();
-        Ok(Node::Table)
       }
       Token::Local => {
         it.next();

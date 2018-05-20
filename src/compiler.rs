@@ -101,10 +101,6 @@ impl Compiler {
         block.push(Instr::Get);
       }
 
-      Node::Table => {
-        block.push(Instr::NewTable);
-      }
-
       Node::Local => {
         block.push(Instr::PushScope);
       }
