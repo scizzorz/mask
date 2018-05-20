@@ -32,13 +32,11 @@ pub fn import_func(engine: &mut Engine) -> Execute {
     Some(Item {
       val: Data::Str(ref x),
       sup: _,
-    }) => {
-      match engine.import(x) {
-        Err(EngineErrorKind::ModuleError(_)) => return Err(ExecuteErrorKind::Other),
-        Err(EngineErrorKind::ExecuteError(x)) => return Err(x),
-        Ok(_) => {},
-      }
-    }
+    }) => match engine.import(x) {
+      Err(EngineErrorKind::ModuleError(_)) => return Err(ExecuteErrorKind::Other),
+      Err(EngineErrorKind::ExecuteError(x)) => return Err(x),
+      Ok(_) => {}
+    },
     Some(_) => return Err(ExecuteErrorKind::BadArguments),
     None => return Err(ExecuteErrorKind::EmptyStack),
   }
@@ -64,7 +62,6 @@ pub fn assert_func(engine: &mut Engine) -> Execute {
 pub fn panic_func(_: &mut Engine) -> Execute {
   return Err(ExecuteErrorKind::Exception);
 }
-
 
 fn insert_item(scope: &mut Item, key: &str, val: Item) {
   scope.set_key(Const::Str(String::from(key)).into_data(), val);

@@ -10,7 +10,6 @@ use codemap::File;
 use compiler::CompileErrorKind;
 use compiler::Compiler;
 use data::Const;
-use data::Data;
 use lexer;
 use parser;
 use parser::ParseErrorKind;
@@ -47,6 +46,7 @@ pub struct Module {
   file_hash: [u8; 8],
   lex_hash: [u8; 8],
   ast_hash: [u8; 8],
+  pub name: String,
   pub code: Vec<Instr>,
   pub consts: Vec<Const>,
   pub funcs: Vec<Instr>,
@@ -198,6 +198,7 @@ impl Module {
       file_hash,
       lex_hash,
       ast_hash,
+      name: String::from(file.name()),
       code: compiler.block,
       consts: compiler.consts,
       funcs: compiler.funcs,
