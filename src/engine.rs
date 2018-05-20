@@ -244,20 +244,6 @@ impl Engine {
 
       Instr::Nop => {}
 
-      Instr::Truthy => match self.data_stack.pop() {
-        Some(x) => {
-          self.data_stack.push(Data::Bool(x.truth()).into_item());
-        }
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
-
-      Instr::Nully => match self.data_stack.pop() {
-        Some(x) => {
-          self.data_stack.push(Data::Bool(x.null()).into_item());
-        }
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
-
       Instr::BinOp(ref op) => {
         // this should guarantee that we can pop/unwrap twice
         if self.data_stack.len() < 2 {

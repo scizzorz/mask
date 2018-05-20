@@ -20,7 +20,6 @@ pub enum Instr {
   Loop(Vec<Instr>),
   MethodGet,
   Nop,
-  Nully,
   Pop,
   PushConst(usize),
   PushFunc(usize),
@@ -28,6 +27,5 @@ pub enum Instr {
   Return,
   Returnable(Vec<Instr>),
   Set,
-  Truthy,
   UnOp(Token),
 }
