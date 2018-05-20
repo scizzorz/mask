@@ -32,7 +32,6 @@ pub enum Token {
 
   // Keywords
   And,
-  Assert,
   Break,
   Catch,
   Continue,
@@ -131,7 +130,6 @@ fn lex_name(it: &mut LexIter) -> Token {
     "table" => Table,
 
     "and" => And,
-    "assert" => Assert,
     "break" => Break,
     "catch" => Catch,
     "continue" => Continue,

@@ -240,15 +240,6 @@ impl Engine {
 
       Instr::Nop => {}
 
-      Instr::Assert => match self.data_stack.pop() {
-        Some(x) => {
-          if !x.truth() {
-            return Err(ExecuteErrorKind::AssertionFailure);
-          }
-        }
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
-
       Instr::Truthy => match self.data_stack.pop() {
         Some(x) => {
           self.data_stack.push(Data::Bool(x.truth()).into_item());

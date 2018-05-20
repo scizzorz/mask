@@ -2,7 +2,6 @@ use lexer::Token;
 
 #[derive(Debug, PartialEq, Eq, Clone, Serialize, Deserialize)]
 pub enum Instr {
-  Assert,
   BinOp(Token),
   Block(Vec<Instr>),
   Break,

@@ -123,11 +123,6 @@ impl Compiler {
         block.push(Instr::Catch(new_block));
       }
 
-      Node::Assert { ref expr } => {
-        self.compile_aux(expr, block)?;
-        block.push(Instr::Assert);
-      }
-
       Node::Assn { ref lhs, ref rhs } => {
         if let Place::Single(ref place) = *lhs {
           self.compile_aux(rhs, block)?;
