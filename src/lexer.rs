@@ -45,8 +45,6 @@ pub enum Token {
   Or,
   Pass,
   Return,
-  Save,
-  Var,
   While,
 
   // Symbols
@@ -140,8 +138,6 @@ fn lex_name(it: &mut LexIter) -> Token {
     "or" => Or,
     "pass" => Pass,
     "return" => Return,
-    "save" => Save,
-    "var" => Var,
     "while" => While,
 
     _ => Name(name),

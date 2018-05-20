@@ -53,9 +53,9 @@ multiline' 'and this is unclosed";
 
 #[test]
 fn lex_keywords() {
-  let source = "and break catch continue else for fn if in loop or pass return save var while name true false null";
+  let source = "and break catch continue else for fn if in loop or pass return while name true false null";
   let tokens = get_tokens(source);
-  assert_eq!(tokens.len(), 22);
+  assert_eq!(tokens.len(), 20);
   assert_eq!(tokens[0].node, And);
   assert_eq!(tokens[1].node, Break);
   assert_eq!(tokens[2].node, Catch);
@@ -69,15 +69,13 @@ fn lex_keywords() {
   assert_eq!(tokens[10].node, Or);
   assert_eq!(tokens[11].node, Pass);
   assert_eq!(tokens[12].node, Return);
-  assert_eq!(tokens[13].node, Save);
-  assert_eq!(tokens[14].node, Var);
-  assert_eq!(tokens[15].node, While);
-  assert_eq!(tokens[16].node, Name(String::from("name")));
-  assert_eq!(tokens[17].node, Bool(true));
-  assert_eq!(tokens[18].node, Bool(false));
-  assert_eq!(tokens[19].node, Null);
-  assert_eq!(tokens[20].node, End);
-  assert_eq!(tokens[21].node, EOF);
+  assert_eq!(tokens[13].node, While);
+  assert_eq!(tokens[14].node, Name(String::from("name")));
+  assert_eq!(tokens[15].node, Bool(true));
+  assert_eq!(tokens[16].node, Bool(false));
+  assert_eq!(tokens[17].node, Null);
+  assert_eq!(tokens[18].node, End);
+  assert_eq!(tokens[19].node, EOF);
 }
 
 #[test]
