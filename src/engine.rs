@@ -14,6 +14,7 @@ use serde_yaml;
 use std::mem;
 use std::rc::Rc;
 use std::collections::HashMap;
+use core;
 
 struct RuntimeModule {
   pub scope: Item,
@@ -340,25 +341,17 @@ impl Engine {
       },
 
       Instr::CmpOp(ref op, chain) => {
-        // this should guarantee that we can pop/unwrap twice
-        if self.data_stack.len() < 2 {
-          return Err(ExecuteErrorKind::EmptyStack);
-        }
+        let rhs = self.pop()?;
+        let lhs = self.pop()?;
 
-        let rhs = self.data_stack.pop().unwrap();
-        let lhs = self.data_stack.pop().unwrap();
-
-        let result = match (&lhs.val, &rhs.val) {
-          (&Data::Int(x), &Data::Int(y)) => Engine::ex_cmp_int(op, x, y)?,
-          (&Data::Int(x), &Data::Float(y)) => {
-            Engine::ex_cmp_float(op, float::from(x as float_base), y)?
-          }
-          (&Data::Float(x), &Data::Int(y)) => {
-            Engine::ex_cmp_float(op, x, float::from(y as float_base))?
-          }
-          (&Data::Float(x), &Data::Float(y)) => Engine::ex_cmp_float(op, x, y)?,
-          (&Data::Bool(x), &Data::Bool(y)) => Engine::ex_cmp_bool(op, x, y)?,
-          _ => return Err(ExecuteErrorKind::BadOperand),
+        let result = match op {
+          Token::Eql => core::cmp::eq_aux(&lhs, &rhs)?,
+          Token::Ne => core::cmp::ne_aux(&lhs, &rhs)?,
+          Token::Lt => core::cmp::lt_aux(&lhs, &rhs)?,
+          Token::Gt => core::cmp::gt_aux(&lhs, &rhs)?,
+          Token::Le => core::cmp::le_aux(&lhs, &rhs)?,
+          Token::Ge => core::cmp::ge_aux(&lhs, &rhs)?,
+          _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
         };
 
         match (chain, result) {
@@ -453,18 +446,6 @@ impl Engine {
     }
   }
 
-  fn ex_cmp_int(op: &Token, x: int, y: int) -> Result<bool, ExecuteErrorKind> {
-    match *op {
-      Token::Lt => Ok(x < y),
-      Token::Le => Ok(x <= y),
-      Token::Gt => Ok(x > y),
-      Token::Ge => Ok(x >= y),
-      Token::Eql => Ok(x == y),
-      Token::Ne => Ok(x != y),
-      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
-    }
-  }
-
   fn ex_bin_float(op: &Token, x: float, y: float) -> Result<float, ExecuteErrorKind> {
     let x = x.into_inner();
     let y = y.into_inner();
@@ -473,27 +454,6 @@ impl Engine {
       Token::Sub => Ok(float::from(x - y)),
       Token::Mul => Ok(float::from(x * y)),
       Token::Div => Ok(float::from(x / y)),
-      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
-    }
-  }
-
-  fn ex_cmp_float(op: &Token, x: float, y: float) -> Result<bool, ExecuteErrorKind> {
-    match *op {
-      Token::Lt => Ok(x < y),
-      Token::Le => Ok(x <= y),
-      Token::Gt => Ok(x > y),
-      Token::Ge => Ok(x >= y),
-      Token::Eql => Ok(x == y),
-      Token::Ne => Ok(x != y),
-      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
-    }
-  }
-
-  fn ex_cmp_bool(op: &Token, x: bool, y: bool) -> Result<bool, ExecuteErrorKind> {
-    match *op {
-      Token::Eql => Ok(x == y),
-      Token::Ne => Ok(x != y),
-      Token::Lt | Token::Le | Token::Gt | Token::Ge => Err(ExecuteErrorKind::BadOperand),
       _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
     }
   }

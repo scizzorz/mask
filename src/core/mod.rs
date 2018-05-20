@@ -5,9 +5,6 @@ use engine::Engine;
 use engine::EngineErrorKind;
 use engine::Execute;
 use engine::ExecuteErrorKind;
-use float;
-use float_base;
-use std::mem;
 
 pub fn table(engine: &mut Engine) -> Execute {
   engine.data_stack.push(Item {
@@ -65,32 +62,4 @@ pub fn panic(_: &mut Engine) -> Execute {
   return Err(ExecuteErrorKind::Exception);
 }
 
-pub fn cmp_eq(engine: &mut Engine) -> Execute {
-  let rhs = engine.pop()?;
-  let lhs = engine.pop()?;
-
-  use data::Data::*;
-  let res = match (&lhs.val, &rhs.val) {
-    (&Null, &Null) => true,
-    (&Int(x), &Int(y)) => x == y,
-    (&Int(x), &Float(y)) => float::from(x as float_base) == y,
-    (&Float(x), &Int(y)) => x == float::from(y as float_base),
-    (&Float(x), &Float(y)) => x == y,
-    (&Bool(x), &Bool(y)) => x == y,
-    (&Str(ref x), &Str(ref y)) => x == y,
-    (&Func(xi, ref xm), &Func(yi, ref ym)) => (xi == yi) && (xm == ym),
-    (&Rust(ref x), &Rust(ref y)) => {
-      let xaddr = unsafe { mem::transmute::<_, u128>(x.0)  };
-      let yaddr = unsafe { mem::transmute::<_, u128>(y.0)  };
-      xaddr == yaddr
-    }
-    (&Table(ref x), &Table(ref y)) => {
-      let xaddr = unsafe { mem::transmute::<_, u64>(x.clone())  };
-      let yaddr = unsafe { mem::transmute::<_, u64>(y.clone())  };
-      xaddr == yaddr
-    }
-    _ => false,
-  };
-
-  Ok(())
-}
+pub mod cmp;
