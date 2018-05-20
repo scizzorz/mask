@@ -3,7 +3,6 @@ use codemap::CodeMap;
 use data::Const;
 use data::Data;
 use data::Item;
-use data::RustFunc;
 use float;
 use float_base;
 use int;
@@ -14,10 +13,10 @@ use prelude;
 use serde_yaml;
 use std::mem;
 use std::rc::Rc;
+use std::collections::HashMap;
 
 struct RuntimeModule {
   pub scope: Item,
-  pub func_offset: usize,
 }
 
 impl RuntimeModule {
@@ -27,7 +26,6 @@ impl RuntimeModule {
         val: Data::new_table(),
         sup: Some(Box::new(engine.scope.clone())),
       },
-      func_offset: 0,
     }
   }
 }
@@ -65,8 +63,7 @@ pub type Execute = Result<(), ExecuteErrorKind>;
 
 pub struct Engine {
   pub map: CodeMap,
-  mods: Vec<RuntimeModule>,
-  funcs: Vec<Rc<Instr>>,
+  mods: HashMap<String, Rc<Module>>,
   pub data_stack: Vec<Item>,
   scope: Item,
 }
@@ -75,8 +72,7 @@ impl Engine {
   pub fn new() -> Engine {
     let mut ret = Engine {
       map: CodeMap::new(),
-      funcs: Vec::new(),
-      mods: Vec::new(),
+      mods: HashMap::new(),
       data_stack: Vec::new(),
       scope: Item {
         val: Data::new_table(),
@@ -96,20 +92,18 @@ impl Engine {
     };
 
     let mut runtime = RuntimeModule::new(self);
-    runtime.func_offset = self.funcs.len();
-    for x in &module.funcs {
-      self.funcs.push(Rc::new(x.clone()));
-    }
 
-    // println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
+    let rc_module = Rc::new(module);
 
-    match self.ex_many(&module, &mut runtime, &module.code) {
+    self.mods.insert(rc_module.name.clone(), rc_module.clone());
+
+    // println!("{}: {}", filename, serde_yaml::to_string(rc_module.as_ref()).unwrap());
+
+    match self.ex_many(&rc_module, &mut runtime, &rc_module.code) {
       Ok(_) => {}
       Err(ExecuteErrorKind::Return) => {}
       Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
     }
-
-    //self.mods.push(module);
 
     Ok(())
   }
@@ -128,7 +122,7 @@ impl Engine {
 
   fn ex(&mut self, module: &Module, runtime: &mut RuntimeModule, instr: &Instr) -> Execute {
     /*
-    println!("EXECUTE {:?}", instr);
+    println!("EXECUTE {:?} in {:?}", instr, module.name);
     for item in self.data_stack.iter().rev() {
       println!("  {}", item.to_string());
     }
@@ -145,7 +139,7 @@ impl Engine {
 
       Instr::PushFunc(x) => {
         self.data_stack.push(Item {
-          val: Data::Func(runtime.func_offset + x),
+          val: Data::Func(x, module.name.clone()),
           sup: Some(Box::new(Item {
             val: Data::new_table(),
             sup: Some(Box::new(runtime.scope.clone())),
@@ -155,35 +149,40 @@ impl Engine {
 
       Instr::Call => match self.data_stack.pop() {
         None => return Err(ExecuteErrorKind::EmptyStack),
-        Some(func) => match func {
-          Item {
-            val: Data::Func(val),
-            sup: Some(ref sup),
-          } => {
-            let mut new_scope = Item {
-              val: Data::new_table(),
-              sup: Some(sup.clone()),
-            };
-            mem::swap(&mut new_scope, &mut runtime.scope);
-            let func = self.funcs[val].clone();
-            self.ex(module, runtime, &func)?;
-            mem::swap(&mut new_scope, &mut runtime.scope);
+        Some(func) => {
+          match func {
+            Item {
+              val: Data::Func(val, ref mname),
+              sup: Some(ref sup),
+            } => {
+              let new_module = self.mods[mname].clone();
+              let mut new_scope = Item {
+                val: Data::new_table(),
+                sup: Some(sup.clone()),
+              };
+
+              mem::swap(&mut new_scope, &mut runtime.scope);
+              let func = new_module.funcs[val].clone();
+              self.ex(&new_module, runtime, &func)?;
+              mem::swap(&mut new_scope, &mut runtime.scope);
+            }
+            Item {
+              val: Data::Func(val, ref mname),
+              sup: None,
+            } => {
+              let new_module = self.mods[mname].clone();
+              let func = module.funcs[val].clone();
+              self.ex(&new_module, runtime, &func)?;
+            }
+            Item {
+              val: Data::Rust(ref callable),
+              sup: _,
+            } => {
+              callable.0(self)?;
+            }
+            _ => return Err(ExecuteErrorKind::NotCallable),
           }
-          Item {
-            val: Data::Func(val),
-            sup: None,
-          } => {
-            let func = self.funcs[val].clone();
-            self.ex(module, runtime, &func)?;
-          }
-          Item {
-            val: Data::Rust(ref callable),
-            sup: _,
-          } => {
-            callable.0(self)?;
-          }
-          _ => return Err(ExecuteErrorKind::NotCallable),
-        },
+        }
       },
 
       Instr::Set => {

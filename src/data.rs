@@ -43,7 +43,7 @@ pub enum Data {
   Float(#[unsafe_ignore_trace] float),
   Bool(bool),
   Str(Gc<String>),
-  Func(usize),
+  Func(usize, String),
   Rust(#[unsafe_ignore_trace] RustFunc),
   Table(Table),
 }
@@ -116,7 +116,7 @@ impl Data {
       Data::Float(x) => format!("{}", x),
       Data::Bool(x) => format!("{}", x),
       Data::Str(ref x) => (**x).clone(),
-      Data::Func(x) => format!("func[{}]", x),
+      Data::Func(x, ref m) => format!("func[{} from {}]", x, m),
       Data::Table(ref x) => {
         let addr = unsafe { mem::transmute::<_, u64>(x.clone()) };
         format!("table[{:x}]", addr)
@@ -147,7 +147,7 @@ impl Hash for Data {
         let addr = unsafe { mem::transmute::<_, u64>(x.clone()) };
         addr.hash(state);
       }
-      Data::Func(x) => {
+      Data::Func(x, ref m) => {
         ((x + 0x6d) * 0x61736b).hash(state);
       }
       Data::Rust(ref x) => {
