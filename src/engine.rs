@@ -103,6 +103,13 @@ impl Engine {
     Ok(())
   }
 
+  pub fn pop(&mut self) -> Result<Item, ExecuteErrorKind> {
+    match self.data_stack.pop() {
+      Some(x) => Ok(x),
+      None => Err(ExecuteErrorKind::EmptyStack),
+    }
+  }
+
   fn ex_many(
     &mut self,
     module: &Module,
