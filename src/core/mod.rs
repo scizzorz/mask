@@ -62,5 +62,37 @@ pub fn panic(_: &mut Engine) -> Execute {
   return Err(ExecuteErrorKind::Exception);
 }
 
+pub fn set(engine: &mut Engine) -> Execute {
+  let mut scope = engine.pop()?;
+  let key = engine.pop()?;
+  let val = engine.pop()?;
+
+  scope.set_key(key.val.clone(), val);
+
+  Ok(())
+}
+
+pub fn get(engine: &mut Engine) -> Execute {
+  let scope = engine.pop()?;
+  let key = engine.pop()?;
+  let val = scope.get_key(&key.val);
+
+  engine.data_stack.push(val);
+
+  Ok(())
+}
+
+pub fn set_mask(engine: &mut Engine) -> Execute {
+  let val = engine.pop()?;
+  let key = engine.pop()?;
+  let mut scope = engine.pop()?;
+
+  scope.set_key(key.val.clone(), val.clone());
+
+  engine.data_stack.push(val);
+
+  Ok(())
+}
+
 pub mod cmp;
 pub mod bin;

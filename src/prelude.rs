@@ -18,4 +18,6 @@ pub fn insert_prelude(scope: &mut Item) {
   insert_data(scope, "assert", Data::Rust(RustFunc(&core::assert)));
   insert_data(scope, "import", Data::Rust(RustFunc(&core::import)));
   insert_data(scope, "table", Data::Rust(RustFunc(&core::table)));
+  insert_data(scope, "get", Data::Rust(RustFunc(&core::get)));
+  insert_data(scope, "set", Data::Rust(RustFunc(&core::set_mask)));
 }

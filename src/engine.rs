@@ -186,27 +186,11 @@ impl Engine {
       },
 
       Instr::Set => {
-        // this should guarantee that we can pop/unwrap thrice
-        if self.data_stack.len() < 3 {
-          return Err(ExecuteErrorKind::EmptyStack);
-        }
-
-        let mut scope = self.data_stack.pop().unwrap();
-        let key = self.data_stack.pop().unwrap();
-        let val = self.data_stack.pop().unwrap();
-        scope.set_key(key.val.clone(), val);
+        core::set(self)?;
       }
 
       Instr::Get => {
-        // this should guarantee that we can pop/unwrap twice
-        if self.data_stack.len() < 2 {
-          return Err(ExecuteErrorKind::EmptyStack);
-        }
-
-        let scope = self.data_stack.pop().unwrap();
-        let key = self.data_stack.pop().unwrap();
-        let val = scope.get_key(&key.val);
-        self.data_stack.push(val);
+        core::get(self)?;
       }
 
       Instr::MethodGet => {
@@ -378,6 +362,7 @@ impl Engine {
 
     Ok(())
   }
+
 }
 
 #[cfg(test)]
