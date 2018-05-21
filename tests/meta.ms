@@ -3,24 +3,20 @@ cls.type = 'Person'
 
 person = table() :: cls
 
-print(cls.type)
-print(person.type)
-print('---')
+assert(cls.type == 'Person')
+assert(person.type == 'Person')
 
 cls.type = 'Imaginary Person'
 
-print(cls.type)
-print(person.type)
-print('---')
+assert(cls.type == 'Imaginary Person')
+assert(person.type == 'Imaginary Person')
 
 person.type = 'Concrete Person'
 
-print(cls.type)
-print(person.type)
-print('---')
+assert(cls.type == 'Imaginary Person')
+assert(person.type == 'Concrete Person')
 
 (*person).type = 'Abstract Person'
 
-print(cls.type)
-print(person.type)
-print('---')
+assert(cls.type == 'Abstract Person')
+assert(person.type == 'Concrete Person')

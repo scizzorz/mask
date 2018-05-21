@@ -1,4 +1,4 @@
-print('one' and 'two' or false)
-print(null and 'two' or 'three')
-print('one' and null or 'three')
-print('one' and 'two' or null)
+assert(('one' and 'two' or false) == 'two')
+assert((null and 'two' or 'three') == null)
+assert(('one' and null or 'three') == 'three')
+assert(('one' and 'two' or null) == 'two')

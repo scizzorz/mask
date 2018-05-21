@@ -1,12 +1,10 @@
 f = fn()
   panic(5)
 
-print('panic: expecting true')
 x = catch
   panic(true)
-print(x)
+assert(x == true)
 
-print('panic: expecting 5')
 x = catch
   f()
-print(x)
+assert(x == 5)

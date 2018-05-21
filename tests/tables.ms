@@ -2,6 +2,6 @@ x = table()
 x['name'] = 'John'
 x.age = 25
 
-print(x)
-print(x.name)
-print(x['age'])
+assert(x == x)
+assert(x.name == 'John')
+assert(x['age'] == 25)

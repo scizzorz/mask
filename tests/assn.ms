@@ -1,2 +1,2 @@
 x = 5
-print(x)
+assert(x == 5)

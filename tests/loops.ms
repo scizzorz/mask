@@ -1,9 +1,11 @@
 i = 0
+sum = 0
 while i < 10
-  print(i)
+  sum = sum + i
   i = i + 1
 
-print('---')
+assert(sum == 45)
+
 loop
   i = i + 1
 
@@ -14,5 +16,6 @@ loop
     break
 
   if i < 20 or 30 < i < 35
-    print(i)
+    sum = sum + i
 
+assert(sum == 175)
