@@ -63,3 +63,4 @@ pub fn panic(_: &mut Engine) -> Execute {
 }
 
 pub mod cmp;
+pub mod bin;

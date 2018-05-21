@@ -245,54 +245,14 @@ impl Engine {
       Instr::Nop => {}
 
       Instr::BinOp(ref op) => {
-        // this should guarantee that we can pop/unwrap twice
-        if self.data_stack.len() < 2 {
-          return Err(ExecuteErrorKind::EmptyStack);
-        }
-
-        let rhs = self.data_stack.pop().unwrap();
-        let lhs = self.data_stack.pop().unwrap();
-
-        // supertable assignment
-        if *op == Token::Sup {
-          let ret = Item {
-            sup: match rhs.val {
-              Data::Null => None,
-              _ => Some(Box::new(rhs)),
-            },
-            val: lhs.val.clone(),
-          };
-          self.data_stack.push(ret);
-          return Ok(());
-        }
-
-        // string concatenation
-        if *op == Token::Dol {
-          let mut ret = lhs.to_string();
-          ret.push_str(&rhs.to_string());
-          let ret = Const::Str(ret).into_item();
-          self.data_stack.push(ret);
-          return Ok(());
-        }
-
-        match (&lhs.val, &rhs.val) {
-          (&Data::Int(x), &Data::Int(y)) => {
-            let data = Engine::ex_bin_int(op, x, y)?;
-            self.data_stack.push(Data::Int(data).into_item());
-          }
-          (&Data::Int(x), &Data::Float(y)) => {
-            let data = Engine::ex_bin_float(op, float::from(x as float_base), y)?;
-            self.data_stack.push(Data::Float(data).into_item());
-          }
-          (&Data::Float(x), &Data::Int(y)) => {
-            let data = Engine::ex_bin_float(op, x, float::from(y as float_base))?;
-            self.data_stack.push(Data::Float(data).into_item());
-          }
-          (&Data::Float(x), &Data::Float(y)) => {
-            let data = Engine::ex_bin_float(op, x, y)?;
-            self.data_stack.push(Data::Float(data).into_item());
-          }
-          _ => return Err(ExecuteErrorKind::BadOperand),
+        match op {
+          Token::Sup => core::bin::sup(self)?,
+          Token::Dol => core::bin::cat(self)?,
+          Token::Add => core::bin::add(self)?,
+          Token::Sub => core::bin::sub(self)?,
+          Token::Mul => core::bin::mul(self)?,
+          Token::Div => core::bin::div(self)?,
+          _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
         }
       }
 
