@@ -5,7 +5,7 @@ use engine::Engine;
 use engine::Execute;
 use engine::ExecuteErrorKind;
 use float;
-use float_base;
+use FloatBase;
 
 pub fn sup(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;
@@ -44,8 +44,8 @@ pub fn add(engine: &mut Engine) -> Execute {
   use data::Data::*;
   let ret = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => Int(x + y),
-    (&Int(x), &Float(y)) => Float(float::from(x as float_base + y.into_inner())),
-    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() + y as float_base)),
+    (&Int(x), &Float(y)) => Float(float::from(x as FloatBase + y.into_inner())),
+    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() + y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() + y.into_inner())),
     _ => return Err(ExecuteErrorKind::BadOperand),
   };
@@ -62,8 +62,8 @@ pub fn sub(engine: &mut Engine) -> Execute {
   use data::Data::*;
   let ret = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => Int(x - y),
-    (&Int(x), &Float(y)) => Float(float::from(x as float_base - y.into_inner())),
-    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() - y as float_base)),
+    (&Int(x), &Float(y)) => Float(float::from(x as FloatBase - y.into_inner())),
+    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() - y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() - y.into_inner())),
     _ => return Err(ExecuteErrorKind::BadOperand),
   };
@@ -80,8 +80,8 @@ pub fn mul(engine: &mut Engine) -> Execute {
   use data::Data::*;
   let ret = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => Int(x * y),
-    (&Int(x), &Float(y)) => Float(float::from(x as float_base * y.into_inner())),
-    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() * y as float_base)),
+    (&Int(x), &Float(y)) => Float(float::from(x as FloatBase * y.into_inner())),
+    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() * y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() * y.into_inner())),
     _ => return Err(ExecuteErrorKind::BadOperand),
   };
@@ -97,9 +97,9 @@ pub fn div(engine: &mut Engine) -> Execute {
 
   use data::Data::*;
   let ret = match (&lhs.val, &rhs.val) {
-    (&Int(x), &Int(y)) => Float(float::from(x as float_base / y as float_base)),
-    (&Int(x), &Float(y)) => Float(float::from(x as float_base / y.into_inner())),
-    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() / y as float_base)),
+    (&Int(x), &Int(y)) => Float(float::from(x as FloatBase / y as FloatBase)),
+    (&Int(x), &Float(y)) => Float(float::from(x as FloatBase / y.into_inner())),
+    (&Float(x), &Int(y)) => Float(float::from(x.into_inner() / y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() / y.into_inner())),
     _ => return Err(ExecuteErrorKind::BadOperand),
   };

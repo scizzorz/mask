@@ -3,9 +3,6 @@ use codemap::CodeMap;
 use data::Const;
 use data::Data;
 use data::Item;
-use float;
-use float_base;
-use int;
 use lexer::Token;
 use module::Module;
 use module::ModuleErrorKind;
@@ -380,28 +377,6 @@ impl Engine {
     }
 
     Ok(())
-  }
-
-  fn ex_bin_int(op: &Token, x: int, y: int) -> Result<int, ExecuteErrorKind> {
-    match *op {
-      Token::Add => Ok(x + y),
-      Token::Sub => Ok(x - y),
-      Token::Mul => Ok(x * y),
-      Token::Div => Ok(x / y),
-      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
-    }
-  }
-
-  fn ex_bin_float(op: &Token, x: float, y: float) -> Result<float, ExecuteErrorKind> {
-    let x = x.into_inner();
-    let y = y.into_inner();
-    match *op {
-      Token::Add => Ok(float::from(x + y)),
-      Token::Sub => Ok(float::from(x - y)),
-      Token::Mul => Ok(float::from(x * y)),
-      Token::Div => Ok(float::from(x / y)),
-      _ => Err(ExecuteErrorKind::BadOperator(op.clone())),
-    }
   }
 }
 

@@ -4,7 +4,7 @@ use engine::Engine;
 use engine::Execute;
 use engine::ExecuteErrorKind;
 use float;
-use float_base;
+use FloatBase;
 use std::mem;
 
 pub fn eq_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
@@ -12,8 +12,8 @@ pub fn eq_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => true,
     (&Int(x), &Int(y)) => x == y,
-    (&Int(x), &Float(y)) => float::from(x as float_base) == y,
-    (&Float(x), &Int(y)) => x == float::from(y as float_base),
+    (&Int(x), &Float(y)) => float::from(x as FloatBase) == y,
+    (&Float(x), &Int(y)) => x == float::from(y as FloatBase),
     (&Float(x), &Float(y)) => x == y,
     (&Bool(x), &Bool(y)) => x == y,
     (&Str(ref x), &Str(ref y)) => x == y,
@@ -39,8 +39,8 @@ pub fn ne_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => false,
     (&Int(x), &Int(y)) => x != y,
-    (&Int(x), &Float(y)) => float::from(x as float_base) != y,
-    (&Float(x), &Int(y)) => x != float::from(y as float_base),
+    (&Int(x), &Float(y)) => float::from(x as FloatBase) != y,
+    (&Float(x), &Int(y)) => x != float::from(y as FloatBase),
     (&Float(x), &Float(y)) => x != y,
     (&Bool(x), &Bool(y)) => x != y,
     (&Str(ref x), &Str(ref y)) => x != y,
@@ -65,8 +65,8 @@ pub fn lt_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x < y,
-    (&Int(x), &Float(y)) => float::from(x as float_base) < y,
-    (&Float(x), &Int(y)) => x < float::from(y as float_base),
+    (&Int(x), &Float(y)) => float::from(x as FloatBase) < y,
+    (&Float(x), &Int(y)) => x < float::from(y as FloatBase),
     (&Float(x), &Float(y)) => x < y,
     (&Bool(x), &Bool(y)) => x < y,
     (&Str(ref x), &Str(ref y)) => x < y,
@@ -80,8 +80,8 @@ pub fn gt_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x > y,
-    (&Int(x), &Float(y)) => float::from(x as float_base) > y,
-    (&Float(x), &Int(y)) => x > float::from(y as float_base),
+    (&Int(x), &Float(y)) => float::from(x as FloatBase) > y,
+    (&Float(x), &Int(y)) => x > float::from(y as FloatBase),
     (&Float(x), &Float(y)) => x > y,
     (&Bool(x), &Bool(y)) => x > y,
     (&Str(ref x), &Str(ref y)) => x > y,
@@ -95,8 +95,8 @@ pub fn le_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x <= y,
-    (&Int(x), &Float(y)) => float::from(x as float_base) <= y,
-    (&Float(x), &Int(y)) => x <= float::from(y as float_base),
+    (&Int(x), &Float(y)) => float::from(x as FloatBase) <= y,
+    (&Float(x), &Int(y)) => x <= float::from(y as FloatBase),
     (&Float(x), &Float(y)) => x <= y,
     (&Bool(x), &Bool(y)) => x <= y,
     (&Str(ref x), &Str(ref y)) => x <= y,
@@ -110,8 +110,8 @@ pub fn ge_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x >= y,
-    (&Int(x), &Float(y)) => float::from(x as float_base) >= y,
-    (&Float(x), &Int(y)) => x >= float::from(y as float_base),
+    (&Int(x), &Float(y)) => float::from(x as FloatBase) >= y,
+    (&Float(x), &Int(y)) => x >= float::from(y as FloatBase),
     (&Float(x), &Float(y)) => x >= y,
     (&Bool(x), &Bool(y)) => x >= y,
     (&Str(ref x), &Str(ref y)) => x >= y,
