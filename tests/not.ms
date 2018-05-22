@@ -1,0 +1,6 @@
+assert(!true == false)
+assert(!false == true)
+assert(!5 == false)
+assert(!!5 == true)
+assert(!null == true)
+assert(!!null == false)
