@@ -182,7 +182,7 @@ fn require_token(it: &mut ParseIter, kind: Token) -> Result<Span, ParseErrorKind
 
 fn op_precedence(op: &Token) -> Op {
   match *op {
-    Token::Dol => Op::Left(10),
+    Token::Cat => Op::Left(10),
     Token::Add | Token::Sub => Op::Left(20),
     Token::Div | Token::Mul => Op::Left(30),
     Token::Car => Op::Right(40),
@@ -389,7 +389,7 @@ fn parse_bin_expr(it: &mut ParseIter) -> Parse {
 fn parse_un_expr(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
-      Token::Sub | Token::Not | Token::Neg | Token::Mul | Token::Dol => {
+      Token::Sub | Token::Not | Token::Neg | Token::Mul | Token::Cat => {
         it.next();
         let val = parse_un_expr(it)?;
         Ok(Node::UnExpr {

@@ -34,6 +34,6 @@ pub fn not(engine: &mut Engine) -> Execute {
   Ok(())
 }
 
-pub fn dol(engine: &mut Engine) -> Execute {
+pub fn cat(engine: &mut Engine) -> Execute {
   Ok(())
 }

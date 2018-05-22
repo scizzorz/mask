@@ -228,7 +228,7 @@ impl Engine {
       Instr::BinOp(ref op) => {
         match op {
           Token::Sup => core::bin::sup(self)?,
-          Token::Dol => core::bin::cat(self)?,
+          Token::Cat => core::bin::cat(self)?,
           Token::Add => core::bin::add(self)?,
           Token::Sub => core::bin::sub(self)?,
           Token::Mul => core::bin::mul(self)?,
@@ -243,7 +243,7 @@ impl Engine {
           Token::Sub => core::un::sub(self)?,
           Token::Neg => core::un::neg(self)?,
           Token::Not => core::un::not(self)?,
-          Token::Dol => core::un::dol(self)?,
+          Token::Cat => core::un::cat(self)?,
           _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
         }
       },

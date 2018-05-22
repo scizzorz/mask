@@ -70,7 +70,7 @@ pub enum Token {
   At,   // @
   Car,  // ^
   Div,  // /
-  Dol,  // $
+  Cat,  // $
   Mul,  // *
   Neg,  // ~
   Not,  // !
@@ -371,7 +371,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
         }
         '$' => {
           it.next();
-          Dol
+          Cat
         }
         '*' => {
           it.next();

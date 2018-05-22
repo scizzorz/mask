@@ -104,7 +104,7 @@ fn lex_symbols() {
   assert_eq!(tokens[16].node, At);
   assert_eq!(tokens[17].node, Car);
   assert_eq!(tokens[18].node, Div);
-  assert_eq!(tokens[19].node, Dol);
+  assert_eq!(tokens[19].node, Cat);
   assert_eq!(tokens[20].node, Mul);
   assert_eq!(tokens[21].node, Neg);
   assert_eq!(tokens[22].node, Not);
