@@ -53,7 +53,8 @@ multiline' 'and this is unclosed";
 
 #[test]
 fn lex_keywords() {
-  let source = "and break catch continue else for fn if in loop or pass return while name true false null";
+  let source =
+    "and break catch continue else for fn if in loop or pass return while name true false null";
   let tokens = get_tokens(source);
   assert_eq!(tokens.len(), 20);
   assert_eq!(tokens[0].node, And);

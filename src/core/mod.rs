@@ -94,6 +94,6 @@ pub fn set_mask(engine: &mut Engine) -> Execute {
   Ok(())
 }
 
-pub mod cmp;
 pub mod bin;
+pub mod cmp;
 pub mod un;

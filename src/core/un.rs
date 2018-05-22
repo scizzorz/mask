@@ -1,11 +1,11 @@
-use data::Item;
-use data::Data;
+use FloatBase;
 use data::Const;
+use data::Data;
+use data::Item;
 use engine::Engine;
 use engine::Execute;
 use engine::ExecuteErrorKind;
 use float;
-use FloatBase;
 
 pub fn mul(engine: &mut Engine) -> Execute {
   let val = engine.pop()?;

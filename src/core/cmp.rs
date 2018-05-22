@@ -1,10 +1,10 @@
-use data::Item;
+use FloatBase;
 use data::Const;
+use data::Item;
 use engine::Engine;
 use engine::Execute;
 use engine::ExecuteErrorKind;
 use float;
-use FloatBase;
 use std::mem;
 
 pub fn eq_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
@@ -19,13 +19,13 @@ pub fn eq_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
     (&Str(ref x), &Str(ref y)) => x == y,
     (&Func(xi, ref xm), &Func(yi, ref ym)) => (xi == yi) && (xm == ym),
     (&Rust(ref x), &Rust(ref y)) => {
-      let xaddr = unsafe { mem::transmute::<_, u128>(x.0)  };
-      let yaddr = unsafe { mem::transmute::<_, u128>(y.0)  };
+      let xaddr = unsafe { mem::transmute::<_, u128>(x.0) };
+      let yaddr = unsafe { mem::transmute::<_, u128>(y.0) };
       xaddr == yaddr
     }
     (&Table(ref x), &Table(ref y)) => {
-      let xaddr = unsafe { mem::transmute::<_, u64>(x.clone())  };
-      let yaddr = unsafe { mem::transmute::<_, u64>(y.clone())  };
+      let xaddr = unsafe { mem::transmute::<_, u64>(x.clone()) };
+      let yaddr = unsafe { mem::transmute::<_, u64>(y.clone()) };
       xaddr == yaddr
     }
     _ => false,
@@ -46,13 +46,13 @@ pub fn ne_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
     (&Str(ref x), &Str(ref y)) => x != y,
     (&Func(xi, ref xm), &Func(yi, ref ym)) => (xi != yi) && (xm != ym),
     (&Rust(ref x), &Rust(ref y)) => {
-      let xaddr = unsafe { mem::transmute::<_, u128>(x.0)  };
-      let yaddr = unsafe { mem::transmute::<_, u128>(y.0)  };
+      let xaddr = unsafe { mem::transmute::<_, u128>(x.0) };
+      let yaddr = unsafe { mem::transmute::<_, u128>(y.0) };
       xaddr != yaddr
     }
     (&Table(ref x), &Table(ref y)) => {
-      let xaddr = unsafe { mem::transmute::<_, u64>(x.clone())  };
-      let yaddr = unsafe { mem::transmute::<_, u64>(y.clone())  };
+      let xaddr = unsafe { mem::transmute::<_, u64>(x.clone()) };
+      let yaddr = unsafe { mem::transmute::<_, u64>(y.clone()) };
       xaddr != yaddr
     }
     _ => true,

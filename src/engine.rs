@@ -1,5 +1,6 @@
 use code::Instr;
 use codemap::CodeMap;
+use core;
 use data::Const;
 use data::Data;
 use data::Item;
@@ -8,10 +9,9 @@ use module::Module;
 use module::ModuleErrorKind;
 use prelude;
 use serde_yaml;
+use std::collections::HashMap;
 use std::mem;
 use std::rc::Rc;
-use std::collections::HashMap;
-use core;
 
 struct RuntimeModule {
   pub scope: Item,
@@ -149,40 +149,38 @@ impl Engine {
 
       Instr::Call => match self.data_stack.pop() {
         None => return Err(ExecuteErrorKind::EmptyStack),
-        Some(func) => {
-          match func {
-            Item {
-              val: Data::Func(val, ref mname),
-              sup: Some(ref sup),
-            } => {
-              let new_module = self.mods[mname].clone();
-              let mut new_scope = Item {
-                val: Data::new_table(),
-                sup: Some(sup.clone()),
-              };
+        Some(func) => match func {
+          Item {
+            val: Data::Func(val, ref mname),
+            sup: Some(ref sup),
+          } => {
+            let new_module = self.mods[mname].clone();
+            let mut new_scope = Item {
+              val: Data::new_table(),
+              sup: Some(sup.clone()),
+            };
 
-              mem::swap(&mut new_scope, &mut runtime.scope);
-              let func = new_module.funcs[val].clone();
-              self.ex(&new_module, runtime, &func)?;
-              mem::swap(&mut new_scope, &mut runtime.scope);
-            }
-            Item {
-              val: Data::Func(val, ref mname),
-              sup: None,
-            } => {
-              let new_module = self.mods[mname].clone();
-              let func = module.funcs[val].clone();
-              self.ex(&new_module, runtime, &func)?;
-            }
-            Item {
-              val: Data::Rust(ref callable),
-              sup: _,
-            } => {
-              callable.0(self)?;
-            }
-            _ => return Err(ExecuteErrorKind::NotCallable),
+            mem::swap(&mut new_scope, &mut runtime.scope);
+            let func = new_module.funcs[val].clone();
+            self.ex(&new_module, runtime, &func)?;
+            mem::swap(&mut new_scope, &mut runtime.scope);
           }
-        }
+          Item {
+            val: Data::Func(val, ref mname),
+            sup: None,
+          } => {
+            let new_module = self.mods[mname].clone();
+            let func = module.funcs[val].clone();
+            self.ex(&new_module, runtime, &func)?;
+          }
+          Item {
+            val: Data::Rust(ref callable),
+            sup: _,
+          } => {
+            callable.0(self)?;
+          }
+          _ => return Err(ExecuteErrorKind::NotCallable),
+        },
       },
 
       Instr::Set => {
@@ -225,27 +223,23 @@ impl Engine {
 
       Instr::Nop => {}
 
-      Instr::BinOp(ref op) => {
-        match op {
-          Token::Sup => core::bin::sup(self)?,
-          Token::Cat => core::bin::cat(self)?,
-          Token::Add => core::bin::add(self)?,
-          Token::Sub => core::bin::sub(self)?,
-          Token::Mul => core::bin::mul(self)?,
-          Token::Div => core::bin::div(self)?,
-          _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
-        }
-      }
+      Instr::BinOp(ref op) => match op {
+        Token::Sup => core::bin::sup(self)?,
+        Token::Cat => core::bin::cat(self)?,
+        Token::Add => core::bin::add(self)?,
+        Token::Sub => core::bin::sub(self)?,
+        Token::Mul => core::bin::mul(self)?,
+        Token::Div => core::bin::div(self)?,
+        _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
+      },
 
-      Instr::UnOp(ref op) => {
-        match op {
-          Token::Mul => core::un::mul(self)?,
-          Token::Sub => core::un::sub(self)?,
-          Token::Neg => core::un::neg(self)?,
-          Token::Not => core::un::not(self)?,
-          Token::Cat => core::un::cat(self)?,
-          _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
-        }
+      Instr::UnOp(ref op) => match op {
+        Token::Mul => core::un::mul(self)?,
+        Token::Sub => core::un::sub(self)?,
+        Token::Neg => core::un::neg(self)?,
+        Token::Not => core::un::not(self)?,
+        Token::Cat => core::un::cat(self)?,
+        _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
       },
 
       Instr::LogicOp(ref op) => match (self.data_stack.pop(), op) {
@@ -360,7 +354,6 @@ impl Engine {
 
     Ok(())
   }
-
 }
 
 #[cfg(test)]
