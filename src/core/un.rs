@@ -7,7 +7,7 @@ use engine::ExecuteErrorKind;
 use float;
 use FloatBase;
 
-pub fn star(engine: &mut Engine) -> Execute {
+pub fn mul(engine: &mut Engine) -> Execute {
   let val = engine.pop()?;
 
   match val.sup {
@@ -19,5 +19,21 @@ pub fn star(engine: &mut Engine) -> Execute {
     }
   }
 
+  Ok(())
+}
+
+pub fn sub(engine: &mut Engine) -> Execute {
+  Ok(())
+}
+
+pub fn neg(engine: &mut Engine) -> Execute {
+  Ok(())
+}
+
+pub fn not(engine: &mut Engine) -> Execute {
+  Ok(())
+}
+
+pub fn dol(engine: &mut Engine) -> Execute {
   Ok(())
 }
