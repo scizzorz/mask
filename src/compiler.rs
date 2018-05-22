@@ -257,7 +257,7 @@ impl Compiler {
       } => {
         // value -> key -> table
         let mut new_block = Vec::new();
-        for par in params.iter().rev() {
+        for par in params {
           let const_id = self.get_const(Const::Str(par.clone()));
           new_block.push(Instr::PushConst(const_id));
           new_block.push(Instr::PushScope);
@@ -284,7 +284,7 @@ impl Compiler {
       }
 
       Node::FuncCall { ref func, ref args } => {
-        for arg in args {
+        for arg in args.iter().rev() {
           self.compile_aux(arg, block)?;
         }
         self.compile_aux(func, block)?;
@@ -296,12 +296,12 @@ impl Compiler {
         ref method,
         ref args,
       } => {
+        for arg in args.iter().rev() {
+          self.compile_aux(arg, block)?;
+        }
         self.compile_aux(method, block)?;
         self.compile_aux(owner, block)?;
         block.push(Instr::MethodGet);
-        for arg in args {
-          self.compile_aux(arg, block)?;
-        }
         block.push(Instr::Call);
       }
 

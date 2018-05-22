@@ -83,9 +83,9 @@ pub fn get(engine: &mut Engine) -> Execute {
 }
 
 pub fn set_mask(engine: &mut Engine) -> Execute {
-  let val = engine.pop()?;
-  let key = engine.pop()?;
   let mut scope = engine.pop()?;
+  let key = engine.pop()?;
+  let val = engine.pop()?;
 
   scope.set_key(key.val.clone(), val.clone());
 
