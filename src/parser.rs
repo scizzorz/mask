@@ -389,7 +389,7 @@ fn parse_bin_expr(it: &mut ParseIter) -> Parse {
 fn parse_un_expr(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
-      Token::Sub | Token::Not | Token::Neg | Token::Mul | Token::Cat => {
+      Token::Sub | Token::Not | Token::Mul | Token::Cat => {
         it.next();
         let val = parse_un_expr(it)?;
         Ok(Node::UnExpr {

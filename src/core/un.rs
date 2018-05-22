@@ -37,10 +37,6 @@ pub fn sub(engine: &mut Engine) -> Execute {
   Ok(())
 }
 
-pub fn neg(engine: &mut Engine) -> Execute {
-  Ok(())
-}
-
 pub fn not(engine: &mut Engine) -> Execute {
   let val = engine.pop()?;
   let ret = Const::Bool(!val.truth());

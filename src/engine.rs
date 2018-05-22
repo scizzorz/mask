@@ -236,7 +236,6 @@ impl Engine {
       Instr::UnOp(ref op) => match op {
         Token::Mul => core::un::mul(self)?,
         Token::Sub => core::un::sub(self)?,
-        Token::Neg => core::un::neg(self)?,
         Token::Not => core::un::not(self)?,
         Token::Cat => core::un::cat(self)?,
         _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
