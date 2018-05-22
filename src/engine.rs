@@ -237,17 +237,11 @@ impl Engine {
         }
       }
 
-      Instr::UnOp(ref op) => match (self.data_stack.pop(), op) {
-        (Some(val), &Token::Mul) => match val.sup {
-          Some(ref sup) => {
-            self.data_stack.push(*sup.clone());
-          }
-          None => {
-            self.data_stack.push(Const::Null.to_item());
-          }
-        },
-        (Some(_), op) => return Err(ExecuteErrorKind::BadOperator(op.clone())),
-        (None, _) => return Err(ExecuteErrorKind::EmptyStack),
+      Instr::UnOp(ref op) => {
+        match op {
+          Token::Mul => core::un::star(self)?,
+          _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
+        }
       },
 
       Instr::LogicOp(ref op) => match (self.data_stack.pop(), op) {
