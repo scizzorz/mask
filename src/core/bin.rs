@@ -47,7 +47,7 @@ pub fn add(engine: &mut Engine) -> Execute {
     (&Int(x), &Float(y)) => Float(float::from(x as FloatBase + y.into_inner())),
     (&Float(x), &Int(y)) => Float(float::from(x.into_inner() + y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() + y.into_inner())),
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   engine.data_stack.push(ret.into_item());
@@ -65,7 +65,7 @@ pub fn sub(engine: &mut Engine) -> Execute {
     (&Int(x), &Float(y)) => Float(float::from(x as FloatBase - y.into_inner())),
     (&Float(x), &Int(y)) => Float(float::from(x.into_inner() - y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() - y.into_inner())),
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   engine.data_stack.push(ret.into_item());
@@ -83,7 +83,7 @@ pub fn mul(engine: &mut Engine) -> Execute {
     (&Int(x), &Float(y)) => Float(float::from(x as FloatBase * y.into_inner())),
     (&Float(x), &Int(y)) => Float(float::from(x.into_inner() * y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() * y.into_inner())),
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   engine.data_stack.push(ret.into_item());
@@ -101,7 +101,7 @@ pub fn div(engine: &mut Engine) -> Execute {
     (&Int(x), &Float(y)) => Float(float::from(x as FloatBase / y.into_inner())),
     (&Float(x), &Int(y)) => Float(float::from(x.into_inner() / y as FloatBase)),
     (&Float(x), &Float(y)) => Float(float::from(x.into_inner() / y.into_inner())),
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   engine.data_stack.push(ret.into_item());

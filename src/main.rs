@@ -6,6 +6,8 @@ extern crate serde_yaml;
 use clap::App;
 use clap::Arg;
 use mask::engine;
+use mask::engine::EngineErrorKind;
+use mask::engine::ExecuteErrorKind;
 use mask::lexer;
 use mask::lexer::Token;
 use mask::module;
@@ -52,6 +54,10 @@ fn main() {
   } else if let Some(filename) = argv.value_of("path") {
     match engine.import(filename) {
       Ok(x) => {}
+      Err(EngineErrorKind::ExecuteError(ExecuteErrorKind::Exception)) => match engine.pop() {
+        Ok(x) => println!("Import exception: {:?}", x.to_string()),
+        Err(why) => println!("Import exception: unknown exception"),
+      },
       Err(why) => panic!("Unable to import: {:?}", why),
     }
   } else {

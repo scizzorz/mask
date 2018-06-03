@@ -7,7 +7,7 @@ use engine::Execute;
 use engine::ExecuteErrorKind;
 
 pub fn table(engine: &mut Engine) -> Execute {
-  engine.data_stack.push(Item {
+  engine.push(Item {
     val: Data::new_table(),
     sup: None,
   });
@@ -16,44 +16,40 @@ pub fn table(engine: &mut Engine) -> Execute {
 }
 
 pub fn print(engine: &mut Engine) -> Execute {
-  match engine.data_stack.pop() {
-    Some(x) => println!("{}", x.to_string()),
-    None => return Err(ExecuteErrorKind::EmptyStack),
-  }
-
-  engine.data_stack.push(Const::Null.into_item());
-
+  let x = engine.pop()?;
+  println!("{}", x.to_string());
+  engine.push(Const::Null.into_item());
   Ok(())
 }
 
 pub fn import(engine: &mut Engine) -> Execute {
-  match engine.data_stack.pop() {
-    Some(Item {
+  let top = engine.pop()?;
+  match top {
+    Item {
       val: Data::Str(ref x),
       sup: _,
-    }) => match engine.import(x) {
+    } => match engine.import(x) {
       Err(EngineErrorKind::ModuleError(_)) => return Err(ExecuteErrorKind::Other),
       Err(EngineErrorKind::ExecuteError(x)) => return Err(x),
       Ok(_) => {}
     },
-    Some(_) => return Err(ExecuteErrorKind::BadArguments),
-    None => return Err(ExecuteErrorKind::EmptyStack),
+    _ => {
+      let exc = engine.bad_arguments.clone();
+      engine.panic(exc)?;
+    }
   }
 
   Ok(())
 }
 
 pub fn assert(engine: &mut Engine) -> Execute {
-  match engine.data_stack.pop() {
-    Some(x) => {
-      if !x.truth() {
-        return Err(ExecuteErrorKind::AssertionFailure);
-      }
-    }
-    None => return Err(ExecuteErrorKind::EmptyStack),
+  let x = engine.pop()?;
+  if !x.truth() {
+    let exc = engine.assertion_failure.clone();
+    engine.panic(exc)?;
   }
 
-  engine.data_stack.push(Const::Null.into_item());
+  engine.push(Const::Null.into_item());
 
   Ok(())
 }
@@ -77,7 +73,7 @@ pub fn get(engine: &mut Engine) -> Execute {
   let key = engine.pop()?;
   let val = scope.get_key(&key.val);
 
-  engine.data_stack.push(val);
+  engine.push(val);
 
   Ok(())
 }
@@ -89,7 +85,7 @@ pub fn set_mask(engine: &mut Engine) -> Execute {
 
   scope.set_key(key.val.clone(), val.clone());
 
-  engine.data_stack.push(val);
+  engine.push(val);
 
   Ok(())
 }

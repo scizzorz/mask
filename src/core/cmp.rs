@@ -7,7 +7,7 @@ use engine::ExecuteErrorKind;
 use float;
 use std::mem;
 
-pub fn eq_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn eq_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => true,
@@ -34,7 +34,7 @@ pub fn eq_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   Ok(res)
 }
 
-pub fn ne_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn ne_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => false,
@@ -61,7 +61,7 @@ pub fn ne_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   Ok(res)
 }
 
-pub fn lt_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn lt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x < y,
@@ -70,13 +70,13 @@ pub fn lt_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
     (&Float(x), &Float(y)) => x < y,
     (&Bool(x), &Bool(y)) => x < y,
     (&Str(ref x), &Str(ref y)) => x < y,
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   Ok(res)
 }
 
-pub fn gt_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn gt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x > y,
@@ -85,13 +85,13 @@ pub fn gt_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
     (&Float(x), &Float(y)) => x > y,
     (&Bool(x), &Bool(y)) => x > y,
     (&Str(ref x), &Str(ref y)) => x > y,
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   Ok(res)
 }
 
-pub fn le_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn le_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x <= y,
@@ -100,13 +100,13 @@ pub fn le_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
     (&Float(x), &Float(y)) => x <= y,
     (&Bool(x), &Bool(y)) => x <= y,
     (&Str(ref x), &Str(ref y)) => x <= y,
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   Ok(res)
 }
 
-pub fn ge_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn ge_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x >= y,
@@ -115,7 +115,7 @@ pub fn ge_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
     (&Float(x), &Float(y)) => x >= y,
     (&Bool(x), &Bool(y)) => x >= y,
     (&Str(ref x), &Str(ref y)) => x >= y,
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   Ok(res)
@@ -124,7 +124,7 @@ pub fn ge_aux(lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
 pub fn eq(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;
   let lhs = engine.pop()?;
-  let res = eq_aux(&lhs, &rhs)?;
+  let res = eq_aux(engine, &lhs, &rhs)?;
   engine.data_stack.push(Const::Bool(res).to_item());
   Ok(())
 }
@@ -132,7 +132,7 @@ pub fn eq(engine: &mut Engine) -> Execute {
 pub fn ne(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;
   let lhs = engine.pop()?;
-  let res = ne_aux(&lhs, &rhs)?;
+  let res = ne_aux(engine, &lhs, &rhs)?;
   engine.data_stack.push(Const::Bool(res).to_item());
   Ok(())
 }
@@ -140,7 +140,7 @@ pub fn ne(engine: &mut Engine) -> Execute {
 pub fn lt(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;
   let lhs = engine.pop()?;
-  let res = lt_aux(&lhs, &rhs)?;
+  let res = lt_aux(engine, &lhs, &rhs)?;
   engine.data_stack.push(Const::Bool(res).to_item());
   Ok(())
 }
@@ -148,7 +148,7 @@ pub fn lt(engine: &mut Engine) -> Execute {
 pub fn gt(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;
   let lhs = engine.pop()?;
-  let res = gt_aux(&lhs, &rhs)?;
+  let res = gt_aux(engine, &lhs, &rhs)?;
   engine.data_stack.push(Const::Bool(res).to_item());
   Ok(())
 }
@@ -156,7 +156,7 @@ pub fn gt(engine: &mut Engine) -> Execute {
 pub fn le(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;
   let lhs = engine.pop()?;
-  let res = le_aux(&lhs, &rhs)?;
+  let res = le_aux(engine, &lhs, &rhs)?;
   engine.data_stack.push(Const::Bool(res).to_item());
   Ok(())
 }
@@ -164,7 +164,7 @@ pub fn le(engine: &mut Engine) -> Execute {
 pub fn ge(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;
   let lhs = engine.pop()?;
-  let res = ge_aux(&lhs, &rhs)?;
+  let res = ge_aux(engine, &lhs, &rhs)?;
   engine.data_stack.push(Const::Bool(res).to_item());
   Ok(())
 }

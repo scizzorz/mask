@@ -3,6 +3,7 @@ use data::Const;
 use data::Data;
 use data::Item;
 use data::RustFunc;
+use gc::Gc;
 
 fn insert_item(scope: &mut Item, key: &str, val: Item) {
   scope.set_key(Const::Str(String::from(key)).into_data(), val);

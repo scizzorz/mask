@@ -29,7 +29,7 @@ pub fn sub(engine: &mut Engine) -> Execute {
   let ret = match val.val {
     Int(x) => Int(-x),
     Float(x) => Float(float::from(-x.into_inner())),
-    _ => return Err(ExecuteErrorKind::BadOperand),
+    _ => return Err(ExecuteErrorKind::Other),
   };
 
   engine.data_stack.push(ret.into_item());

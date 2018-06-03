@@ -33,15 +33,9 @@ impl RuntimeModule {
 // to skip a lot of boiler plate code later
 #[derive(Debug)]
 pub enum ExecuteErrorKind {
-  AssertionFailure,
-  BadArguments,
-  BadOperator(Token),
-  BadOperand,
   Break,
   Continue,
-  EmptyStack,
   Exception,
-  NotCallable,
   Return,
   Other,
 }
@@ -59,6 +53,12 @@ pub struct Engine {
   mods: HashMap<String, Rc<Module>>,
   pub data_stack: Vec<Item>,
   scope: Item,
+  pub assertion_failure: Item,
+  pub bad_arguments: Item,
+  pub bad_operator: Item,
+  pub bad_operand: Item,
+  pub empty_stack: Item,
+  pub not_callable: Item,
 }
 
 impl Engine {
@@ -71,6 +71,12 @@ impl Engine {
         val: Data::new_table(),
         sup: None,
       },
+      assertion_failure: Const::Str(String::from("Assetion failure")).into_item(),
+      bad_arguments: Const::Str(String::from("Bad arguments")).into_item(),
+      bad_operator: Const::Str(String::from("Bad operator")).into_item(),
+      bad_operand: Const::Str(String::from("Bad operand")).into_item(),
+      empty_stack: Const::Str(String::from("Empty stack")).into_item(),
+      not_callable: Const::Str(String::from("Not callable")).into_item(),
     };
 
     prelude::insert_prelude(&mut ret.scope);
@@ -104,8 +110,21 @@ impl Engine {
   pub fn pop(&mut self) -> Result<Item, ExecuteErrorKind> {
     match self.data_stack.pop() {
       Some(x) => Ok(x),
-      None => Err(ExecuteErrorKind::EmptyStack),
+      None => {
+        let exc = self.empty_stack.clone();
+        self.panic(exc)?;
+        unreachable!();
+      }
     }
+  }
+
+  pub fn push(&mut self, item: Item) {
+    self.data_stack.push(item);
+  }
+
+  pub fn panic(&mut self, error: Item) -> Execute {
+    self.push(error);
+    return Err(ExecuteErrorKind::Exception);
   }
 
   fn ex_many(
@@ -147,9 +166,9 @@ impl Engine {
         });
       }
 
-      Instr::Call => match self.data_stack.pop() {
-        None => return Err(ExecuteErrorKind::EmptyStack),
-        Some(func) => match func {
+      Instr::Call => {
+        let func = self.pop()?;
+        match func {
           Item {
             val: Data::Func(val, ref mname),
             sup: Some(ref sup),
@@ -179,9 +198,12 @@ impl Engine {
           } => {
             callable.0(self)?;
           }
-          _ => return Err(ExecuteErrorKind::NotCallable),
-        },
-      },
+          _ => {
+            let exc = self.not_callable.clone();
+            self.panic(exc)?;
+          }
+        }
+      }
 
       Instr::Set => {
         core::set(self)?;
@@ -196,30 +218,22 @@ impl Engine {
         // back onto the stack. this is so method calls can
         // only evaluate the owner a single time.
 
-        // this should guarantee that we can pop/unwrap twice
-        if self.data_stack.len() < 2 {
-          return Err(ExecuteErrorKind::EmptyStack);
-        }
-
-        let scope = self.data_stack.pop().unwrap();
-        let key = self.data_stack.pop().unwrap();
+        let scope = self.pop()?;
+        let key = self.pop()?;
         let val = scope.get_key(&key.val);
         self.data_stack.push(scope);
         self.data_stack.push(val);
       }
 
-      Instr::Pop => match self.data_stack.pop() {
-        Some(_) => {}
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
+      Instr::Pop => {
+        self.pop()?;
+      }
 
-      Instr::Dup => match self.data_stack.pop() {
-        Some(x) => {
-          self.data_stack.push(x.clone());
-          self.data_stack.push(x);
-        }
-        None => return Err(ExecuteErrorKind::EmptyStack),
-      },
+      Instr::Dup => {
+        let x = self.pop()?;
+        self.data_stack.push(x.clone());
+        self.data_stack.push(x);
+      }
 
       Instr::Nop => {}
 
@@ -230,7 +244,10 @@ impl Engine {
         Token::Sub => core::bin::sub(self)?,
         Token::Mul => core::bin::mul(self)?,
         Token::Div => core::bin::div(self)?,
-        _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
+        _ => {
+          let exc = self.bad_operator.clone();
+          self.panic(exc)?;
+        }
       },
 
       Instr::UnOp(ref op) => match op {
@@ -238,7 +255,10 @@ impl Engine {
         Token::Sub => core::un::sub(self)?,
         Token::Not => core::un::not(self)?,
         Token::Cat => core::un::cat(self)?,
-        _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
+        _ => {
+          let exc = self.bad_operator.clone();
+          self.panic(exc)?;
+        }
       },
 
       Instr::LogicOp(ref op) => match (self.data_stack.pop(), op) {
@@ -254,8 +274,14 @@ impl Engine {
             return Err(ExecuteErrorKind::Return);
           }
         }
-        (Some(_), op) => return Err(ExecuteErrorKind::BadOperator(op.clone())),
-        (None, _) => return Err(ExecuteErrorKind::EmptyStack),
+        (Some(_), _) => {
+          let exc = self.bad_operator.clone();
+          self.panic(exc)?;
+        }
+        (None, _) => {
+          let exc = self.empty_stack.clone();
+          self.panic(exc)?;
+        }
       },
 
       Instr::CmpOp(ref op, chain) => {
@@ -263,13 +289,16 @@ impl Engine {
         let lhs = self.pop()?;
 
         let result = match op {
-          Token::Eql => core::cmp::eq_aux(&lhs, &rhs)?,
-          Token::Ne => core::cmp::ne_aux(&lhs, &rhs)?,
-          Token::Lt => core::cmp::lt_aux(&lhs, &rhs)?,
-          Token::Gt => core::cmp::gt_aux(&lhs, &rhs)?,
-          Token::Le => core::cmp::le_aux(&lhs, &rhs)?,
-          Token::Ge => core::cmp::ge_aux(&lhs, &rhs)?,
-          _ => return Err(ExecuteErrorKind::BadOperator(op.clone())),
+          Token::Eql => core::cmp::eq_aux(self, &lhs, &rhs)?,
+          Token::Ne => core::cmp::ne_aux(self, &lhs, &rhs)?,
+          Token::Lt => core::cmp::lt_aux(self, &lhs, &rhs)?,
+          Token::Gt => core::cmp::gt_aux(self, &lhs, &rhs)?,
+          Token::Le => core::cmp::le_aux(self, &lhs, &rhs)?,
+          Token::Ge => core::cmp::ge_aux(self, &lhs, &rhs)?,
+          _ => {
+            let exc = self.bad_operator.clone();
+            return self.panic(exc);
+          }
         };
 
         match (chain, result) {
@@ -292,7 +321,10 @@ impl Engine {
             self.ex_many(module, runtime, body)?;
           }
         }
-        None => return Err(ExecuteErrorKind::EmptyStack),
+        None => {
+          let exc = self.empty_stack.clone();
+          self.panic(exc)?;
+        }
       },
 
       Instr::IfElse(ref body, ref els) => match self.data_stack.pop() {
@@ -300,7 +332,10 @@ impl Engine {
           true => self.ex_many(module, runtime, body)?,
           false => self.ex_many(module, runtime, els)?,
         },
-        None => return Err(ExecuteErrorKind::EmptyStack),
+        None => {
+          let exc = self.empty_stack.clone();
+          self.panic(exc)?;
+        }
       },
 
       Instr::Loop(ref body) => loop {
@@ -329,7 +364,7 @@ impl Engine {
           }
           err => return err,
         }
-      },
+      }
 
       Instr::Return => {
         return Err(ExecuteErrorKind::Return);
