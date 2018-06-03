@@ -3,11 +3,11 @@ use data::Const;
 use data::Item;
 use engine::Engine;
 use engine::Execute;
-use engine::ExecuteErrorKind;
+use error::ExecuteControl;
 use float;
 use std::mem;
 
-pub fn eq_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn eq_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteControl> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => true,
@@ -34,7 +34,7 @@ pub fn eq_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErr
   Ok(res)
 }
 
-pub fn ne_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn ne_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteControl> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => false,
@@ -61,7 +61,7 @@ pub fn ne_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErr
   Ok(res)
 }
 
-pub fn lt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn lt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteControl> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x < y,
@@ -73,14 +73,14 @@ pub fn lt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     _ => {
       let exc = engine.bad_arguments.clone();
       engine.push(exc);
-      return Err(ExecuteErrorKind::Exception);
+      return Err(ExecuteControl::Exception);
     }
   };
 
   Ok(res)
 }
 
-pub fn gt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn gt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteControl> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x > y,
@@ -92,14 +92,14 @@ pub fn gt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     _ => {
       let exc = engine.bad_arguments.clone();
       engine.push(exc);
-      return Err(ExecuteErrorKind::Exception);
+      return Err(ExecuteControl::Exception);
     }
   };
 
   Ok(res)
 }
 
-pub fn le_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn le_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteControl> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x <= y,
@@ -111,14 +111,14 @@ pub fn le_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     _ => {
       let exc = engine.bad_arguments.clone();
       engine.push(exc);
-      return Err(ExecuteErrorKind::Exception);
+      return Err(ExecuteControl::Exception);
     }
   };
 
   Ok(res)
 }
 
-pub fn ge_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn ge_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteControl> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Int(x), &Int(y)) => x >= y,
@@ -130,7 +130,7 @@ pub fn ge_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     _ => {
       let exc = engine.bad_arguments.clone();
       engine.push(exc);
-      return Err(ExecuteErrorKind::Exception);
+      return Err(ExecuteControl::Exception);
     }
   };
 

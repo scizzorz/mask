@@ -4,9 +4,10 @@ use core;
 use data::Const;
 use data::Data;
 use data::Item;
+use error::EngineErrorKind;
+use error::ExecuteControl;
 use lexer::Token;
 use module::Module;
-use module::ModuleErrorKind;
 use prelude;
 use serde_yaml;
 use std::collections::HashMap;
@@ -28,25 +29,7 @@ impl RuntimeModule {
   }
 }
 
-// this is used as a bit of a control flow hack - `Return` and `Exception`
-// aren't necessarily errors, but I'm using them with Rust's ? operator
-// to skip a lot of boiler plate code later
-#[derive(Debug)]
-pub enum ExecuteErrorKind {
-  Break,
-  Continue,
-  Exception,
-  Return,
-  Other,
-}
-
-#[derive(Debug)]
-pub enum EngineErrorKind {
-  ModuleError(ModuleErrorKind),
-  ExecuteError(ExecuteErrorKind),
-}
-
-pub type Execute = Result<(), ExecuteErrorKind>;
+pub type Execute = Result<(), ExecuteControl>;
 
 pub struct Engine {
   pub map: CodeMap,
@@ -98,14 +81,14 @@ impl Engine {
 
     match self.ex_many(&rc_module, &mut runtime, &rc_module.code) {
       Ok(_) => {}
-      Err(ExecuteErrorKind::Return) => {}
+      Err(ExecuteControl::Return) => {}
       Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
     }
 
     Ok(())
   }
 
-  pub fn pop(&mut self) -> Result<Item, ExecuteErrorKind> {
+  pub fn pop(&mut self) -> Result<Item, ExecuteControl> {
     match self.data_stack.pop() {
       Some(x) => Ok(x),
       None => {
@@ -122,7 +105,7 @@ impl Engine {
 
   pub fn panic(&mut self, error: Item) -> Execute {
     self.push(error);
-    return Err(ExecuteErrorKind::Exception);
+    return Err(ExecuteControl::Exception);
   }
 
   fn ex_many(
@@ -263,13 +246,13 @@ impl Engine {
         (Some(val), &Token::And) => {
           if !val.truth() {
             self.data_stack.push(val);
-            return Err(ExecuteErrorKind::Return);
+            return Err(ExecuteControl::Return);
           }
         }
         (Some(val), &Token::Or) => {
           if val.truth() {
             self.data_stack.push(val);
-            return Err(ExecuteErrorKind::Return);
+            return Err(ExecuteControl::Return);
           }
         }
         (Some(_), _) => {
@@ -302,7 +285,7 @@ impl Engine {
         match (chain, result) {
           (true, false) => {
             self.data_stack.push(Data::Bool(result).into_item());
-            return Err(ExecuteErrorKind::Return);
+            return Err(ExecuteControl::Return);
           }
           (true, true) => {
             self.data_stack.push(rhs);
@@ -339,15 +322,15 @@ impl Engine {
       Instr::Loop(ref body) => loop {
         match self.ex_many(module, runtime, body) {
           Ok(_) => {}
-          Err(ExecuteErrorKind::Break) => break,
-          Err(ExecuteErrorKind::Continue) => continue,
+          Err(ExecuteControl::Break) => break,
+          Err(ExecuteControl::Continue) => continue,
           err => return err,
         }
       },
 
       Instr::Returnable(ref body) => match self.ex_many(module, runtime, body) {
         Ok(_) => {}
-        Err(ExecuteErrorKind::Return) => {}
+        Err(ExecuteControl::Return) => {}
         err => return err,
       },
 
@@ -355,7 +338,7 @@ impl Engine {
         let enter_stack = self.data_stack.len();
         match self.ex_many(module, runtime, body) {
           Ok(_) => {}
-          Err(ExecuteErrorKind::Exception) => {
+          Err(ExecuteControl::Exception) => {
             let exc = self.pop()?;
             self.data_stack.truncate(enter_stack);
             self.data_stack.push(exc);
@@ -365,21 +348,21 @@ impl Engine {
       }
 
       Instr::Return => {
-        return Err(ExecuteErrorKind::Return);
+        return Err(ExecuteControl::Return);
       }
 
       Instr::Break => {
-        return Err(ExecuteErrorKind::Break);
+        return Err(ExecuteControl::Break);
       }
 
       Instr::Continue => {
-        return Err(ExecuteErrorKind::Continue);
+        return Err(ExecuteControl::Continue);
       }
 
       Instr::ForBreak => match self.data_stack.pop() {
         Some(x) => {
           if x.null() {
-            return Err(ExecuteErrorKind::Break);
+            return Err(ExecuteControl::Break);
           }
           self.data_stack.push(x);
         }

@@ -17,6 +17,7 @@ pub mod compiler;
 pub mod core;
 pub mod data;
 pub mod engine;
+pub mod error;
 pub mod lexer;
 pub mod module;
 pub mod parser;

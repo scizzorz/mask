@@ -7,29 +7,17 @@ use blake2::digest::VariableOutput;
 use code::Instr;
 use codemap::CodeMap;
 use codemap::File;
-use compiler::CompileErrorKind;
 use compiler::Compiler;
 use data::Const;
+use error::ModuleErrorKind;
 use lexer;
 use parser;
-use parser::ParseErrorKind;
-use semck::CheckErrorKind;
 use semck::SemChecker;
 use std::fs;
 use std::fs::OpenOptions;
-use std::io;
 use std::io::Read;
 use std::path::Path;
 use std::sync::Arc;
-
-#[derive(Debug)]
-pub enum ModuleErrorKind {
-  CheckError(CheckErrorKind),
-  ParseError(ParseErrorKind),
-  CompileError(CompileErrorKind),
-  IOError(io::Error),
-  BincodeError(bincode::Error),
-}
 
 fn hash_bytes(bytes: Vec<u8>) -> [u8; 8] {
   // these unwraps should be safe because the output size is hardcoded

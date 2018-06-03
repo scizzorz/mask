@@ -1,16 +1,12 @@
 use code::Instr;
 use data::Const;
+use error::CompileErrorKind;
 use lexer::Token;
 use parser::Node;
 use parser::Place;
 use parser::Var;
 
 type Compile = Result<(), CompileErrorKind>;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CompileErrorKind {
-  MissingCurrentBlock,
-}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Compiler {

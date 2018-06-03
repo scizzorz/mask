@@ -1,15 +1,9 @@
+use error::CheckErrorKind;
 use parser::Node;
 use parser::Place;
 use std::mem;
 
 type Check = Result<(), CheckErrorKind>;
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CheckErrorKind {
-  NotInLoop,
-  MissingIf,
-  NotPlace,
-}
 
 #[derive(Debug, Clone)]
 pub struct SemChecker {

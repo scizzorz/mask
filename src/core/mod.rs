@@ -2,9 +2,9 @@ use data::Const;
 use data::Data;
 use data::Item;
 use engine::Engine;
-use engine::EngineErrorKind;
 use engine::Execute;
-use engine::ExecuteErrorKind;
+use error::EngineErrorKind;
+use error::ExecuteControl;
 
 pub fn table(engine: &mut Engine) -> Execute {
   engine.push(Item {
@@ -29,7 +29,7 @@ pub fn import(engine: &mut Engine) -> Execute {
       val: Data::Str(ref x),
       sup: _,
     } => match engine.import(x) {
-      Err(EngineErrorKind::ModuleError(_)) => return Err(ExecuteErrorKind::Other),
+      Err(EngineErrorKind::ModuleError(_)) => return Err(ExecuteControl::Other),
       Err(EngineErrorKind::ExecuteError(x)) => return Err(x),
       Ok(_) => {}
     },
@@ -55,7 +55,7 @@ pub fn assert(engine: &mut Engine) -> Execute {
 }
 
 pub fn panic(_: &mut Engine) -> Execute {
-  return Err(ExecuteErrorKind::Exception);
+  return Err(ExecuteControl::Exception);
 }
 
 pub fn set(engine: &mut Engine) -> Execute {

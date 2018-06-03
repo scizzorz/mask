@@ -1,6 +1,7 @@
 use self::ParseErrorKind::*;
 use codemap::Span;
 use codemap::Spanned;
+use error::ParseErrorKind;
 use float;
 use int;
 use lexer::Token;
@@ -134,15 +135,6 @@ pub enum Op {
   Right(u32),
   Left(u32),
   None,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum ParseErrorKind {
-  UnexpectedToken(Token),
-  UnexpectedEOF,
-  UnknownBinaryOperator,
-  UnknownUnaryOperator,
-  UnusedPlaces,
 }
 
 // Return true if the next token in `it` is `kind`

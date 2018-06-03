@@ -1,10 +1,6 @@
-use FloatBase;
 use data::Const;
-use data::Data;
-use data::Item;
 use engine::Engine;
 use engine::Execute;
-use engine::ExecuteErrorKind;
 use float;
 
 pub fn mul(engine: &mut Engine) -> Execute {
