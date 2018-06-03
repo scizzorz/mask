@@ -39,6 +39,7 @@ pub enum CheckErrorKind {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompileErrorKind {
+  UnhandledNode,
 }
 
 #[derive(Debug)]

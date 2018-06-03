@@ -152,6 +152,7 @@ impl Engine {
       Instr::Call => {
         let func = self.pop()?;
         match func {
+          // function with scope
           Item {
             val: Data::Func(val, ref mname),
             sup: Some(ref sup),
@@ -167,6 +168,8 @@ impl Engine {
             self.ex(&new_module, runtime, &func)?;
             mem::swap(&mut new_scope, &mut runtime.scope);
           }
+
+          // function with no scope
           Item {
             val: Data::Func(val, ref mname),
             sup: None,
@@ -175,12 +178,17 @@ impl Engine {
             let func = module.funcs[val].clone();
             self.ex(&new_module, runtime, &func)?;
           }
+
+          // Rust function; scope is ignored
+          // FIXME maybe rust functions should get their scope swapped too...?
           Item {
             val: Data::Rust(ref callable),
             sup: _,
           } => {
             callable.0(self)?;
           }
+
+          // not callable!
           _ => {
             let exc = self.not_callable.clone();
             self.panic(exc)?;

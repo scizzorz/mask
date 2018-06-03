@@ -293,7 +293,7 @@ impl Compiler {
       }
 
       _ => {
-        println!("WARNING: unable to compile node: {:?}", root);
+        return Err(CompileErrorKind::UnhandledNode);
       }
     }
 
