@@ -5,7 +5,7 @@ use codemap::Spanned;
 fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   let mut map = CodeMap::new();
   let file = map.add_file(String::from("_test"), String::from(source));
-  lex(&file)
+  lex(&file).unwrap()
 }
 
 #[test]
@@ -31,10 +31,10 @@ fn lex_string() {
   let source = "'hello' 'this\\nis\\nmultiline' 'this\\\\is\\\\escaped' 'this\\tis\\ttabbed' 'this
 is
 real
-multiline' 'and this is unclosed";
+multiline'";
   let tokens = get_tokens(source);
 
-  assert_eq!(tokens.len(), 8);
+  assert_eq!(tokens.len(), 7);
   assert_eq!(tokens[0].node, Str(String::from("hello")));
   assert_eq!(tokens[1].node, Str(String::from("this\nis\nmultiline")));
   assert_eq!(tokens[2].node, Str(String::from("this\\is\\escaped")));
@@ -43,12 +43,8 @@ multiline' 'and this is unclosed";
     tokens[4].node,
     Str(String::from("this\nis\nreal\nmultiline"))
   );
-  assert_eq!(
-    tokens[5].node,
-    UnclosedStr(String::from("and this is unclosed"))
-  );
-  assert_eq!(tokens[6].node, End);
-  assert_eq!(tokens[7].node, EOF);
+  assert_eq!(tokens[5].node, End);
+  assert_eq!(tokens[6].node, EOF);
 }
 
 #[test]

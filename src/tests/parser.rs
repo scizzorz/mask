@@ -8,7 +8,7 @@ use std::fmt::Debug;
 fn get_tokens(source: &str) -> Vec<Spanned<Token>> {
   let mut map = CodeMap::new();
   let file = map.add_file(String::from("_test"), String::from(source));
-  lexer::lex(&file)
+  lexer::lex(&file).unwrap()
 }
 
 fn test_parse<T: Debug + PartialEq>(
