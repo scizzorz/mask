@@ -6,7 +6,6 @@ extern crate serde_yaml;
 use clap::App;
 use clap::Arg;
 use mask::engine;
-use mask::error::ErrorKind;
 use mask::error::ExecuteControl;
 use mask::error::ParseErrorKind;
 use mask::lexer;
@@ -15,7 +14,6 @@ use mask::module;
 use mask::parser;
 use std::io;
 use std::io::Write;
-use std::io::prelude::*;
 
 fn print_module(module: &module::Module) {
   println!("YAML: {}", serde_yaml::to_string(&module).unwrap());
@@ -53,10 +51,10 @@ fn main() {
     }
   } else if let Some(filename) = argv.value_of("path") {
     match engine.import(filename) {
-      Ok(x) => {}
+      Ok(_x) => {}
       Err(ExecuteControl::Exception) => match engine.pop() {
         Ok(x) => println!("Import exception: {}", x.to_string()),
-        Err(why) => println!("Import exception: unknown exception"),
+        Err(_why) => println!("Import exception: unknown exception"),
       },
       Err(why) => panic!("Unable to import: {:?}", why),
     }
@@ -80,7 +78,7 @@ fn main() {
       } else {
         print!("> ");
       }
-      io::stdout().flush();
+      io::stdout().flush().unwrap();
 
       match io::stdin().read_line(&mut buffer) {
         Ok(nbytes) => {
@@ -99,7 +97,7 @@ fn main() {
 
           let tokens = match lexer::lex(&file) {
             Ok(x) => x,
-            Err(why) => panic!("FIXME uhg"),
+            Err(_why) => panic!("FIXME uhg"),
           };
           let ast = parser::parse(tokens);
           match ast {

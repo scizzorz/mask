@@ -147,7 +147,7 @@ impl Hash for Data {
         let addr = unsafe { mem::transmute::<_, u64>(x.clone()) };
         addr.hash(state);
       }
-      Data::Func(x, ref m) => {
+      Data::Func(x, _) => {
         ((x + 0x6d) * 0x61736b).hash(state);
       }
       Data::Rust(ref x) => {

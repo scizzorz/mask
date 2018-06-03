@@ -414,30 +414,6 @@ fn parse_super(it: &mut ParseIter) -> Parse {
   Err(UnexpectedEOF)
 }
 
-/* unused, here for reference
-fn parse_index(it: &mut ParseIter) -> Parse {
-  if let Some(&c) = it.peek() {
-    return match c.node {
-      Token::Sql => {
-        it.next();
-        let idx = parse_bin_expr(it)?;
-        require_token(it, Token::Sqr)?;
-        Ok(idx)
-      }
-      Token::Dot => {
-        it.next();
-        parse_name_as_str(it)
-      }
-      _ => {
-        Err(UnexpectedToken(c.node.clone()))
-      }
-    };
-  }
-
-  Err(UnexpectedEOF)
-}
-*/
-
 fn parse_fn_params(it: &mut ParseIter) -> Result<Vec<String>, ParseErrorKind> {
   let mut params: Vec<String> = Vec::new();
   while let Some(&tok) = it.peek() {
@@ -549,6 +525,7 @@ fn parse_name_as_str(it: &mut ParseIter) -> Parse {
   Err(UnexpectedEOF)
 }
 
+/*
 fn parse_name(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
     return match tok.node {
@@ -562,6 +539,7 @@ fn parse_name(it: &mut ParseIter) -> Parse {
 
   Err(UnexpectedEOF)
 }
+*/
 
 fn parse_quark(it: &mut ParseIter) -> Parse {
   if let Some(&tok) = it.peek() {
