@@ -2,6 +2,18 @@ use bincode;
 use lexer::Token;
 use std::io;
 
+#[derive(Debug)]
+pub enum ErrorKind {
+  Parse(ParseErrorKind),
+  Check(CheckErrorKind),
+  Compile(CompileErrorKind),
+  Module(ModuleErrorKind),
+  Engine(EngineErrorKind),
+  IO(io::Error),
+  Bincode(bincode::Error),
+  Execute(ExecuteControl),
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ParseErrorKind {
   UnexpectedToken(Token),
@@ -20,22 +32,14 @@ pub enum CheckErrorKind {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CompileErrorKind {
-  MissingCurrentBlock,
 }
 
 #[derive(Debug)]
 pub enum ModuleErrorKind {
-  CheckError(CheckErrorKind),
-  ParseError(ParseErrorKind),
-  CompileError(CompileErrorKind),
-  IOError(io::Error),
-  BincodeError(bincode::Error),
 }
 
 #[derive(Debug)]
 pub enum EngineErrorKind {
-  ModuleError(ModuleErrorKind),
-  ExecuteError(ExecuteControl),
 }
 
 // this is used as a bit of a control flow hack - `Return` and `Exception`

@@ -3,7 +3,6 @@ use data::Data;
 use data::Item;
 use engine::Engine;
 use engine::Execute;
-use error::EngineErrorKind;
 use error::ExecuteControl;
 
 pub fn table(engine: &mut Engine) -> Execute {
@@ -28,18 +27,12 @@ pub fn import(engine: &mut Engine) -> Execute {
     Item {
       val: Data::Str(ref x),
       sup: _,
-    } => match engine.import(x) {
-      Err(EngineErrorKind::ModuleError(_)) => return Err(ExecuteControl::Other),
-      Err(EngineErrorKind::ExecuteError(x)) => return Err(x),
-      Ok(_) => {}
-    },
+    } => engine.import(x),
     _ => {
       let exc = engine.bad_arguments.clone();
-      engine.panic(exc)?;
+      engine.panic(exc)
     }
   }
-
-  Ok(())
 }
 
 pub fn assert(engine: &mut Engine) -> Execute {

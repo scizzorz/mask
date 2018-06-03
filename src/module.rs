@@ -9,7 +9,7 @@ use codemap::CodeMap;
 use codemap::File;
 use compiler::Compiler;
 use data::Const;
-use error::ModuleErrorKind;
+use error::ErrorKind;
 use lexer;
 use parser;
 use semck::SemChecker;
@@ -41,22 +41,22 @@ pub struct Module {
 }
 
 impl Module {
-  pub fn from_string(map: &mut CodeMap, chunk: &str) -> Result<Module, ModuleErrorKind> {
+  pub fn from_string(map: &mut CodeMap, chunk: &str) -> Result<Module, ErrorKind> {
     let file = map.add_file(String::from("_anon"), chunk.to_string());
     Module::new(file, false)
   }
 
-  pub fn from_file(map: &mut CodeMap, filename: &str) -> Result<Module, ModuleErrorKind> {
+  pub fn from_file(map: &mut CodeMap, filename: &str) -> Result<Module, ErrorKind> {
     let path = Path::new(&filename);
     let mut fs_file = match fs::File::open(path) {
       Ok(file) => file,
-      Err(why) => return Err(ModuleErrorKind::IOError(why)),
+      Err(why) => return Err(ErrorKind::IO(why)),
     };
 
     let mut contents = String::new();
     let file = match fs_file.read_to_string(&mut contents) {
       Ok(_) => map.add_file(filename.to_string(), contents.to_string()),
-      Err(why) => return Err(ModuleErrorKind::IOError(why)),
+      Err(why) => return Err(ErrorKind::IO(why)),
     };
 
     Module::new(file, true)
@@ -81,7 +81,7 @@ impl Module {
     }
   }
 
-  fn new(file: Arc<File>, use_cache: bool) -> Result<Module, ModuleErrorKind> {
+  fn new(file: Arc<File>, use_cache: bool) -> Result<Module, ErrorKind> {
     let cache_filename = &format!("{}c", file.name());
     let cache_path = Path::new(&cache_filename);
 
@@ -126,7 +126,7 @@ impl Module {
     let lex_bytes = serialize(&hashable_tokens);
     let lex_hash = match lex_bytes {
       Ok(x) => hash_bytes(x),
-      Err(why) => return Err(ModuleErrorKind::BincodeError(why)),
+      Err(why) => return Err(ErrorKind::Bincode(why)),
     };
 
     // check lex cache
@@ -144,13 +144,13 @@ impl Module {
     // generate AST
     let mut ast = match parser::parse(tokens) {
       Ok(root) => root,
-      Err(why) => return Err(ModuleErrorKind::ParseError(why)),
+      Err(why) => return Err(ErrorKind::Parse(why)),
     };
 
     // rearrange AST
     let mut ck = SemChecker::new();
     match ck.check(&mut ast) {
-      Err(why) => return Err(ModuleErrorKind::CheckError(why)),
+      Err(why) => return Err(ErrorKind::Check(why)),
       _ => {}
     }
 
@@ -158,7 +158,7 @@ impl Module {
     let ast_bytes = serialize(&ast);
     let ast_hash = match ast_bytes {
       Ok(x) => hash_bytes(x),
-      Err(why) => return Err(ModuleErrorKind::BincodeError(why)),
+      Err(why) => return Err(ErrorKind::Bincode(why)),
     };
 
     // check AST cache
@@ -177,7 +177,7 @@ impl Module {
     // generate bytecode
     let mut compiler = Compiler::new();
     match compiler.compile(&ast) {
-      Err(why) => return Err(ModuleErrorKind::CompileError(why)),
+      Err(why) => return Err(ErrorKind::Compile(why)),
       _ => {}
     }
 

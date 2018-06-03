@@ -4,7 +4,6 @@ use core;
 use data::Const;
 use data::Data;
 use data::Item;
-use error::EngineErrorKind;
 use error::ExecuteControl;
 use lexer::Token;
 use module::Module;
@@ -65,9 +64,12 @@ impl Engine {
     ret
   }
 
-  pub fn import(&mut self, filename: &str) -> Result<(()), EngineErrorKind> {
+  pub fn import(&mut self, filename: &str) -> Execute {
     let module = match Module::from_file(&mut self.map, filename) {
-      Err(why) => return Err(EngineErrorKind::ModuleError(why)),
+      Err(why) => {
+        let exc = Const::Str(format!("{:?}", why)).into_item();
+        return self.panic(exc);
+      }
       Ok(module) => module,
     };
 
@@ -82,7 +84,7 @@ impl Engine {
     match self.ex_many(&rc_module, &mut runtime, &rc_module.code) {
       Ok(_) => {}
       Err(ExecuteControl::Return) => {}
-      Err(why) => return Err(EngineErrorKind::ExecuteError(why)),
+      Err(why) => return Err(why),
     }
 
     Ok(())
