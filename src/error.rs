@@ -4,6 +4,7 @@ use std::io;
 
 #[derive(Debug)]
 pub enum ErrorKind {
+  Lex(LexErrorKind),
   Parse(ParseErrorKind),
   Check(CheckErrorKind),
   Compile(CompileErrorKind),
@@ -12,6 +13,12 @@ pub enum ErrorKind {
   IO(io::Error),
   Bincode(bincode::Error),
   Execute(ExecuteControl),
+}
+
+#[derive(Debug)]
+pub enum LexErrorKind {
+  InvalidChar(char),
+  UnclosedStr,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

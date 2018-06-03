@@ -119,7 +119,10 @@ impl Module {
     }
 
     // generate tokens
-    let tokens = lexer::lex(&file);
+    let tokens = match lexer::lex(&file) {
+      Ok(x) => x,
+      Err(why) => return Err(ErrorKind::Lex(why)),
+    };
 
     // hash tokens
     let hashable_tokens: Vec<_> = tokens.iter().map(|x| x.node.clone()).collect();

@@ -1,6 +1,7 @@
 use self::Token::*;
 use codemap::File;
 use codemap::Spanned;
+use error::LexErrorKind;
 use float;
 use int;
 use std::iter::Enumerate;
@@ -8,6 +9,7 @@ use std::iter::Peekable;
 use std::str::Chars;
 
 type LexIter<'a> = Peekable<Enumerate<Chars<'a>>>;
+type Lex = Result<Token, LexErrorKind>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Token {
@@ -17,7 +19,6 @@ pub enum Token {
   Exit,
   Space,
   End,
-  Tab, // lol
   Comment(String),
 
   // Literals
@@ -28,7 +29,6 @@ pub enum Token {
   Int(int),
   Str(String),
   Name(String),
-  UnclosedStr(String),
 
   // Keywords
   And,
@@ -87,7 +87,7 @@ pub enum Token {
   Ne,  // !=
 }
 
-fn lex_number(it: &mut LexIter) -> Token {
+fn lex_number(it: &mut LexIter) -> Lex {
   let mut digits = String::new();
   while let Some(&(_i, c)) = it.peek() {
     match c {
@@ -99,13 +99,15 @@ fn lex_number(it: &mut LexIter) -> Token {
     }
   }
 
-  match digits.contains(".") {
+  let ret = match digits.contains(".") {
     true => Float(float::from(digits.parse::<f64>().unwrap())),
     false => Int(digits.parse::<i64>().unwrap()),
-  }
+  };
+
+  Ok(ret)
 }
 
-fn lex_name(it: &mut LexIter) -> Token {
+fn lex_name(it: &mut LexIter) -> Lex {
   let mut name = String::new();
   name.push(it.next().unwrap().1);
 
@@ -119,7 +121,7 @@ fn lex_name(it: &mut LexIter) -> Token {
     }
   }
 
-  match name.as_str() {
+  let ret = match name.as_str() {
     "true" => Bool(true),
     "false" => Bool(false),
     "null" => Null,
@@ -141,10 +143,12 @@ fn lex_name(it: &mut LexIter) -> Token {
     "while" => While,
 
     _ => Name(name),
-  }
+  };
+
+  Ok(ret)
 }
 
-fn lex_comment(it: &mut LexIter) -> Token {
+fn lex_comment(it: &mut LexIter) -> Lex {
   let mut comment = String::new();
   it.next();
 
@@ -158,10 +162,10 @@ fn lex_comment(it: &mut LexIter) -> Token {
     }
   }
 
-  Comment(comment)
+  Ok(Comment(comment))
 }
 
-fn lex_indent(it: &mut LexIter) -> u64 {
+fn lex_indent(it: &mut LexIter) -> Result<u64, LexErrorKind> {
   let mut indent: u64 = 0;
   it.next();
 
@@ -175,25 +179,25 @@ fn lex_indent(it: &mut LexIter) -> u64 {
     }
   }
 
-  indent
+  Ok(indent)
 }
 
-fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Token {
+fn lex_pair(next: char, solo: Token, pair: Token, it: &mut LexIter) -> Lex {
   it.next();
 
   if let Some(&(_i, c)) = it.peek() {
     if c == next {
       it.next();
-      return pair;
+      return Ok(pair);
     }
   }
 
   // is this right? if peek() returns a None, we just return `solo`?
   // seems right. None should be the EOF, meaning `solo` is the last token
-  solo
+  Ok(solo)
 }
 
-fn lex_string(it: &mut LexIter) -> Token {
+fn lex_string(it: &mut LexIter) -> Lex {
   let mut contents = String::new();
   let mut escaped = false;
   it.next();
@@ -240,18 +244,14 @@ fn lex_string(it: &mut LexIter) -> Token {
       // this is kind of an escape hatch because I didn't think through the
       // lexer it hadn't occurred to me at the time that lexing a token could
       // fail, so the lexer has no functionality to support failure. oh well.
-      return UnclosedStr(contents);
+      return Err(LexErrorKind::UnclosedStr);
     }
   }
 
-  Str(contents)
+  Ok(Str(contents))
 }
 
-// this should definitely return a result originally, I hadn't considered that
-// lexing could fail and that all failure should be in the parser, but...
-// maybe invalid characters and mismatched strings and whatnot should fail at
-// the lexing
-pub fn lex(input: &File) -> Vec<Spanned<Token>> {
+pub fn lex(input: &File) -> Result<Vec<Spanned<Token>>, LexErrorKind> {
   let mut tokens: Vec<Spanned<Token>> = Vec::new();
   let mut it: LexIter = input.source().chars().enumerate().peekable();
   let mut indent_stack: Vec<u64> = Vec::new();
@@ -266,11 +266,11 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
       Exit
     } else {
       match c {
-        '#' => lex_comment(&mut it),
-        'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it),
-        '0'...'9' => lex_number(&mut it),
+        '#' => lex_comment(&mut it)?,
+        'a'...'z' | 'A'...'Z' | '_' => lex_name(&mut it)?,
+        '0'...'9' => lex_number(&mut it)?,
         '\n' => {
-          let indent = lex_indent(&mut it);
+          let indent = lex_indent(&mut it)?;
 
           if let Some(&(_, c)) = it.peek() {
             match c {
@@ -290,20 +290,17 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
             End
           }
         }
-        '\t' => {
-          it.next();
-          Tab
-        }
+        '\t' => return Err(LexErrorKind::InvalidChar('\t')),
 
-        '\'' => lex_string(&mut it),
+        '\'' => lex_string(&mut it)?,
 
         // Compound
-        '-' => lex_pair('>', Sub, Arr, &mut it),
-        '<' => lex_pair('=', Lt, Le, &mut it),
-        '>' => lex_pair('=', Gt, Ge, &mut it),
-        '=' => lex_pair('=', Ass, Eql, &mut it),
-        '!' => lex_pair('=', Not, Ne, &mut it),
-        ':' => lex_pair(':', Col, Sup, &mut it),
+        '-' => lex_pair('>', Sub, Arr, &mut it)?,
+        '<' => lex_pair('=', Lt, Le, &mut it)?,
+        '>' => lex_pair('=', Gt, Ge, &mut it)?,
+        '=' => lex_pair('=', Ass, Eql, &mut it)?,
+        '!' => lex_pair('=', Not, Ne, &mut it)?,
+        ':' => lex_pair(':', Col, Sup, &mut it)?,
 
         // Symbols
         // -> Arr
@@ -381,7 +378,6 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
           it.next();
           Neg
         }
-        // ! Not
         '|' => {
           it.next();
           Pipe
@@ -390,11 +386,11 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
           it.next();
           Pct
         }
-        // - Sub
-        _ => {
+        ' ' => {
           it.next();
           Space
         }
+        x => return Err(LexErrorKind::InvalidChar(x)),
       }
     };
 
@@ -478,7 +474,7 @@ pub fn lex(input: &File) -> Vec<Spanned<Token>> {
     span: span,
   });
 
-  tokens
+  Ok(tokens)
 }
 
 #[cfg(test)]

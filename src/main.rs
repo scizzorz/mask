@@ -97,7 +97,10 @@ fn main() {
 
           let file = engine.map.add_file(String::from("_stdin"), chunk.clone());
 
-          let tokens = lexer::lex(&file);
+          let tokens = match lexer::lex(&file) {
+            Ok(x) => x,
+            Err(why) => panic!("FIXME uhg"),
+          };
           let ast = parser::parse(tokens);
           match ast {
             // incomplete statement - say we're waiting for an empty line and then skip the rest
