@@ -318,10 +318,17 @@ impl Engine {
         err => return err,
       },
 
-      Instr::Catch(ref body) => match self.ex_many(module, runtime, body) {
-        Ok(_) => {}
-        Err(ExecuteErrorKind::Exception) => {}
-        err => return err,
+      Instr::Catch(ref body) => {
+        let enter_stack = self.data_stack.len();
+        match self.ex_many(module, runtime, body) {
+          Ok(_) => {}
+          Err(ExecuteErrorKind::Exception) => {
+            let exc = self.pop()?;
+            self.data_stack.truncate(enter_stack);
+            self.data_stack.push(exc);
+          }
+          err => return err,
+        }
       },
 
       Instr::Return => {
