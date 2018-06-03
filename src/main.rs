@@ -55,7 +55,7 @@ fn main() {
     match engine.import(filename) {
       Ok(x) => {}
       Err(EngineErrorKind::ExecuteError(ExecuteErrorKind::Exception)) => match engine.pop() {
-        Ok(x) => println!("Import exception: {:?}", x.to_string()),
+        Ok(x) => println!("Import exception: {}", x.to_string()),
         Err(why) => println!("Import exception: unknown exception"),
       },
       Err(why) => panic!("Unable to import: {:?}", why),

@@ -56,7 +56,6 @@ pub struct Engine {
   pub assertion_failure: Item,
   pub bad_arguments: Item,
   pub bad_operator: Item,
-  pub bad_operand: Item,
   pub empty_stack: Item,
   pub not_callable: Item,
 }
@@ -74,7 +73,6 @@ impl Engine {
       assertion_failure: Const::Str(String::from("Assetion failure")).into_item(),
       bad_arguments: Const::Str(String::from("Bad arguments")).into_item(),
       bad_operator: Const::Str(String::from("Bad operator")).into_item(),
-      bad_operand: Const::Str(String::from("Bad operand")).into_item(),
       empty_stack: Const::Str(String::from("Empty stack")).into_item(),
       not_callable: Const::Str(String::from("Not callable")).into_item(),
     };

@@ -7,7 +7,7 @@ use engine::ExecuteErrorKind;
 use float;
 use std::mem;
 
-pub fn eq_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn eq_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => true,
@@ -34,7 +34,7 @@ pub fn eq_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
   Ok(res)
 }
 
-pub fn ne_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
+pub fn ne_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteErrorKind> {
   use data::Data::*;
   let res = match (&lhs.val, &rhs.val) {
     (&Null, &Null) => false,
@@ -70,7 +70,11 @@ pub fn lt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     (&Float(x), &Float(y)) => x < y,
     (&Bool(x), &Bool(y)) => x < y,
     (&Str(ref x), &Str(ref y)) => x < y,
-    _ => return Err(ExecuteErrorKind::Other),
+    _ => {
+      let exc = engine.bad_arguments.clone();
+      engine.push(exc);
+      return Err(ExecuteErrorKind::Exception);
+    }
   };
 
   Ok(res)
@@ -85,7 +89,11 @@ pub fn gt_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     (&Float(x), &Float(y)) => x > y,
     (&Bool(x), &Bool(y)) => x > y,
     (&Str(ref x), &Str(ref y)) => x > y,
-    _ => return Err(ExecuteErrorKind::Other),
+    _ => {
+      let exc = engine.bad_arguments.clone();
+      engine.push(exc);
+      return Err(ExecuteErrorKind::Exception);
+    }
   };
 
   Ok(res)
@@ -100,7 +108,11 @@ pub fn le_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     (&Float(x), &Float(y)) => x <= y,
     (&Bool(x), &Bool(y)) => x <= y,
     (&Str(ref x), &Str(ref y)) => x <= y,
-    _ => return Err(ExecuteErrorKind::Other),
+    _ => {
+      let exc = engine.bad_arguments.clone();
+      engine.push(exc);
+      return Err(ExecuteErrorKind::Exception);
+    }
   };
 
   Ok(res)
@@ -115,7 +127,11 @@ pub fn ge_aux(engine: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, Execu
     (&Float(x), &Float(y)) => x >= y,
     (&Bool(x), &Bool(y)) => x >= y,
     (&Str(ref x), &Str(ref y)) => x >= y,
-    _ => return Err(ExecuteErrorKind::Other),
+    _ => {
+      let exc = engine.bad_arguments.clone();
+      engine.push(exc);
+      return Err(ExecuteErrorKind::Exception);
+    }
   };
 
   Ok(res)
