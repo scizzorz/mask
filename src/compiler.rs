@@ -200,7 +200,7 @@ impl Compiler {
         self.compile_aux(expr, block)?;
         let mut iter_block = Vec::new();
         iter_block.push(Instr::Dup);
-        iter_block.push(Instr::Call);
+        iter_block.push(Instr::Call(0));
         iter_block.push(Instr::ForBreak);
         if let Var::Single(ref decl) = *decl {
           let const_id = self.get_const(Const::Str(decl.clone()));
@@ -275,7 +275,7 @@ impl Compiler {
           self.compile_aux(arg, block)?;
         }
         self.compile_aux(func, block)?;
-        block.push(Instr::Call);
+        block.push(Instr::Call(args.len()));
       }
 
       Node::MethodCall {
@@ -289,7 +289,7 @@ impl Compiler {
         self.compile_aux(method, block)?;
         self.compile_aux(owner, block)?;
         block.push(Instr::MethodGet);
-        block.push(Instr::Call);
+        block.push(Instr::Call(args.len() + 1));
       }
 
       _ => {

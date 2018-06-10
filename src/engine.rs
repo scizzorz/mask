@@ -149,7 +149,7 @@ impl Engine {
         });
       }
 
-      Instr::Call => {
+      Instr::Call(nargs) => {
         let func = self.pop()?;
         match func {
           // function with scope
