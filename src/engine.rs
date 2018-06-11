@@ -139,9 +139,13 @@ impl Engine {
         self.data_stack.push(runtime.scope.clone());
       }
 
-      Instr::PushFunc(x) => {
+      Instr::PushFunc { id, nargs } => {
         self.data_stack.push(Item {
-          val: Data::Func(x, module.name.clone()),
+          val: Data::Func {
+            id,
+            module: module.name.clone(),
+            nargs,
+          },
           sup: Some(Box::new(Item {
             val: Data::new_table(),
             sup: Some(Box::new(runtime.scope.clone())),
@@ -154,7 +158,11 @@ impl Engine {
         match func {
           // function with scope
           Item {
-            val: Data::Func(val, ref mname),
+            val: Data::Func {
+              id: val,
+              module: ref mname,
+              nargs,
+            },
             sup: Some(ref sup),
           } => {
             let new_module = self.mods[mname].clone();
@@ -171,7 +179,11 @@ impl Engine {
 
           // function with no scope
           Item {
-            val: Data::Func(val, ref mname),
+            val: Data::Func {
+              id: val,
+              module: ref mname,
+              nargs,
+            },
             sup: None,
           } => {
             let new_module = self.mods[mname].clone();

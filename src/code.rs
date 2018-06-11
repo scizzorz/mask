@@ -21,7 +21,10 @@ pub enum Instr {
   Nop,
   Pop,
   PushConst(usize),
-  PushFunc(usize),
+  PushFunc {
+    id: usize, 
+    nargs: usize,
+  },
   PushScope,
   Return,
   Returnable(Vec<Instr>),

@@ -254,7 +254,10 @@ impl Compiler {
         let const_id = self.get_const(Const::Null);
         new_block.push(Instr::PushConst(const_id));
         self.funcs.push(Instr::Returnable(new_block));
-        block.push(Instr::PushFunc(self.funcs.len() - 1));
+        block.push(Instr::PushFunc {
+          id: self.funcs.len() - 1,
+          nargs: params.len(),
+        });
       }
 
       Node::Return(ref val) => {
