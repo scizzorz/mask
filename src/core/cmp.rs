@@ -1,4 +1,3 @@
-use FloatBase;
 use data::Const;
 use data::Item;
 use engine::Engine;
@@ -6,6 +5,7 @@ use engine::Execute;
 use error::ExecuteControl;
 use float;
 use std::mem;
+use FloatBase;
 
 pub fn eq_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteControl> {
   use data::Data::*;
@@ -17,7 +17,18 @@ pub fn eq_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteCon
     (&Float(x), &Float(y)) => x == y,
     (&Bool(x), &Bool(y)) => x == y,
     (&Str(ref x), &Str(ref y)) => x == y,
-    (&Func { id: xid, module: ref xmod, nargs: xnargs }, &Func { id: yid, module: ref ymod, nargs: ynargs }) => (xid == yid) && (xmod == ymod) && (xnargs == ynargs),
+    (
+      &Func {
+        id: xid,
+        module: ref xmod,
+        nargs: xnargs,
+      },
+      &Func {
+        id: yid,
+        module: ref ymod,
+        nargs: ynargs,
+      },
+    ) => (xid == yid) && (xmod == ymod) && (xnargs == ynargs),
     (&Rust(ref x), &Rust(ref y)) => {
       let xaddr = unsafe { mem::transmute::<_, u128>(x.0) };
       let yaddr = unsafe { mem::transmute::<_, u128>(y.0) };
@@ -44,7 +55,18 @@ pub fn ne_aux(_: &mut Engine, lhs: &Item, rhs: &Item) -> Result<bool, ExecuteCon
     (&Float(x), &Float(y)) => x != y,
     (&Bool(x), &Bool(y)) => x != y,
     (&Str(ref x), &Str(ref y)) => x != y,
-    (&Func { id: xid, module: ref xmod, nargs: xnargs }, &Func { id: yid, module: ref ymod, nargs: ynargs }) => (xid != yid) || (xmod != ymod) || (xnargs != ynargs),
+    (
+      &Func {
+        id: xid,
+        module: ref xmod,
+        nargs: xnargs,
+      },
+      &Func {
+        id: yid,
+        module: ref ymod,
+        nargs: ynargs,
+      },
+    ) => (xid != yid) || (xmod != ymod) || (xnargs != ynargs),
     (&Rust(ref x), &Rust(ref y)) => {
       let xaddr = unsafe { mem::transmute::<_, u128>(x.0) };
       let yaddr = unsafe { mem::transmute::<_, u128>(y.0) };

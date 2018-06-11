@@ -1,10 +1,10 @@
-use FloatBase;
 use data::Const;
 use data::Data;
 use data::Item;
 use engine::Engine;
 use engine::Execute;
 use float;
+use FloatBase;
 
 pub fn sup(engine: &mut Engine) -> Execute {
   let rhs = engine.pop()?;

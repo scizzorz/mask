@@ -1,9 +1,8 @@
-use VERSION;
 use bincode;
 use bincode::serialize;
-use blake2::Blake2b;
 use blake2::digest::Input;
 use blake2::digest::VariableOutput;
+use blake2::Blake2b;
 use code::Instr;
 use codemap::CodeMap;
 use codemap::File;
@@ -18,6 +17,7 @@ use std::fs::OpenOptions;
 use std::io::Read;
 use std::path::Path;
 use std::sync::Arc;
+use VERSION;
 
 fn hash_bytes(bytes: Vec<u8>) -> [u8; 8] {
   // these unwraps should be safe because the output size is hardcoded

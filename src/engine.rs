@@ -158,11 +158,12 @@ impl Engine {
         match func {
           // function with scope
           Item {
-            val: Data::Func {
-              id: val,
-              module: ref mname,
-              nargs,
-            },
+            val:
+              Data::Func {
+                id: val,
+                module: ref mname,
+                nargs,
+              },
             sup: Some(ref sup),
           } => {
             let new_module = self.mods[mname].clone();
@@ -179,11 +180,12 @@ impl Engine {
 
           // function with no scope
           Item {
-            val: Data::Func {
-              id: val,
-              module: ref mname,
-              nargs,
-            },
+            val:
+              Data::Func {
+                id: val,
+                module: ref mname,
+                nargs,
+              },
             sup: None,
           } => {
             let new_module = self.mods[mname].clone();

@@ -458,9 +458,9 @@ fn test_return_stmt() {
     &parse_stmt,
     Ok(Node::Return(Some(Box::new(Node::FuncDef {
       params: Vec::new(),
-      body: Box::new(Node::Block(vec![
-        Node::Return(Some(Box::new(Node::Int(5)))),
-      ])),
+      body: Box::new(Node::Block(vec![Node::Return(Some(Box::new(Node::Int(
+        5,
+      ))))])),
     })))),
   );
 }
@@ -548,20 +548,18 @@ fn test_place() {
   test_parse(
     "[x]",
     &parse_place,
-    Ok(Place::Multi(vec![
-      Place::Single(Box::new(Node::Name(String::from("x")))),
-    ])),
+    Ok(Place::Multi(vec![Place::Single(Box::new(Node::Name(
+      String::from("x"),
+    )))])),
   );
 
   test_parse(
     "[x.y]",
     &parse_place,
-    Ok(Place::Multi(vec![
-      Place::Single(Box::new(Node::Index {
-        lhs: Box::new(Node::Name(String::from("x"))),
-        rhs: Box::new(Node::Str(String::from("y"))),
-      })),
-    ])),
+    Ok(Place::Multi(vec![Place::Single(Box::new(Node::Index {
+      lhs: Box::new(Node::Name(String::from("x"))),
+      rhs: Box::new(Node::Str(String::from("y"))),
+    }))])),
   );
 
   test_parse(
